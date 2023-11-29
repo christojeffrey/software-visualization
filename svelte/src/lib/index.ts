@@ -1,5 +1,8 @@
 // place files you want to import through the `$lib` alias in this folder.
 
+
+
+
 const nodes = [
 	{ id: 1, level: 1 },
 	{ id: 2, level: 2 },
@@ -40,9 +43,27 @@ const links = [
 	{ source: 9, target: 16 }
 ];
 
+const groups = [
+	{
+		id: 1,
+		leaves: [1, 2, 3, 4]
+	},
+	{
+		id: 2,
+		leaves: [5, 6, 7, 8, 9, 10]
+	},
+	{
+		id: 3,
+		leaves: [11, 12, 13, 14, 15, 16]
+	}
+];
+
+
+
 const data = {
 	nodes,
-	links
+	links,
+	groups
 };
 
 export default data;
