@@ -1,151 +1,201 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
-	import * as cola from 'webcola';
 
-	import graphData from '$lib';
+	import { rawToGraphDataConverter, tick } from '$lib';
+	import { rawData, exampleData } from '$lib/graph-data';
+	import { SVGSIZE, SVGMARGIN } from '$lib/constants';
+
+	import SidePanel from './components/side-panel.svelte';
 
 	let svgElement: any;
-	const SVGMARGIN = 50;
-	const SVGSIZE = 500;
+
+	let config = {
+		isGrouped: false,
+		useRawData: false,
+		isConfigChanged: false
+	};
 
 	// graph
-	let nodes: any = graphData.nodes;
-	let edges: any = graphData.links;
-	let groups = graphData.groups;
+	let graphData: {
+		nodes: any[];
+		links: any[];
+		groups: any[];
+	} = {
+		nodes: exampleData.nodes,
+		links: exampleData.links,
+		groups: exampleData.groups
+	};
+	let convertedData = rawToGraphDataConverter(rawData);
 
-	// graph done
+	let svg: any;
+	let simulation: any;
+	let groupLinks: any[] = [];
+	let groupElements: any;
+	let nodeElements: any;
+	let linkElements: any;
+	let nodeLabelElements: any;
+	let isMounted = false;
 
+	$: {
+		if (isMounted) {
+			simulation.alphaTarget(0.1).restart();
+			const t = d3.transition().duration(100).ease(d3.easeLinear);
+			if (config.isGrouped) {
+				// turn on force
+				simulation.force(
+					'groupLink',
+					d3
+						.forceLink(groupLinks)
+						.id((d: any) => d.id)
+						.strength(1)
+				);
+				// change oppacity of group svg
+				groupElements.transition(t).attr('fill-opacity', 0.3);
+			} else {
+				// turn off force
+				simulation.force('groupLink', null);
+				// change oppacity of group svg
+				groupElements.transition(t).attr('fill-opacity', 0);
+			}
+		}
+	}
+
+	$: {
+		if (isMounted) {
+			if (config.isConfigChanged) {
+				// remove the old data
+				d3.select(svgElement).selectAll('*').remove();
+				simulation.removeAll();
+
+				if (config.useRawData) {
+					// raw
+					graphData.nodes = convertedData.nodes;
+					graphData.links = convertedData.links;
+					graphData.groups = [];
+				} else {
+					// graph
+					graphData.nodes = graphData.nodes;
+					graphData.links = graphData.links;
+					graphData.groups = graphData.groups;
+				}
+				config.isConfigChanged = false;
+			}
+
+			// BASICS
+			svg = d3
+				.select(svgElement)
+				.attr('width', SVGSIZE + SVGMARGIN * 2)
+				.attr('height', SVGSIZE + SVGMARGIN * 2);
+
+			// Create a simulation with several forces.
+			simulation = d3
+				.forceSimulation(graphData.nodes)
+				.force(
+					'link',
+					d3
+						.forceLink(graphData.links)
+						.id((d: any) => d.id)
+						.strength(0.1)
+				)
+				.force('charge', d3.forceManyBody().strength(-300))
+				.force('x', d3.forceX((SVGSIZE + SVGMARGIN * 2) / 2))
+				.force('y', d3.forceY((SVGSIZE + SVGMARGIN * 2) / 2));
+			// add fake link between node in same group
+			groupLinks = [];
+			for (let i = 0; i < graphData.groups.length; i++) {
+				for (let j = 0; j < graphData.groups[i].leaves.length; j++) {
+					for (let k = j + 1; k < graphData.groups[i].leaves.length; k++) {
+						groupLinks.push({
+							source: graphData.groups[i].leaves[j],
+							target: graphData.groups[i].leaves[k]
+						});
+					}
+				}
+			}
+
+			// INITIALIZE COMPONENTS
+			linkElements = svg
+				.selectAll('line')
+				.data(graphData.links)
+				.enter()
+				.append('line')
+				.style('stroke', '#aaa');
+
+			groupElements = svg
+				.selectAll('rect')
+				.data(graphData.groups)
+				.enter()
+				.append('rect')
+				.attr('x', 5)
+				.attr('y', 5)
+				.attr('width', 100)
+				.attr('height', 100)
+				.attr('fill-opacity', config.isGrouped ? 0.3 : 0)
+				.style('fill', (d: any) => d.color);
+
+			nodeElements = svg
+				.selectAll('circle')
+				.data(graphData.nodes)
+				.enter()
+				.append('circle')
+				.attr('r', 5)
+				.style('fill', '#69b3a2');
+
+			// add text
+			nodeLabelElements = svg
+				.selectAll('text')
+				.data(graphData.nodes)
+				.enter()
+				.append('text')
+				.text((d: any) => d.id)
+				.attr('x', 6)
+				.attr('y', 3);
+
+			function dragstarted(event: any) {
+				if (!event.active) simulation.alphaTarget(0.3).restart();
+				event.subject.fx = event.subject.x;
+				event.subject.fy = event.subject.y;
+			}
+
+			// Update the subject (dragged node) position during drag.
+			function dragged(event: any) {
+				event.subject.fx = event.x;
+				event.subject.fy = event.y;
+			}
+
+			function dragended(event: any) {
+				if (!event.active) simulation.alphaTarget(0);
+				event.subject.fx = null;
+				event.subject.fy = null;
+			}
+
+			// Add a drag behavior.
+			nodeElements.call(
+				d3.drag<any, any>().on('start', dragstarted).on('drag', dragged).on('end', dragended)
+			);
+
+			simulation.on('tick', () => {
+				tick(
+					linkElements,
+					nodeElements,
+					groupElements,
+					nodeLabelElements,
+					graphData.groups,
+					graphData.nodes
+				);
+			});
+		}
+	}
 	onMount(() => {
-		// BASICS
-		const svg = d3
-			.select(svgElement)
-			.attr('width', SVGSIZE + SVGMARGIN * 2)
-			.attr('height', SVGSIZE + SVGMARGIN * 2);
-
-		// Create a simulation with several forces.
-		const simulation = d3
-			.forceSimulation(nodes)
-			.force(
-				'link',
-				d3.forceLink(edges).id((d: any) => d.id)
-			)
-			.force('charge', d3.forceManyBody())
-			.force('x', d3.forceX())
-			.force('y', d3.forceY());
-
-		// INITIALIZE COMPONENTS
-		const link = svg.selectAll('line').data(edges).join('line').style('stroke', '#aaa');
-
-		const node = svg
-			.selectAll('circle')
-			.data(nodes)
-			.join('circle')
-			.attr('r', 5)
-			.style('fill', '#69b3a2');
-
-		// const group = svg
-		// 	.selectAll('rect')
-		// 	.data(groups)
-		// 	.enter()
-		// 	.append('rect')
-		// 	.attr('x', 5)
-		// 	.attr('y', 5)
-		// 	.attr('width', 100)
-		// 	.attr('height', 100)
-		// 	.attr('fill-opacity', 0.3)
-		// 	.style('fill', '#aaa');
-		// Reheat the simulation when drag starts, and fix the subject position.
-		function dragstarted(event: any) {
-			if (!event.active) simulation.alphaTarget(0.3).restart();
-			event.subject.fx = event.subject.x;
-			event.subject.fy = event.subject.y;
-		}
-
-		// Update the subject (dragged node) position during drag.
-		function dragged(event: any) {
-			event.subject.fx = event.x;
-			event.subject.fy = event.y;
-		}
-
-		// Restore the target alpha so the simulation cools after dragging ends.
-		// Unfix the subject position now that it’s no longer being dragged.
-		function dragended(event: any) {
-			if (!event.active) simulation.alphaTarget(0);
-			event.subject.fx = null;
-			event.subject.fy = null;
-		}
-		// attach node, link, and force to svg
-		// simulation.nodes(nodes).force('link').links(edges);
-		// Add a drag behavior.
-		node.call(
-			d3.drag<any, any>().on('start', dragstarted).on('drag', dragged).on('end', dragended)
-		);
-
-		simulation.on('tick', () => {
-			link
-				.attr('x1', (d: any) => d.source.x)
-				.attr('y1', (d: any) => d.source.y)
-				.attr('x2', (d: any) => d.target.x)
-				.attr('y2', (d: any) => d.target.y);
-
-			node.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
-
-			// group
-			// 	.attr('x', function (d) {
-			// 		//find the min x value of the nodes in the group
-			// 		let min = d.leaves[0].x;
-			// 		for (let i = 0; i < d.leaves.length; i++) {
-			// 			if (d.leaves[i].x < min) {
-			// 				min = d.leaves[i].x;
-			// 			}
-			// 		}
-			// 		return min - 10;
-			// 	})
-			// 	.attr('y', function (d) {
-			// 		//find the min y value of the nodes in the group
-			// 		let min = d.leaves[0].y;
-			// 		for (let i = 0; i < d.leaves.length; i++) {
-			// 			if (d.leaves[i].y < min) {
-			// 				min = d.leaves[i].y;
-			// 			}
-			// 		}
-			// 		return min - 10;
-			// 	})
-			// 	.attr('width', function (d) {
-			// 		// calculate height based on the difference between the max and min y values of the nodes in the group
-			// 		let max = d.leaves[0].x;
-			// 		let min = d.leaves[0].x;
-			// 		for (let i = 0; i < d.leaves.length; i++) {
-			// 			if (d.leaves[i].x > max) {
-			// 				max = d.leaves[i].x;
-			// 			}
-			// 			if (d.leaves[i].x < min) {
-			// 				min = d.leaves[i].x;
-			// 			}
-			// 		}
-			// 		return max - min + 20;
-			// 	})
-			// 	.attr('height', function (d) {
-			// 		// calculate height based on the difference between the max and min y values of the nodes in the group
-			// 		let max = d.leaves[0].y;
-			// 		let min = d.leaves[0].y;
-			// 		for (let i = 0; i < d.leaves.length; i++) {
-			// 			if (d.leaves[i].y > max) {
-			// 				max = d.leaves[i].y;
-			// 			}
-			// 			if (d.leaves[i].y < min) {
-			// 				min = d.leaves[i].y;
-			// 			}
-			// 		}
-			// 		return max - min + 20;
-			// 	});
-		});
+		isMounted = true;
 	});
 </script>
 
 <div class="graph">
 	<svg bind:this={svgElement} />
+
+	<SidePanel bind:config />
 </div>
 
 <style>

@@ -1,4 +1,8 @@
 module.exports = {
+	rules: {
+		// allow explicit any
+		'@typescript-eslint/no-explicit-any': 'off'
+	},
 	root: true,
 	extends: [
 		'eslint:recommended',

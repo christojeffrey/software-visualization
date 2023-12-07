@@ -1,4 +1,4 @@
-export const raw = {
+export const rawData = {
 	elements: {
 		nodes: [
 			{
@@ -1785,9 +1785,9 @@ export const raw = {
 		],
 		edges: [
 			{
-                data: {
-                    id: '7359448167ffb41b47d5975ef5580394',
-                    source: 'CH.ifa.draw.framework',
+				data: {
+					id: '7359448167ffb41b47d5975ef5580394',
+					source: 'CH.ifa.draw.framework',
 					label: 'contains',
 					properties: {
 						containmentType: 'package',
