@@ -14,6 +14,7 @@ export const rawToGraphDataConverter = (rawData: any) => {
 
 	return {
 		nodes,
-		links
+		links,
+		groups: []
 	};
 };
