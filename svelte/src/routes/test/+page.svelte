@@ -5,69 +5,46 @@
 	import { rawToGraphDataConverter, tick } from '$lib';
 	import { rawData, exampleData } from '$lib/graph-data';
 	import { SVGSIZE, SVGMARGIN } from '$lib/constants';
+	import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
 
 	import SidePanel from './components/side-panel.svelte';
 
 	let svgElement: any;
 
-	type ConfigType = {
-		isGrouped: boolean;
-		useRawData: boolean;
-		isConfigChanged: boolean;
-		showNodeLabel: boolean;
-	};
 	let config: ConfigType = {
 		isGrouped: false,
 		useRawData: false,
 		isConfigChanged: true,
-		showNodeLabel: false
+		showNodeLabels: false,
+		showLinkLabels: false
 	};
 
 	// graph
-	let graphData: {
-		nodes: any[];
-		links: any[];
-		groups: any[];
-	} = {
+	let graphData: GraphDataType = {
 		nodes: exampleData.nodes,
 		links: exampleData.links,
-		groups: exampleData.groups
+		groups: exampleData.groups,
+		groupLinks: []
 	};
 	let convertedData = rawToGraphDataConverter(rawData);
 
 	let svg: any;
-	let simulation: any;
-	let groupLinks: any[] = [];
-	let groupElements: any;
-	let nodeElements: any;
-	let linkElements: any;
-	let nodeLabelElements: any;
+	let simulation: any = null;
+
+	let graphElements: GraphElementsType = {
+		nodes: null,
+		nodeLabels: null,
+		links: null,
+		linkLabels: null,
+		groups: null
+	};
+
 	let isMounted = false;
 
 	$: {
 		if (isMounted) {
 			// handle config changes
 			if (config.isConfigChanged) {
-				// simulation.alphaTarget(0.1).restart();
-				const t = d3.transition().duration(100).ease(d3.easeLinear);
-				// handle isGrouped
-				if (config.isGrouped) {
-					// turn on force
-					simulation.force(
-						'groupLink',
-						d3
-							.forceLink(groupLinks)
-							.id((d: any) => d.id)
-							.strength(1)
-					);
-					// change oppacity of group svg
-					groupElements.transition(t).attr('fill-opacity', 0.3);
-				} else {
-					// turn off force
-					// simulation.force('groupLink', null);
-					// change oppacity of group svg
-					// groupElements.transition(t).attr('fill-opacity', 0);
-				}
 				// remove the old data
 				d3.select(svgElement).selectChildren().remove();
 
@@ -75,7 +52,7 @@
 					// raw
 					graphData.nodes = convertedData.nodes;
 					graphData.links = convertedData.links;
-					graphData.groups = convertedData.groups ?? [];
+					graphData.groups = convertedData.groups;
 				} else {
 					// graph
 					graphData.nodes = exampleData.nodes;
@@ -90,41 +67,40 @@
 					.attr('width', SVGSIZE + SVGMARGIN * 2)
 					.attr('height', SVGSIZE + SVGMARGIN * 2);
 
-				// Create a simulation with several forces.
-				simulation = d3
-					.forceSimulation(graphData.nodes)
-					.force(
-						'link',
-						d3
-							.forceLink(graphData.links)
-							.id((d: any) => d.id)
-							.strength(0.1)
-					)
-					.force('charge', d3.forceManyBody().strength(-300))
-					.force('x', d3.forceX((SVGSIZE + SVGMARGIN * 2) / 2))
-					.force('y', d3.forceY((SVGSIZE + SVGMARGIN * 2) / 2));
-				// add fake link between node in same group
-				groupLinks = [];
-				for (let i = 0; i < graphData.groups.length; i++) {
-					for (let j = 0; j < graphData.groups[i].leaves.length; j++) {
-						for (let k = j + 1; k < graphData.groups[i].leaves.length; k++) {
-							groupLinks.push({
-								source: graphData.groups[i].leaves[j],
-								target: graphData.groups[i].leaves[k]
-							});
-						}
-					}
+				// clear previous simulation
+				if (simulation !== null) {
+					simulation.force('link', null);
+					simulation.force('charge', null);
+					simulation.force('x', null);
+					simulation.force('y', null);
+					simulation.force('groupLink', null);
+					simulation.stop();
 				}
+				// Create a simulation with several forces.
+				simulation = d3.forceSimulation(graphData.nodes);
+				// simulation.alphaMin();
+				// simulation.alphaDecay(0.2);
+				simulation.force(
+					'link',
+					d3
+						.forceLink(graphData.links)
+						.id((d: any) => d.id)
+						.strength(0.1)
+				);
+				simulation.force('charge', d3.forceManyBody().strength(-300));
+				simulation.force('x', d3.forceX((SVGSIZE + SVGMARGIN * 2) / 2));
+				simulation.force('y', d3.forceY((SVGSIZE + SVGMARGIN * 2) / 2));
+				// handle isGrouped
 
 				// INITIALIZE COMPONENTS
-				linkElements = svg
+				graphElements.links = svg
 					.selectAll('line')
 					.data(graphData.links)
 					.enter()
 					.append('line')
 					.style('stroke', '#aaa');
 
-				groupElements = svg
+				graphElements.groups = svg
 					.selectAll('rect')
 					.data(graphData.groups)
 					.enter()
@@ -133,10 +109,10 @@
 					.attr('y', 5)
 					.attr('width', 100)
 					.attr('height', 100)
-					.attr('fill-opacity', config.isGrouped ? 0.3 : 0)
+					.attr('fill-opacity', config.isGrouped ? 0.7 : 0)
 					.style('fill', (d: any) => d.color);
 
-				nodeElements = svg
+				graphElements.nodes = svg
 					.selectAll('circle')
 					.data(graphData.nodes)
 					.enter()
@@ -144,19 +120,61 @@
 					.attr('r', 5)
 					.style('fill', '#69b3a2');
 
+				const t = d3.transition().duration(100).ease(d3.easeLinear);
+
+				if (config.isGrouped) {
+					// add fake link between node in same group
+					graphData.groupLinks = [];
+					for (let i = 0; i < graphData.groups.length; i++) {
+						for (let j = 0; j < graphData.groups[i].leaves.length; j++) {
+							for (let k = j + 1; k < graphData.groups[i].leaves.length; k++) {
+								graphData.groupLinks.push({
+									source: graphData.groups[i].leaves[j],
+									target: graphData.groups[i].leaves[k]
+								});
+							}
+						}
+					}
+					// turn on force
+					simulation = simulation.force(
+						'groupLink',
+						d3
+							.forceLink(graphData.groupLinks)
+							.id((d: any) => d.id)
+							.strength(1)
+					);
+					// change oppacity of group svg
+					graphElements.groups.transition(t).attr('fill-opacity', 0.7);
+				} else {
+					// turn off force
+					simulation = simulation.force('groupLink', null);
+					// change oppacity of group svg
+					graphElements.groups.transition(t).attr('fill-opacity', 0);
+				}
+				simulation.alpha(0.7).restart();
 				// add text
-				if (config.showNodeLabel) {
-					nodeLabelElements = svg
-						.selectAll('text')
+				if (config.showNodeLabels) {
+					graphElements.nodeLabels = svg
+						.selectAll('text.node-label')
 						.data(graphData.nodes)
 						.enter()
 						.append('text')
 						.text((d: any) => d.id)
 						.attr('x', 6)
-						.attr('y', 3);
+						.attr('y', 3)
+						.attr('class', 'node-label');
+				}
+				if (config.showLinkLabels) {
+					graphElements.linkLabels = svg
+						.selectAll('text.link-label')
+						.data(graphData.links)
+						.enter()
+						.append('text')
+						.text((d: any) => d.source.id + '->' + d.target.id)
+						.attr('class', 'link-label');
 				}
 				function dragstarted(event: any) {
-					if (!event.active) simulation.alphaTarget(0.3).restart();
+					// if (!event.active) simulation.alpha(0.7).restart();
 					event.subject.fx = event.subject.x;
 					event.subject.fy = event.subject.y;
 				}
@@ -168,25 +186,18 @@
 				}
 
 				function dragended(event: any) {
-					if (!event.active) simulation.alphaTarget(0);
+					if (!event.active) simulation.alpha(0.7).restart();
 					event.subject.fx = null;
 					event.subject.fy = null;
 				}
 
 				// Add a drag behavior.
-				nodeElements.call(
+				graphElements.nodes.call(
 					d3.drag<any, any>().on('start', dragstarted).on('drag', dragged).on('end', dragended)
 				);
 
 				simulation.on('tick', () => {
-					tick(
-						linkElements,
-						nodeElements,
-						groupElements,
-						nodeLabelElements,
-						graphData.groups,
-						graphData.nodes
-					);
+					tick(config, graphData, graphElements);
 				});
 				config.isConfigChanged = false;
 			}
@@ -205,6 +216,19 @@
 			d3.select(svgElement).selectChildren().remove();
 		}}>remove data</button
 	>
+	<button
+		on:click={() => {
+			// turn off force
+			simulation.stop();
+		}}>turn off force</button
+	>
+	<button
+		on:click={() => {
+			// turn off force
+			simulation.alpha(0.7).restart();
+		}}>turn on force</button
+	>
+
 	<SidePanel bind:config />
 </div>
 
