@@ -27,7 +27,7 @@
 		groupLinks: []
 	};
 	let convertedData = rawToGraphDataConverter(rawData);
-
+	console.log(convertedData);
 	let svg: any;
 	let simulation: any = null;
 
@@ -141,7 +141,7 @@
 						d3
 							.forceLink(graphData.groupLinks)
 							.id((d: any) => d.id)
-							.strength(1)
+							.strength(0.01)
 					);
 					// change oppacity of group svg
 					graphElements.groups.transition(t).attr('fill-opacity', 0.7);

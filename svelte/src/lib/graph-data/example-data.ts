@@ -1,4 +1,6 @@
-export const nodes = [
+import type { Group, Link, Node } from '$lib/types';
+
+export const nodes: Node[] = [
 	{ id: '1' },
 	{ id: '2' },
 	{ id: '3' },
@@ -16,7 +18,8 @@ export const nodes = [
 	{ id: '15' },
 	{ id: '16' }
 ];
-export const links = [
+
+export const links: Link[] = [
 	{ source: '1', target: '2' },
 	{ source: '1', target: '3' },
 	{ source: '1', target: '4' },
@@ -37,19 +40,19 @@ export const links = [
 	{ source: '9', target: '16' }
 ];
 
-export const groups = [
+export const groups: Group[] = [
 	{
-		// id: 1,
+		id: '1',
 		leaves: ['1', '2', '3', '4'],
 		color: '#FF8A65'
 	},
 	{
-		// id: 2,
+		id: '2',
 		leaves: ['5', '6', '7', '8', '9', '10'],
 		color: '#AED581'
 	},
 	{
-		// id: 3,
+		id: '3',
 		leaves: ['11', '12', '13', '14', '15', '16'],
 		color: '#FFD54F'
 	}
