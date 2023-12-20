@@ -24,26 +24,39 @@ export const tick = (
 	}
 
 	if (config.isGrouped) {
-		// update group positions
+		// find x, y, width, height of each group based on its members
 		for (let i = 0; i < graphData.groups.length; i++) {
-			const members: any[] = [];
-
-			graphData.groups[i].leaves.forEach((id: any) => {
-				// find the node in the nodeData array
-				const node = graphData.nodes.find((node: any) => node.id === id);
-				members.push(node);
-			});
-
+			const members = graphData.groups[i].members;
 			graphData.groups[i].x = Math.min(...members.map((member: any) => member.x)) - 10;
 			graphData.groups[i].y = Math.min(...members.map((member: any) => member.y)) - 10;
 			graphData.groups[i].width =
 				Math.max(...members.map((member: any) => member.x)) - graphData.groups[i].x + 10;
 			graphData.groups[i].height =
 				Math.max(...members.map((member: any) => member.y)) - graphData.groups[i].y + 10;
+
+			// button
+			graphData.groups[i].button.x = graphData.groups[i].x + 10;
+			graphData.groups[i].button.y = graphData.groups[i].y + 10;
 		}
-		graphElements.groups.attr('x', (d: any) => d.x);
-		graphElements.groups.attr('y', (d: any) => d.y);
+
+		// update group container positions
+		graphElements.groups.attr('x', (d: any) => {
+			return d.fx ? d.fx : d.x;
+		});
+		graphElements.groups.attr('y', (d: any) => {
+			return d.fy ? d.fy : d.y;
+		});
 		graphElements.groups.attr('width', (d: any) => d.width);
 		graphElements.groups.attr('height', (d: any) => d.height);
+		
+		// update button positions
+		graphElements.groupButtons.attr('cx', (d: any) => {
+			return d.x;
+		});
+		graphElements.groupButtons.attr('cy', (d: any) => {
+			return d.y;
+		});
+
+		// console.log(graphData.groups);
 	}
 };

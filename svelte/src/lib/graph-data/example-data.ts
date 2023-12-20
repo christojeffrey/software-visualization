@@ -42,17 +42,17 @@ export const links: Link[] = [
 
 export const groups: Group[] = [
 	{
-		id: '1',
+		id: 'group1',
 		leaves: ['1', '2', '3', '4'],
 		color: '#FF8A65'
 	},
 	{
-		id: '2',
+		id: 'group2',
 		leaves: ['5', '6', '7', '8', '9', '10'],
 		color: '#AED581'
 	},
 	{
-		id: '3',
+		id: 'group3',
 		leaves: ['11', '12', '13', '14', '15', '16'],
 		color: '#FFD54F'
 	}
