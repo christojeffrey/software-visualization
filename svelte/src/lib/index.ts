@@ -2,3 +2,4 @@
 
 export { rawToGraphDataConverter } from './converter';
 export { tick } from './drawer';
+export * from './event-handler';
