@@ -297,9 +297,10 @@
 				graphElements.nodes.call(
 					d3
 						.drag<any, any>()
-						.on('start', (e) => {
-							d3.select(this).raise() // To combine element drag and pan
-							dragStartedNode(e)
+						.on('start', function (this: any, e) {
+							// To combine element drag and pan
+							d3.select(this).raise();
+							dragStartedNode(e);
 						})
 						.on('drag', draggedNode)
 						.on('end', dragEndedNode)
