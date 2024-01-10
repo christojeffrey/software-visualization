@@ -15,9 +15,9 @@
 		dragStartedNode,
 		draggedGroup,
 		draggedNode
-	} from '$lib/event-handler';
+	} from '$lib';
 
-	let svgElement: any;
+	let svgElement: any; // Reference to the svg tag
 
 	let config: ConfigType = {
 		isGrouped: false,
@@ -39,7 +39,7 @@
 	};
 	let convertedData = rawToGraphDataConverter(rawData);
 
-	let svg: any;
+	let svg: any; // The svg data that is manipulated
 	let simulation: any;
 
 	let graphElements: GraphElementsType = {
@@ -297,9 +297,28 @@
 				graphElements.nodes.call(
 					d3
 						.drag<any, any>()
-						.on('start', dragStartedNode)
+						.on('start', function (this: any, e) {
+							// To combine element drag and pan
+							d3.select(this).raise();
+							dragStartedNode(e);
+						})
 						.on('drag', draggedNode)
 						.on('end', dragEndedNode)
+				);
+
+				// Add zoom handler
+				svg.call(
+					d3
+						.zoom()
+						.extent([
+							[0, 0],
+							[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
+						])
+						.scaleExtent([1, 8])
+						.on('zoom', ({ transform }) => {
+							graphElements.nodes.attr('transform', transform);
+							graphElements.links.attr('transform', transform);
+						})
 				);
 
 				simulation.on('tick', () => {
