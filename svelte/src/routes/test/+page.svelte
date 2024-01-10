@@ -4,7 +4,7 @@
 
 	import { rawToGraphDataConverter, tick } from '$lib';
 	import { rawData, exampleData } from '$lib/graph-data';
-	import { SVGSIZE, SVGMARGIN } from '$lib/constants';
+	import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
 	import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
 
 	import SidePanel from './components/side-panel.svelte';
@@ -16,6 +16,7 @@
 		draggedGroup,
 		draggedNode
 	} from '$lib';
+	import { linkStrokeValue } from '$lib/style-injector';
 
 	let svgElement: any; // Reference to the svg tag
 
@@ -263,7 +264,7 @@
 					.data(graphData.links)
 					.enter()
 					.append('line')
-					.style('stroke', '#aaa')
+					.style('stroke', (d: any) => linkStrokeValue(d, LINK_COLOR_MAP))
 					.attr('class', 'link');
 
 				if (config.isForceSimulationEnabled) {
@@ -293,39 +294,41 @@
 						.attr('class', 'link-label');
 				}
 
-				// Add a drag behavior.
-				graphElements.nodes.call(
-					d3
-						.drag<any, any>()
-						.on('start', function (this: any, e) {
-							// To combine element drag and pan
-							d3.select(this).raise();
-							dragStartedNode(e);
-						})
-						.on('drag', draggedNode)
-						.on('end', dragEndedNode)
-				);
-
-				// Add zoom handler
-				svg.call(
-					d3
-						.zoom()
-						.extent([
-							[0, 0],
-							[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
-						])
-						.scaleExtent([1, 8])
-						.on('zoom', ({ transform }) => {
-							graphElements.nodes.attr('transform', transform);
-							graphElements.links.attr('transform', transform);
-						})
-				);
-
 				simulation.on('tick', () => {
 					tick(config, graphData, graphElements);
 				});
 				config.isConfigChanged = false;
 			}
+
+			// Add a drag behavior.
+			graphElements.nodes.call(
+				d3
+					.drag<any, any>()
+					.on('start', function (this: any, e) {
+						// To combine element drag and pan
+						d3.select(this).raise();
+						dragStartedNode(e);
+					})
+					.on('drag', draggedNode)
+					.on('end', dragEndedNode)
+			);
+
+			// Add zoom handler
+			svg.call(
+				d3
+					.zoom()
+					.extent([
+						[0, 0],
+						[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
+					])
+					.scaleExtent([1, 8])
+					.on('zoom', ({ transform }) => {
+						const elements = Object.keys(graphElements);
+						elements.forEach((e: string) =>
+							graphElements[e as keyof GraphElementsType]?.attr('transform', transform)
+						);
+					})
+			);
 		}
 	}
 	onMount(() => {
