@@ -29,7 +29,8 @@ export const rawToGraphDataConverter = (rawData: RawGraphData) => {
 		.map((link: RawEdge) => {
 			return {
 				source: link.data.source,
-				target: link.data.target
+				target: link.data.target,
+				label: link.data.label
 			};
 		});
 	const groups: Group[] = rawData.elements.nodes

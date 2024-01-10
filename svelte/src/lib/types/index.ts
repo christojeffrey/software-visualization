@@ -28,6 +28,7 @@ export type Node = {
 export type Link = {
 	source: string;
 	target: string;
+	label?: string;
 };
 export type Group = {
 	id: string;
