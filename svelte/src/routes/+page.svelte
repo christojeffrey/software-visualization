@@ -85,7 +85,6 @@
 					let filteredNodes = graphData.nodes;
 					// preformat to make the newly inputed links and the previous one the same
 					let filteredLinks = graphData.links.map((link: any) => {
-						console.log(link);
 						return {
 							source: link.source,
 							target: link.target
@@ -135,67 +134,14 @@
 								!collapsedGroup.leaves.includes(link.target)
 						);
 						filteredLinks = filteredLinks.concat(newLinks);
-						console.log(filteredLinks);
-						console.log(filteredNodes);
 					});
+					// update graphData
 					graphData.nodes = filteredNodes;
-					console.log(filteredLinks);
 					graphData.links = filteredLinks;
 					graphData.groups = graphData.groups.filter(
 						(group: any) => !collapsedGroups.includes(group.id)
 					);
-					// graphData.nodes = graphData.nodes.concat(newNodes);
-					// graphData.links = graphData.links.concat(newLinks);
-					// console.log(graphData.nodes);
-					// console.log(graphData.links);
-					// for (let i = 0; i < collapsedGroups.length; i++) {
-					// 	// remove nodes
-					// 	for (let j = 0; j < graphData.groups.length; j++) {
-					// 		if (graphData.groups[j].id === collapsedGroups[i]) {
-					// 			graphData.groups[j].leaves.forEach((id: any) => {
-					// 				// find the node in the nodeData array
-					// 				const node = graphData.nodes.find((node: any) => node.id === id);
-					// 				// remove old link and add new link
-					// 				let newLinks: any[] = [];
-					// 				for (let k = 0; k < graphData.links.length; k++) {
-					// 					console.log(graphData.links[k]);
-					// 					console.log(node);
-					// 					if (graphData.links[k].source.id === node.id) {
-					// 						//add new link
-					// 						newLinks.push({
-					// 							source: graphData.groups[j].id,
-					// 							target: graphData.links[k].target.id
-					// 						});
-					// 					} else if (graphData.links[k].target.id === node.id) {
-					// 						//add new link
-					// 						newLinks.push({
-					// 							source: graphData.links[k].source.id,
-					// 							target: graphData.groups[j].id
-					// 						});
-					// 					} else {
-					// 						// keep old link
-					// 						newLinks.push(graphData.links[k]);
-					// 					}
-					// 				}
-					// 				graphData.links = newLinks;
-					// 				// remove the node
-					// 				graphData.nodes.splice(graphData.nodes.indexOf(node), 1);
-					// 			});
-					// 			// create collapsed group node
-					// 			graphData.nodes.push({
-					// 				id: graphData.groups[j].id,
-					// 				x: 0,
-					// 				y: 0,
-					// 				isCollapsedGroup: true,
-					// 				size: graphData.groups[j].leaves.length + 5
-					// 			});
-					// 		}
-					// 	}
-					// 	// remove group
-					// 	graphData.groups = graphData.groups.filter(
-					// 		(group: any) => group.id !== collapsedGroups[i]
-					// 	);
-					// }
+
 					// TODO: handle nested group
 				}
 				handleCollapsedGroup(graphData.collapsedGroups, graphData);
@@ -226,7 +172,7 @@
 					d3
 						.forceLink(graphData.links)
 						.id((d: any) => {
-							console.log(d);
+							// console.log(d);
 							return d.id;
 						})
 						.strength(0.1)
@@ -325,7 +271,18 @@
 					.append('circle')
 					.attr('r', (d: any) => d.size ?? 5)
 					.style('fill', (d: any) => (d.isCollapsedGroup ? 'black' : 'red'))
-					.attr('class', 'node');
+					.attr('class', 'node')
+					.on('click', (_event: any, data: any) => {
+						console.log('click');
+						console.log(data);
+						if (data.isCollapsedGroup) {
+							// uncollapse
+							graphData.collapsedGroups = graphData.collapsedGroups.filter(
+								(id: string) => id !== data.id
+							);
+							config.isConfigChanged = true;
+						}
+					});
 
 				graphElements.links = svg
 					.selectAll('line.link')
