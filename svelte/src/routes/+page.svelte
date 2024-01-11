@@ -97,10 +97,21 @@
 						let collapsedGroup = graphData.groups.find(
 							(group: any) => group.id === collapsedGroupId
 						);
+
+						// average the position of the nodes
+						let averageX = 0;
+						let averageY = 0;
+						collapsedGroup.leaves.forEach((id: string) => {
+							let node = graphData.nodes.find((node: any) => node.id === id);
+							averageX += node.x;
+							averageY += node.y;
+						});
+						averageX /= collapsedGroup.leaves.length;
+						averageY /= collapsedGroup.leaves.length;
 						newNodes.push({
 							id: collapsedGroupId,
-							x: 0,
-							y: 0,
+							x: averageX,
+							y: averageY,
 							isCollapsedGroup: true,
 							size: collapsedGroup.leaves.length + 5
 						});
@@ -260,7 +271,7 @@
 							.drag<any, any>()
 							.on('start', (e) => dragStartedGroup(e, simulation))
 							.on('drag', (e) => draggedGroup(e, simulation))
-							.on('end', (e) => dragEndedGroup(e, simulation))
+							.on('end', (e) => dragEndedGroup(e, simulation, config))
 					);
 				}
 
@@ -335,7 +346,7 @@
 						dragStartedNode(e, simulation);
 					})
 					.on('drag', (e) => draggedNode(e, simulation))
-					.on('end', (e) => dragEndedNode(e, simulation))
+					.on('end', (e) => dragEndedNode(e, simulation, config))
 			);
 
 			// Add zoom handler
