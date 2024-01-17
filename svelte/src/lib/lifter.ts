@@ -17,12 +17,8 @@ function commonPrefix(a: string[], b: string[]) {
 }
 
 // Lifts dependency for links.
-function liftLinks (data: GraphDataType) {
-    data.links.forEach((link) => {
-        if (link.sourceLeaf || link.targetLeaf) {
-            return;
-        }
-
+function liftLinks (data: GraphDataType, liftDistance: number) {
+    data.links = data.links.map((link) => {
         const sourceGroups: Group[] = data.groups.filter(group => group.leaves.includes(link.source))
             .sort(compareGroups);
         const targetGroups: Group[] = data.groups.filter(group => group.leaves.includes(link.target))
@@ -30,14 +26,19 @@ function liftLinks (data: GraphDataType) {
 
         const sourcePath = [...sourceGroups.map(s => s.id), link.source];
         const targetPath = [...targetGroups.map(s => s.id), link.target];
-
+    
         const cp = commonPrefix(sourcePath, targetPath);
 
-        link.sourceLeaf = link.source;
-        link.targetLeaf = link.target;
+        return {
+            source: sourcePath[cp + liftDistance] ?? link.source,
+            target: targetPath[cp + liftDistance] ?? link.target,
+        };
+    });
 
-        link.source = sourcePath[cp] ?? link.source;
-        link.target = targetPath[cp] ?? link.target;
+    data.links = data.links.filter((link, index) => {
+        return data.links.findIndex((link2) => {
+            return link.source === link2.source && link.target === link2.target;
+        }) === index;
     });
 };
 

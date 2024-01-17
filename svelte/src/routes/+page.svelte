@@ -26,7 +26,8 @@
 		isConfigChanged: true,
 		showNodeLabels: false,
 		showLinkLabels: false,
-		isForceSimulationEnabled: true
+		isForceSimulationEnabled: true,
+		liftDependencies: NaN,
 	};
 
 	// graph
@@ -76,7 +77,9 @@
 					graphData.groupLinks = [];
 					graphData.groupButtons = [];
 				}
-				liftLinks(graphData);
+
+				// Dependency lifting (if required)
+				!Number.isNaN(config.liftDependencies) && liftLinks(graphData, config.liftDependencies);
 
 				// prepare data
 				// TODO: handle collapsed group

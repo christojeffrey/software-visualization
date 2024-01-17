@@ -5,6 +5,7 @@ export type ConfigType = {
 	showNodeLabels: boolean;
 	showLinkLabels: boolean;
 	isForceSimulationEnabled: boolean;
+	liftDependencies: number;
 };
 export type GraphElementsType = {
 	nodes: any;
