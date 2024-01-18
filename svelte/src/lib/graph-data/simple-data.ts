@@ -1,4 +1,4 @@
-export const rawData = {
+export const simpleData = {
 	elements: {
 		nodes: [
 			{
@@ -50,6 +50,36 @@ export const rawData = {
 					},
 					labels: ['Structure']
 				}
+			},
+			{
+				data: {
+					id: 'appl',
+					properties: {
+						simpleName: 'appl',
+						kind: 'packages'
+					},
+					labels: ['Container']
+				}
+			},
+			{
+				data: {
+					id: 'db',
+					properties: {
+						simpleName: 'db',
+						kind: 'packages'
+					},
+					labels: ['Container']
+				}
+			},
+			{
+				data: {
+					id: 'lib',
+					properties: {
+						simpleName: 'lib',
+						kind: 'packages'
+					},
+					labels: ['Container']
+				}
 			}
 		],
 		edges: [
@@ -57,7 +87,7 @@ export const rawData = {
 				data: {
 					id: 'one',
 					source: 'main',
-					label: 'call',
+					label: 'calls',
 					target: 'a'
 				}
 			},
@@ -65,7 +95,7 @@ export const rawData = {
 				data: {
 					id: 'two',
 					source: 'main',
-					label: 'call',
+					label: 'calls',
 					target: 'b'
 				}
 			},
@@ -73,7 +103,7 @@ export const rawData = {
 				data: {
 					id: 'three',
 					source: 'a',
-					label: 'call',
+					label: 'calls',
 					target: 'b'
 				}
 			},
@@ -81,7 +111,7 @@ export const rawData = {
 				data: {
 					id: 'four',
 					source: 'a',
-					label: 'call',
+					label: 'calls',
 					target: 'c'
 				}
 			},
@@ -89,7 +119,7 @@ export const rawData = {
 				data: {
 					id: 'five',
 					source: 'a',
-					label: 'call',
+					label: 'calls',
 					target: 'd'
 				}
 			},
@@ -97,7 +127,47 @@ export const rawData = {
 				data: {
 					id: 'six',
 					source: 'b',
-					label: 'call',
+					label: 'calls',
+					target: 'd'
+				}
+			},
+			{
+				data: {
+					id: 'seven',
+					source: 'appl',
+					label: 'contains',
+					target: 'main'
+				}
+			},
+			{
+				data: {
+					id: 'eight',
+					source: 'appl',
+					label: 'contains',
+					target: 'a'
+				}
+			},
+			{
+				data: {
+					id: 'nine',
+					source: 'db',
+					label: 'contains',
+					target: 'b'
+				}
+			},
+			{
+				data: {
+					id: 'ten',
+					source: 'lib',
+					label: 'contains',
+					target: 'c'
+				}
+			},
+			{
+				data: {
+					id: 'eleven',
+					source: 'lib',
+					label: 'contains',
 					target: 'd'
 				}
 			}
