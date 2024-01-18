@@ -27,7 +27,8 @@
 		showNodeLabels: false,
 		showLinkLabels: false,
 		isForceSimulationEnabled: true,
-		liftDependencies: NaN,
+		liftDependencies: [],
+		dependencyDepth: NaN,
 	};
 
 	// graph
@@ -78,8 +79,8 @@
 					graphData.groupButtons = [];
 				}
 
-				// Dependency lifting (if required)
-				!Number.isNaN(config.liftDependencies) && liftLinks(graphData, config.liftDependencies);
+				// Dependency lifting
+				liftLinks(graphData, config.liftDependencies);
 
 				// prepare data
 				// TODO: handle collapsed group
@@ -193,10 +194,13 @@
 					graphData.groupButtons = buttons;
 
 					graphElements.groupButtons = svg
-						.selectAll('circle.group-button')
+						.selectAll('g.group-controls')
 						.data(graphData.groupButtons)
 						.enter()
-						.append('circle')
+						.append('g')
+						.attr('class', 'group-controls')
+					
+					graphElements.groupButtons.append('circle')
 						.attr('r', 10)
 						.attr('class', 'group-button')
 						.style('fill', 'black')
@@ -204,6 +208,28 @@
 							graphData.collapsedGroups.push(data.id);
 							config.isConfigChanged = true;
 						});
+					
+					const t= graphElements.groupButtons.append("circle")
+						.attr('r', 10)
+						.attr('class', 'lift-button')
+						.style('fill', 'grey')
+						.on('click',(_event: MouseEvent, {id}: {id: string}) => {
+							const dependency = config.liftDependencies.find((i) => i.id === id);
+							if (dependency) {
+								if (dependency.level === config.dependencyDepth || Number.isNaN(config.dependencyDepth)) {
+									config.liftDependencies = config.liftDependencies.filter(i => i.id !== id);
+								}
+								else if (!Number.isNaN(config.dependencyDepth)) {
+								 	dependency.level = config.dependencyDepth;
+								}
+								config.isConfigChanged = true;
+							}
+							else if (!Number.isNaN(config.dependencyDepth)) {
+								config.liftDependencies.push({id, level: config.dependencyDepth});
+								config.isConfigChanged = true;
+							}
+						})
+
 
 					for (let i = 0; i < graphData.groups.length; i++) {
 						graphData.groups[i].button = graphData.groupButtons[i];

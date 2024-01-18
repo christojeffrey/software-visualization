@@ -19,9 +19,9 @@
 		{:else if typeof config[key] == 'number'}
 			<input type='input' bind:value={dependencyLimit} placeholder={key}
 			on:input={() => {
-				config.liftDependencies = dependencyLimit === "" ? NaN : Number(dependencyLimit);
+				config[key] = dependencyLimit === "" ? NaN : Number(dependencyLimit);
 				return true;
-			}} on:keydown={(e) => {if (e.key === "Enter") config.isConfigChanged = true}}/>
+			}}/>
 		{/if}
 	{/each}
 </div>
