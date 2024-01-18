@@ -35,6 +35,8 @@ export type Group = {
 	leaves: string[];
 	color?: string;
 	members?: any[];
+	parent?: string;
+	children?: string[];
 };
 
 export type RawEdge = {

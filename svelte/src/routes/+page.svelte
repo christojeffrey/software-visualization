@@ -31,9 +31,9 @@
 
 	// graph
 	let graphData: GraphDataType = {
-		nodes: exampleData.nodes,
-		links: exampleData.links,
-		groups: exampleData.groups,
+		nodes: [],
+		links: [],
+		groups: [],
 		groupLinks: [],
 		groupButtons: [],
 		collapsedGroups: []
@@ -72,9 +72,12 @@
 					// example
 					graphData.nodes = exampleData.nodes;
 					graphData.links = exampleData.links;
-					graphData.groups = exampleData.groups;
+					graphData.groups = Object.assign([], exampleData.groups);
 					graphData.groupLinks = [];
 					graphData.groupButtons = [];
+					console.log('exampleData');
+					console.log(exampleData);
+					console.log(Object.is(graphData.groups, exampleData.groups));
 				}
 
 				// prepare data
@@ -91,7 +94,31 @@
 						};
 					});
 
+					// remove the children from the group to minimize computation
+					let allChildrenFromCollapsedGroups: any[] = [];
 					collapsedGroups.forEach((collapsedGroupId: string) => {
+						let collapsedGroup = graphData.groups.find(
+							(group: any) => group.id === collapsedGroupId
+						);
+						if (collapsedGroup.children) {
+							allChildrenFromCollapsedGroups = allChildrenFromCollapsedGroups.concat(
+								collapsedGroup.children
+							);
+						}
+					});
+					// remove children from graphData
+					graphData.groups = graphData.groups.filter(
+						(group: any) => !allChildrenFromCollapsedGroups.includes(group.id)
+					);
+					console.log('allChildrenFromCollapsedGroups');
+					console.log(allChildrenFromCollapsedGroups);
+
+					collapsedGroups.forEach((collapsedGroupId: string) => {
+						// skip if the group is not rendered
+						if (allChildrenFromCollapsedGroups.includes(collapsedGroupId)) {
+							return;
+						}
+
 						let newNodes: any[] = [];
 						let newLinks: any[] = [];
 						let collapsedGroup = graphData.groups.find(
@@ -101,13 +128,20 @@
 						// average the position of the nodes
 						let averageX = 0;
 						let averageY = 0;
+						console.log('collapsedGroup.leaves');
+						console.log(collapsedGroup.leaves);
+						let count = 0;
 						collapsedGroup.leaves.forEach((id: string) => {
-							let node = graphData.nodes.find((node: any) => node.id === id);
-							averageX += node.x;
-							averageY += node.y;
+							let node = filteredNodes.find((node: any) => node.id === id);
+							console.log(node);
+							if (node) {
+								averageX += node.x;
+								averageY += node.y;
+								count++;
+							}
 						});
-						averageX /= collapsedGroup.leaves.length;
-						averageY /= collapsedGroup.leaves.length;
+						averageX /= count;
+						averageY /= count;
 						newNodes.push({
 							id: collapsedGroupId,
 							x: averageX,
@@ -145,6 +179,25 @@
 								!collapsedGroup.leaves.includes(link.target)
 						);
 						filteredLinks = filteredLinks.concat(newLinks);
+
+						// HANDLE NESTED
+						// update parents leaves if it has one
+						if (collapsedGroup.parent) {
+							let parent = graphData.groups.find(
+								(group: any) => group.id === collapsedGroup.parent
+							);
+							parent.leaves = parent.leaves.filter(
+								(id: string) => !collapsedGroup.leaves.includes(id)
+							);
+							parent.leaves.push(collapsedGroupId);
+						}
+						// don't render children's group
+						// if (collapsedGroup.children) {
+						// 	collapsedGroup.children.forEach((id: string) => {
+						// 		let child = graphData.groups.find((group: any) => group.id === id);
+						// 		child.isRendered = false;
+						// 	});
+						// }
 					});
 					// update graphData
 					graphData.nodes = filteredNodes;
@@ -155,8 +208,10 @@
 
 					// TODO: handle nested group
 				}
+				console.log('graphData before');
+				console.log(graphData);
 				handleCollapsedGroup(graphData.collapsedGroups, graphData);
-				console.log('graphData');
+				console.log('graphData after');
 				console.log(graphData);
 
 				// handle redraw
@@ -233,7 +288,7 @@
 						.attr('class', 'group-button')
 						.style('fill', 'black')
 						.on('click', (_event: any, data: any) => {
-							console.log('click');
+							// console.log('click');
 							// console.log(data);
 							graphData.collapsedGroups.push(data.id);
 							config.isConfigChanged = true;
