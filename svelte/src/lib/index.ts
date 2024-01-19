@@ -2,4 +2,5 @@
 
 export { rawToGraphDataConverter } from './converter';
 export { tick } from './drawer';
+export { liftLinks } from './lifter';
 export * from './event-handler';

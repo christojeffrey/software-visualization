@@ -55,6 +55,10 @@ export const groups: Group[] = [
 		id: 'group3',
 		leaves: ['11', '12', '13', '14', '15', '16'],
 		color: '#FFD54F'
+	},
+	{	id: 'groupnested',
+		leaves: ['1', '2'],
+		color: '#123456',
 	}
 ];
 

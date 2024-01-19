@@ -5,7 +5,15 @@ export type ConfigType = {
 	showNodeLabels: boolean;
 	showLinkLabels: boolean;
 	isForceSimulationEnabled: boolean;
+	liftDependencies: LiftDependencyType[];
+	dependencyDepth: number;
 };
+
+export type LiftDependencyType = {
+	id: string,
+	level: number
+};
+
 export type GraphElementsType = {
 	nodes: any;
 	nodeLabels: any;

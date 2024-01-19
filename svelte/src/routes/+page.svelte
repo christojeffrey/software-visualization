@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
 
-	import { rawToGraphDataConverter, tick } from '$lib';
+	import { liftLinks, rawToGraphDataConverter, tick } from '$lib';
 	import { rawData, exampleData } from '$lib/graph-data';
 	import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
 	import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
@@ -26,7 +26,9 @@
 		isConfigChanged: true,
 		showNodeLabels: false,
 		showLinkLabels: false,
-		isForceSimulationEnabled: true
+		isForceSimulationEnabled: true,
+		liftDependencies: [],
+		dependencyDepth: NaN,
 	};
 
 	// graph
@@ -76,6 +78,9 @@
 					graphData.groupLinks = [];
 					graphData.groupButtons = [];
 				}
+
+				// Dependency lifting
+				liftLinks(graphData, config.liftDependencies);
 
 				// prepare data
 				// TODO: handle collapsed group
@@ -156,43 +161,7 @@
 					// TODO: handle nested group
 				}
 				handleCollapsedGroup(graphData.collapsedGroups, graphData);
-				console.log('graphData');
-				console.log(graphData);
 
-				// handle redraw
-				// clear previous simulation
-				if (simulation) {
-					simulation.force('link', null);
-					simulation.force('charge', null);
-					simulation.force('x', null);
-					simulation.force('y', null);
-					simulation.force('groupLink', null);
-					simulation.stop();
-				}
-				// draw
-				svg = d3
-					.select(svgElement)
-					.attr('width', SVGSIZE + SVGMARGIN * 2)
-					.attr('height', SVGSIZE + SVGMARGIN * 2);
-
-				console.log('tesitng1');
-
-				simulation = d3.forceSimulation(graphData.nodes);
-				simulation.force(
-					'link',
-					d3
-						.forceLink(graphData.links)
-						.id((d: any) => {
-							// console.log(d);
-							return d.id;
-						})
-						.strength(0.1)
-				);
-				simulation.force('charge', d3.forceManyBody().strength(-300));
-				simulation.force('x', d3.forceX((SVGSIZE + SVGMARGIN * 2) / 2));
-				simulation.force('y', d3.forceY((SVGSIZE + SVGMARGIN * 2) / 2));
-
-				console.log('tesitng2');
 				if (config.isGrouped) {
 					graphElements.groups = svg
 						.selectAll('rect.group-container')
@@ -225,23 +194,79 @@
 					graphData.groupButtons = buttons;
 
 					graphElements.groupButtons = svg
-						.selectAll('circle.group-button')
+						.selectAll('g.group-controls')
 						.data(graphData.groupButtons)
 						.enter()
-						.append('circle')
+						.append('g')
+						.attr('class', 'group-controls')
+					
+					graphElements.groupButtons.append('circle')
 						.attr('r', 10)
 						.attr('class', 'group-button')
 						.style('fill', 'black')
 						.on('click', (_event: any, data: any) => {
-							console.log('click');
-							// console.log(data);
 							graphData.collapsedGroups.push(data.id);
 							config.isConfigChanged = true;
 						});
+					
+					const t= graphElements.groupButtons.append("circle")
+						.attr('r', 10)
+						.attr('class', 'lift-button')
+						.style('fill', 'grey')
+						.on('click',(_event: MouseEvent, {id}: {id: string}) => {
+							const dependency = config.liftDependencies.find((i) => i.id === id);
+							if (dependency) {
+								if (dependency.level === config.dependencyDepth || Number.isNaN(config.dependencyDepth)) {
+									config.liftDependencies = config.liftDependencies.filter(i => i.id !== id);
+								}
+								else if (!Number.isNaN(config.dependencyDepth)) {
+								 	dependency.level = config.dependencyDepth;
+								}
+								config.isConfigChanged = true;
+							}
+							else if (!Number.isNaN(config.dependencyDepth)) {
+								config.liftDependencies.push({id, level: config.dependencyDepth});
+								config.isConfigChanged = true;
+							}
+						})
+
 
 					for (let i = 0; i < graphData.groups.length; i++) {
 						graphData.groups[i].button = graphData.groupButtons[i];
 					}
+				}
+
+				// handle redraw
+				// clear previous simulation
+				if (simulation) {
+					simulation.force('link', null);
+					simulation.force('charge', null);
+					simulation.force('x', null);
+					simulation.force('y', null);
+					simulation.force('groupLink', null);
+					simulation.stop();
+				}
+				// draw
+				svg = d3
+					.select(svgElement)
+					.attr('width', SVGSIZE + SVGMARGIN * 2)
+					.attr('height', SVGSIZE + SVGMARGIN * 2);
+
+				simulation = d3.forceSimulation([...graphData.nodes, ...graphData.groups]);
+				simulation.force(
+					'link',
+					d3
+						.forceLink(graphData.links)
+						.id((d: any) => {
+							return d.id;
+						})
+						.strength(0.1)
+				);
+				simulation.force('charge', d3.forceManyBody().strength(-300));
+				simulation.force('x', d3.forceX((SVGSIZE + SVGMARGIN * 2) / 2));
+				simulation.force('y', d3.forceY((SVGSIZE + SVGMARGIN * 2) / 2));
+
+				if (config.isGrouped) {
 
 					// add fake link between node in same group
 					graphData.groupLinks = [];
@@ -284,8 +309,6 @@
 					.style('fill', (d: any) => (d.isCollapsedGroup ? 'black' : 'red'))
 					.attr('class', 'node')
 					.on('click', (_event: any, data: any) => {
-						console.log('click');
-						console.log(data);
 						if (data.isCollapsedGroup) {
 							// uncollapse
 							graphData.collapsedGroups = graphData.collapsedGroups.filter(

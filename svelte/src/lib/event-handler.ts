@@ -10,7 +10,6 @@ export function dragStartedNode(event: any, simulation: any) {
 // Update the subject (dragged node) position during drag.
 export function draggedNode(event: any, simulation: any) {
 	simulation.alpha(slowAlpha).restart();
-	console.log('test');
 	event.subject.fx = event.x;
 	event.subject.fy = event.y;
 }
