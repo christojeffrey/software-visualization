@@ -1,22 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import {
-		addCanvasInteractivity,
-		cleanCanvas,
-		collapsedGroupHandler,
-		draw,
-		setupGraphData
-	} from '$lib';
-	import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
+	import { cleanCanvas, collapsedGroupHandler, draw, setupGraphData } from '$lib';
+	import type { ConfigType } from '$lib/types';
 
 	import SidePanel from './components/side-panel.svelte';
 	import DataSetter from './components/data-setter.svelte';
 
-	let svg: any; // The svg data that is manipulated
 	let svgElement: any; // Reference to the svg tag
 	let simulation: any;
-	let graphElements: GraphElementsType;
 
 	let doRedraw = true;
 	let config: ConfigType = {
@@ -50,16 +42,12 @@
 				const result = draw(config, svgElement, graphData, () => {
 					doRedraw = true;
 				});
-				svg = result.svg;
 				simulation = result.simulation;
-				graphElements = result.graphElements;
 				svgElement = result.svgElement;
 
 				doRedraw = false;
 			}
 
-			// Add a drag behavior.
-			addCanvasInteractivity(graphElements, simulation, config, svg);
 		}
 	}
 	onMount(() => {

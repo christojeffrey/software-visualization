@@ -4,6 +4,7 @@ import { dragEndedGroup, dragStartedGroup, draggedGroup, tick } from '$lib';
 import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
 import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
 import { linkStrokeValue } from './style-injector';
+import { dragEndedNode, dragStartedNode, draggedNode } from '$lib';
 
 export function draw(config: ConfigType, svgElement: any, graphData: GraphDataType, doRedraw: any) {
 	const svg = d3
@@ -173,6 +174,36 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 	simulation.on('tick', () => {
 		tick(config, graphData, graphElements);
 	});
+
+	// add canvas interactivity
+	graphElements.nodes.call(
+		d3
+			.drag<any, any>()
+			.on('start', function (this: any, e) {
+				// To combine element drag and pan
+				d3.select(this).raise();
+				dragStartedNode(e, simulation);
+			})
+			.on('drag', (e) => draggedNode(e, simulation))
+			.on('end', (e) => dragEndedNode(e, simulation, config))
+	);
+
+	// Add zoom handler
+	svg.call(
+		d3
+			.zoom()
+			.extent([
+				[0, 0],
+				[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
+			])
+			.scaleExtent([1, 8])
+			.on('zoom', ({ transform }) => {
+				const elements = Object.keys(graphElements);
+				elements.forEach((e: string) =>
+					graphElements[e as keyof GraphElementsType]?.attr('transform', transform)
+				);
+			})
+	);
 
 	return {
 		svg,

@@ -1,4 +1,4 @@
-import type { GraphDataType } from "./types";
+import type { GraphDataType } from './types';
 
 export function setupGraphData(convertedData: any) {
 	const graphData: GraphDataType = {
@@ -6,7 +6,7 @@ export function setupGraphData(convertedData: any) {
 		links: [],
 		groups: [],
 		groupLinks: [],
-		groupButtons: [],
+		groupButtons: []
 	};
 	graphData.nodes = convertedData.nodes;
 	graphData.links = convertedData.links;
