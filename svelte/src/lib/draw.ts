@@ -206,9 +206,7 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 	);
 
 	return {
-		svg,
 		simulation,
-		graphElements,
 		svgElement
 	};
 }

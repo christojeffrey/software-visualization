@@ -5,6 +5,15 @@ export type ConfigType = {
 	isForceSimulationEnabled: boolean;
 	collapsedGroups: string[];
 };
+export type GraphDataType = {
+	nodes: any[];
+	links: any[];
+	groups: any[];
+	groupLinks: any[];
+	groupButtons: any[];
+};
+
+
 export type GraphElementsType = {
 	nodes: any;
 	nodeLabels: any;
@@ -12,13 +21,6 @@ export type GraphElementsType = {
 	linkLabels: any;
 	groups: any;
 	groupButtons: any;
-};
-export type GraphDataType = {
-	nodes: any[];
-	links: any[];
-	groups: any[];
-	groupLinks: any[];
-	groupButtons: any[];
 };
 export type Node = {
 	id: string;

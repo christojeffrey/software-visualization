@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { cleanCanvas, collapsedGroupHandler, draw, setupGraphData } from '$lib';
+	import { cleanCanvas, draw, setupGraphData } from '$lib';
 	import type { ConfigType } from '$lib/types';
 
 	import SidePanel from './components/side-panel.svelte';
@@ -33,10 +33,7 @@
 				cleanCanvas(svgElement, simulation);
 
 				// setup graphData
-				const graphData = setupGraphData(convertedData);
-
-				// prepare data
-				collapsedGroupHandler(config.collapsedGroups, graphData);
+				const graphData = setupGraphData(config, convertedData);
 
 				// draw
 				const result = draw(config, svgElement, graphData, () => {
@@ -47,7 +44,6 @@
 
 				doRedraw = false;
 			}
-
 		}
 	}
 	onMount(() => {
@@ -58,7 +54,6 @@
 <div class="graph">
 	<svg bind:this={svgElement} />
 	<div>
-		<!-- data setter -->
 		<DataSetter bind:doRedraw bind:convertedData />
 
 		<SidePanel bind:config bind:doRedraw />
