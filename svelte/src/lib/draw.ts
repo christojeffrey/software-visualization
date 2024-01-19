@@ -5,7 +5,7 @@ import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
 import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
 import { linkStrokeValue } from './style-injector';
 
-export function draw(config: ConfigType, svgElement: any, graphData: GraphDataType) {
+export function draw(config: ConfigType, svgElement: any, graphData: GraphDataType, doRedraw: any) {
 	const svg = d3
 		.select(svgElement)
 		.attr('width', SVGSIZE + SVGMARGIN * 2)
@@ -77,8 +77,8 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 			.on('click', (_event: any, data: any) => {
 				// console.log('click');
 				// console.log(data);
-				graphData.collapsedGroups.push(data.id);
-				config.isConfigChanged = true;
+				config.collapsedGroups.push(data.id);
+				doRedraw();
 			});
 
 		for (let i = 0; i < graphData.groups.length; i++) {
@@ -130,10 +130,8 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 			console.log(data);
 			if (data.isCollapsedGroup) {
 				// uncollapse
-				graphData.collapsedGroups = graphData.collapsedGroups.filter(
-					(id: string) => id !== data.id
-				);
-				config.isConfigChanged = true;
+				config.collapsedGroups = config.collapsedGroups.filter((id: string) => id !== data.id);
+				doRedraw();
 			}
 		});
 
@@ -175,6 +173,7 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 	simulation.on('tick', () => {
 		tick(config, graphData, graphElements);
 	});
+
 	return {
 		svg,
 		simulation,

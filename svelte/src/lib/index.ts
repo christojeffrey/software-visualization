@@ -7,5 +7,6 @@ export * from './event-handler';
 export { collapsedGroupHandler } from './collapsed-group-handler';
 export { draw } from './draw';
 export { addCanvasInteractivity } from './canvas-interactivity';
-export { dataSetter } from './data-setter';
 export { cleanCanvas } from './clean-canvas';
+export { linkStrokeValue } from './style-injector';
+export { setupGraphData } from './setup-graph-data';

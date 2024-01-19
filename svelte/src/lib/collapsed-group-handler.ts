@@ -1,4 +1,5 @@
 export function collapsedGroupHandler(collapsedGroups: any, graphData: any) {
+	console.log(collapsedGroups);
 	// remove nodes data and group data.
 
 	let filteredNodes = graphData.nodes;

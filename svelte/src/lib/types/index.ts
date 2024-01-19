@@ -1,10 +1,9 @@
 export type ConfigType = {
 	isGrouped: boolean;
-	useRawData: boolean;
-	isConfigChanged: boolean;
 	showNodeLabels: boolean;
 	showLinkLabels: boolean;
 	isForceSimulationEnabled: boolean;
+	collapsedGroups: string[];
 };
 export type GraphElementsType = {
 	nodes: any;
@@ -20,7 +19,6 @@ export type GraphDataType = {
 	groups: any[];
 	groupLinks: any[];
 	groupButtons: any[];
-	collapsedGroups: any[];
 };
 export type Node = {
 	id: string;
