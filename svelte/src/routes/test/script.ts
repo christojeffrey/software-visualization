@@ -273,7 +273,6 @@ function draggedNode(event: any, simulations: any) {
 	simulations.forEach((simulation: any) => {
 		simulation.alpha(slowAlpha).restart();
 	});
-	console.log('test');
 	event.subject.fx = event.x;
 	event.subject.fy = event.y;
 }
@@ -364,7 +363,19 @@ export function draw(svgElement: any, graphData: any, _drawSettings: any) {
 			createInnerSimulation(graphData.nodes[i].members, canvas, simulations, graphData.nodes[i]);
 		}
 	}
-
+	// Add zoom handler
+	svg.call(
+		d3
+			.zoom()
+			.extent([
+				[0, 0],
+				[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
+			])
+			.scaleExtent([1, 8])
+			.on('zoom', ({ transform }) => {
+				canvas.attr('transform', transform);
+			})
+	);
 	return {
 		simulations,
 		svgElement
