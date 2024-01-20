@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      run();
+
+      function run() {
+        const nodes = [
+          { id: "node1", level: 1 },
+          { id: "node2", level: 1 },
+          {
+            id: "node3",
+            level: 1,
+            members: [
+              {
+                id: "member1",
+                level: 2,
+                // members: [
+                //   {
+                //     id: "member4",
+                //     level: 3,
+                //   },
+                //   {
+                //     id: "member5",
+                //     level: 3,
+                //   },
+                // ],
+              },
+              {
+                id: "member2",
+                level: 2,
+              },
+              {
+                id: "member3",
+                level: 2,
+              },
+            ],
+          },
+        ];
+
+        const links = [
+          { source: "node1", target: "node2" },
+          { source: "node2", target: "node3" },
+          { source: "member2", target: "member1" },
+          { source: "member2", target: "node1" },
+        ];
+        const width = 500; // window.innerWidth;
+        const height = 400; // window.innerHeight;
+        const svg = d3
+          .select("body")
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .call(
+            d3
+              .zoom()
+              .scaleExtent([1 / 2, 8])
+              .on("zoom", zoomed)
+          );
+
+        let allSimulation = [];
+
+        let simulation = d3.forceSimulation(nodes);
+        simulation.force("charge", d3.forceManyBody().strength(-300));
+        simulation.force("center", d3.forceCenter(width / 2, height / 2));
+        simulation.force("x", d3.forceX(width / 2));
+        simulation.force("y", d3.forceY(height / 2));
+        simulation.on("tick", function ticked() {
+          // calculate nodes width and height, x and y.
+          for (let i = 0; i < flattenedNode.length; i++) {
+            if (flattenedNode[i].members) {
+              let members = flattenedNode[i].members;
+              // members location is relative to the parent.
+              let minX = members[0].x - members[0].width / 2;
+              let maxX = members[0].x + members[0].width / 2;
+              let minY = members[0].y - members[0].height / 2;
+              let maxY = members[0].y + members[0].height / 2;
+              for (let j = 0; j < members.length; j++) {
+                if (members[j].x - members[j].width / 2 < minX) {
+                  minX = members[j].x - members[j].width / 2;
+                }
+                if (members[j].x + members[j].width / 2 > maxX) {
+                  maxX = members[j].x + members[j].width / 2;
+                }
+                if (members[j].y - members[j].height / 2 < minY) {
+                  minY = members[j].y - members[j].height / 2;
+                }
+                if (members[j].y + members[j].height / 2 > maxY) {
+                  maxY = members[j].y + members[j].height / 2;
+                }
+              }
+
+              flattenedNode[i].width = maxX - minX;
+              flattenedNode[i].height = maxY - minY;
+            } else {
+              flattenedNode[i].width = 10;
+              flattenedNode[i].height = 10;
+            }
+          }
+
+          containerElement.attr("transform", (d) => {
+            // console.log(d);
+            return `translate(${d.x},${d.y})`;
+          });
+          nodeElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
+        });
+
+        allSimulation.push(simulation);
+
+        // flatten node
+
+        let flattenedNode = flattenNode(nodes);
+
+        const canvas = svg.append("g");
+        let containerElement = canvas
+          .append("g")
+          .selectAll("g")
+          .data(nodes)
+          .enter()
+          .append("g")
+          .attr("class", "nodes")
+          .attr("id", (d) => d.id);
+
+        containerElement.call(
+          d3
+            .drag()
+            .on("start", (d) => {
+              onDragStart(d, allSimulation);
+            })
+            .on("drag", (d) => {
+              onDrag(d, allSimulation);
+            })
+            .on("end", (d) => {
+              onDragEnd(d, allSimulation);
+            })
+        );
+        let nodeElements = containerElement.append("rect").attr("x", 0).attr("y", 0).attr("width", 10).attr("height", 10).attr("fill", "red").attr("fill-opacity", "0.1");
+
+        let linkElements = canvas.selectAll("line.link").data(links).enter().append("line").style("stroke", "blue").attr("class", "link");
+
+        let linkSimulation = d3
+          .forceSimulation(flattenedNode)
+          .force(
+            "link",
+            d3
+              .forceLink(links)
+              .id((d) => {
+                return d.id;
+              })
+              .strength(0)
+          )
+          .on("tick", (e) => {
+            linkElements
+              .attr("x1", (d) => {
+                // change to global coordinates.
+                let result = d.source.x;
+
+                let temp = d.source;
+                while (temp.parent) {
+                  result += temp.parent.x;
+                  temp = temp.parent;
+                }
+
+                return result;
+              })
+              .attr("y1", (d) => {
+                // change to global coordinates.
+                let result = d.source.y;
+
+                let temp = d.source;
+                while (temp.parent) {
+                  result += temp.parent.y;
+                  temp = temp.parent;
+                }
+
+                return result;
+              })
+              .attr("x2", (d) => {
+                // change to global coordinates.
+                let result = d.target.x;
+
+                let temp = d.target;
+                while (temp.parent) {
+                  result += temp.parent.x;
+                  temp = temp.parent;
+                }
+
+                return result;
+              })
+              .attr("y2", (d) => {
+                // change to global coordinates.
+                let result = d.target.y;
+
+                let temp = d.target;
+                while (temp.parent) {
+                  result += temp.parent.y;
+                  temp = temp.parent;
+                }
+
+                return result;
+              });
+          });
+
+        allSimulation.push(linkSimulation);
+
+        // create inner simulation.
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].members) {
+            createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i]);
+          }
+        }
+
+        function zoomed() {
+          canvas.attr("transform", d3.event.transform);
+        }
+
+        function flattenNode(nodes) {
+          let hasMember = false;
+          let result = [];
+          //   console.log(nodes);
+          nodes.forEach((node) => {
+            //   reserse the order so that the parent is always at the end.
+            // order matter.
+            if (node.members) {
+              //   let temp = flattenNode(node.members);
+              //   for (let i = 0; i < temp.length; i++) {
+              //     result.push(temp[i]);
+              //   }
+              result.push(...flattenNode(node.members));
+            }
+            result.push(node);
+          });
+          return result;
+        }
+      }
+      function onDragStart(d, allSimulation) {
+        if (!d3.event.active) {
+          allSimulation.forEach((simul) => {
+            simul.alphaTarget(0.5).restart();
+          });
+        }
+
+        //   nodeGroup.each((d) => {
+        //     d.fx = d.x;
+        //     d.fy = d.y;
+        //   });
+      }
+
+      function onDrag(d, allSimulation) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+      }
+
+      function onDragEnd(d, allSimulation) {
+        if (!d3.event.active) {
+          allSimulation.forEach((simul) => {
+            simul.alphaTarget(0).restart();
+          });
+        }
+        d.fx = null;
+        d.fy = null;
+      }
+      function createInnerSimulation(nodes, canvas, allSimulation, parentNode) {
+        console.log(nodes);
+        // use this instead of forEach so that it is passed by reference.
+
+        // bind for easy reference.
+        for (let i = 0; i < nodes.length; i++) {
+          nodes[i].parent = parentNode;
+          //   recursive inner simulation.
+          // if (nodes[i].members[j]) {
+          //   createInnerSimulation(nodes[i].members, canvas, allSimulation);
+          // }
+        }
+
+        const innerSimulation = d3.forceSimulation(nodes);
+        innerSimulation.force("charge", d3.forceManyBody().strength(-3));
+        innerSimulation.force("x", d3.forceX());
+        innerSimulation.force("y", d3.forceY());
+
+        allSimulation.push(innerSimulation);
+
+        const parent = canvas.select(`#${parentNode.id}`).append("g");
+        let membersContainerElement = parent
+          .selectAll("g")
+          .data(nodes)
+          .enter()
+          .append("g")
+          .attr("class", "node")
+          .attr("id", (d) => d.id);
+
+        membersContainerElement.call(
+          d3
+            .drag()
+            .on("start", (d) => {
+              onDragStart(d, allSimulation);
+            })
+            .on("drag", (d) => {
+              onDrag(d, allSimulation);
+            })
+            .on("end", (d) => {
+              onDragEnd(d, allSimulation);
+            })
+        );
+        let memberElements = membersContainerElement.append("rect").attr("x", 0).attr("y", 0).attr("width", 5).attr("height", 5).style("fill", "green").attr("fill-opacity", "0.2");
+
+        innerSimulation.on("tick", function ticked() {
+          membersContainerElement.attr("transform", (d) => `translate(${d.x},${d.y})`);
+          memberElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
+        });
+      }
+    </script>
+  </body>
+</html>
