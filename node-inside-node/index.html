@@ -35,10 +35,10 @@
                 id: "member2",
                 level: 2,
               },
-              //   {
-              //     id: "member3",
-              //     level: 2,
-              //   },
+              {
+                id: "member3",
+                level: 2,
+              },
             ],
           },
         ];
@@ -46,8 +46,8 @@
         const links = [
           { source: "node1", target: "node2" },
           { source: "node2", target: "node3" },
-          //   { source: "member2", target: "member1" },
-          //   { source: "member2", target: "member4" },
+          { source: "member2", target: "member1" },
+          { source: "member2", target: "member4" },
         ];
         const width = 500; // window.innerWidth;
         const height = 400; // window.innerHeight;
@@ -76,40 +76,31 @@
             if (flattenedNode[i].members) {
               let members = flattenedNode[i].members;
               // members location is relative to the parent.
-              let minX = members[0].x;
-              let maxX = members[0].x + members[0].width;
-              let minY = members[0].y;
-              let maxY = members[0].y + members[0].height;
+              let minX = members[0].x + members[0].cx;
+              let maxX = members[0].x + members[0].cx + members[0].width;
+              let minY = members[0].y + members[0].cy;
+              let maxY = members[0].y + members[0].cy + members[0].height;
 
-              let minCX = members[0].cx;
-              let minCY = members[0].cy;
               for (let j = 0; j < members.length; j++) {
-                if (members[j].x < minX) {
+                if (members[j].x + members[j].cx < minX) {
                   minX = members[j].x;
                 }
-                if (members[j].x + members[j].width > maxX) {
-                  maxX = members[j].x + members[j].width;
+                if (members[j].x + members[j].cx + members[j].width > maxX) {
+                  maxX = members[j].x + members[j].cx + members[j].width;
                 }
-                if (members[j].y < minY) {
-                  minY = members[j].y;
+                if (members[j].y + members[j].cy < minY) {
+                  minY = members[j].y + members[j].cy;
                 }
-                if (members[j].y + members[j].height > maxY) {
-                  maxY = members[j].y + members[j].height;
-                }
-
-                if (members[j].cx < minCX) {
-                  minCX = members[j].cx;
-                }
-                if (members[j].cy < minCY) {
-                  minCY = members[j].cy;
+                if (members[j].y + members[j].cy + members[j].height > maxY) {
+                  maxY = members[j].y + members[j].cy + members[j].height;
                 }
               }
 
-              flattenedNode[i].width = maxX - minX - minCX;
-              flattenedNode[i].height = maxY - minY - minCY;
+              flattenedNode[i].width = maxX - minX;
+              flattenedNode[i].height = maxY - minY;
               // stands for calculated x and y.
-              flattenedNode[i].cx = minX + minCX;
-              flattenedNode[i].cy = minY + minCY;
+              flattenedNode[i].cx = minX;
+              flattenedNode[i].cy = minY;
             } else {
               flattenedNode[i].width = 10;
               flattenedNode[i].height = 10;
