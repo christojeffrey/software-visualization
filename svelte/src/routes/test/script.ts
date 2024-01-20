@@ -100,28 +100,6 @@ const SVGMARGIN = 50;
 const PADDING = 10;
 // const MINIMUMNODESIZE = 10;
 
-function onDragStart(d, allSimulation: any[]) {
-	// if (!d3.event.active) {
-	allSimulation.forEach((simul) => {
-		simul.alphaTarget(0.5).restart();
-	});
-	// }
-}
-
-function onDrag(d, allSimulation) {
-	d.fx = d3.event.x;
-	d.fy = d3.event.y;
-}
-
-function onDragEnd(d: any, allSimulation: any[]) {
-	// if (!d3.event.active) {
-	allSimulation.forEach((simul) => {
-		simul.alphaTarget(0).restart();
-	});
-	// }
-	d.fx = null;
-	d.fy = null;
-}
 function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, parentNode: any) {
 	console.log(nodes);
 	// use this instead of forEach so that it is passed by reference.
@@ -151,13 +129,13 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 		d3
 			.drag()
 			.on('start', (d) => {
-				onDragStart(d, allSimulation);
+				dragStartedNode(d, allSimulation);
 			})
 			.on('drag', (d) => {
-				onDrag(d, allSimulation);
+				draggedNode(d, allSimulation);
 			})
 			.on('end', (d) => {
-				onDragEnd(d, allSimulation);
+				dragEndedNode(d, allSimulation);
 			})
 	);
 	const memberElements = membersContainerElement
@@ -281,6 +259,33 @@ function masterSimulationTicked(graphData: any, containerElement: any, nodeEleme
 
 	nodeElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
 }
+
+const slowAlpha = 0.001;
+function dragStartedNode(event: any, simulations: any) {
+	simulations.forEach((simulation: any) => {
+		if (!event.active) simulation.alpha(slowAlpha).restart();
+	});
+	event.subject.fx = event.subject.x;
+	event.subject.fy = event.subject.y;
+}
+
+// Update the subject (dragged node) position during drag.
+function draggedNode(event: any, simulations: any) {
+	simulations.forEach((simulation: any) => {
+		simulation.alpha(slowAlpha).restart();
+	});
+	console.log('test');
+	event.subject.fx = event.x;
+	event.subject.fy = event.y;
+}
+
+function dragEndedNode(event: any, simulations: any) {
+	simulations.forEach((simulation: any) => {
+		if (!event.active) simulation.alpha(slowAlpha).restart();
+	});
+	event.subject.fx = null;
+	event.subject.fy = null;
+}
 export function draw(svgElement: any, graphData: any, drawSettings: any) {
 	console.log('draw');
 	const simulations: any = [];
@@ -297,6 +302,8 @@ export function draw(svgElement: any, graphData: any, drawSettings: any) {
 		masterSimulationTicked(graphData, containerElement, nodeElements);
 	});
 
+	simulations.push(simulation);
+
 	const canvas = svg.append('g');
 
 	const containerElement = canvas
@@ -307,6 +314,18 @@ export function draw(svgElement: any, graphData: any, drawSettings: any) {
 		.append('g')
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => d.id);
+
+	containerElement.call(
+		d3
+			.drag<any, any>()
+			.on('start', function (this: any, e) {
+				// To combine element drag and pan
+				d3.select(this).raise();
+				dragStartedNode(e, simulations);
+			})
+			.on('drag', (e) => draggedNode(e, simulations))
+			.on('end', (e) => dragEndedNode(e, simulations))
+	);
 
 	const nodeElements = containerElement
 		.append('rect')
