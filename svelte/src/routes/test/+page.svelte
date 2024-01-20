@@ -35,10 +35,9 @@
 			if (doRedraw) {
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
-                
+
                 let result = draw(svgElement, graphData, drawSettings);
                 simulations = result.simulations;
-                svgElement = result.svgElements;
 				doRedraw = false;
 			}
 		}

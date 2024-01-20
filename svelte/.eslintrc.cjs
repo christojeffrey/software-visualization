@@ -1,7 +1,9 @@
 module.exports = {
 	rules: {
 		// allow explicit any
-		'@typescript-eslint/no-explicit-any': 'off'
+		'@typescript-eslint/no-explicit-any': 'off',
+		// allow unused vars
+		'@typescript-eslint/no-unused-vars': 'off'
 	},
 	root: true,
 	extends: [

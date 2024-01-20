@@ -1,10 +1,10 @@
 import * as d3 from 'd3';
 
-export function cleanCanvas(svgElement, simulations) {
+export function cleanCanvas(svgElement: any, simulations: any) {
 	console.log('clean canvas');
 }
 
-export function converter(rawData) {
+export function converter(rawData: any) {
 	console.log('converter');
 	// hardcode for now
 
@@ -52,22 +52,21 @@ export function converter(rawData) {
 
 // filter and helper
 
-function assignParentReference(nodes) {
+function assignParentReference(nodes: any) {
 	// console.log(nodes);
-	nodes.forEach((node, index, arr) => {
+	nodes.forEach((node: any, _index: any, _arr: any) => {
 		if (node.members) {
-			node.members.forEach((member, index, arr) => {
+			node.members.forEach((_: any, index: any, arr: any) => {
 				arr[index].parent = node;
 			});
 			assignParentReference(node.members);
 		}
 	});
 }
-function flattenNode(nodes) {
+function flattenNode(nodes: any) {
 	//   reserse the order so that the parent is always at the end.
-	let hasMember = false;
-	let result = [];
-	nodes.forEach((node) => {
+	const result: any[] = [];
+	nodes.forEach((node: any) => {
 		// order matter.
 		if (node.members) {
 			result.push(...flattenNode(node.members));
@@ -77,7 +76,7 @@ function flattenNode(nodes) {
 	return result;
 }
 
-export function filter(config: any, convertedData: any) {
+export function filter(_config: any, convertedData: any) {
 	console.log('filter');
 	const nodes: any = convertedData.nodes;
 	const links: any = convertedData.links;
@@ -117,7 +116,7 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 	allSimulation.push(innerSimulation);
 
 	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
-	let membersContainerElement = parentElement
+	const membersContainerElement = parentElement
 		.selectAll('g')
 		.data(nodes)
 		.enter()
@@ -148,9 +147,9 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 		.attr('fill-opacity', '0.2');
 
 	innerSimulation.on('tick', function ticked() {
-		membersContainerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
-		memberElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
-		memberElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
+		membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+		memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
+		memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
 	});
 
 	// recursive inner simulation.
@@ -286,7 +285,7 @@ function dragEndedNode(event: any, simulations: any) {
 	event.subject.fx = null;
 	event.subject.fy = null;
 }
-export function draw(svgElement: any, graphData: any, drawSettings: any) {
+export function draw(svgElement: any, graphData: any, _drawSettings: any) {
 	console.log('draw');
 	const simulations: any = [];
 
