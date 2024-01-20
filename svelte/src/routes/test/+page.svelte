@@ -1,7 +1,10 @@
 <script lang="ts">
     
     import { onMount } from 'svelte';
-    import {cleanCanvas, converter, filter, draw} from "./script";
+    import {cleanCanvas} from "./scripts/clean-canvas";
+    import {draw} from "./scripts/draw";
+    import {filter} from "./scripts/filter";
+    import {converter} from "./scripts/converter";
 	let simulations: any[];
     
 	
