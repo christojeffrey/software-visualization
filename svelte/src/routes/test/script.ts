@@ -1,3 +1,5 @@
+import * as d3 from 'd3';
+
 export function cleanCanvas(svgElement, simulations) {
 	console.log('clean canvas');
 }
@@ -61,34 +63,6 @@ function assignParentReference(nodes) {
 		}
 	});
 }
-
-export function filter(config: any, convertedData: any) {
-	console.log('filter');
-	const nodes: any = convertedData.nodes;
-	const links: any = convertedData.links;
-	const flattenNodes: any = flattenNode(nodes);
-
-	assignParentReference(nodes);
-	console.log(nodes);
-
-	const graphData: any = {
-		nodes,
-		links,
-		flattenNodes
-	};
-	return graphData;
-}
-
-export function draw(svgElements, graphData, drawSettings) {
-	console.log('draw');
-	let simulations: any;
-
-	return {
-		simulations,
-		svgElements
-	};
-}
-
 function flattenNode(nodes) {
 	//   reserse the order so that the parent is always at the end.
 	let hasMember = false;
@@ -101,4 +75,253 @@ function flattenNode(nodes) {
 		result.push(node);
 	});
 	return result;
+}
+
+export function filter(config: any, convertedData: any) {
+	console.log('filter');
+	const nodes: any = convertedData.nodes;
+	const links: any = convertedData.links;
+	const flattenNodes: any = flattenNode(nodes);
+
+	assignParentReference(nodes);
+
+	const graphData: any = {
+		nodes,
+		links,
+		flattenNodes
+	};
+	return graphData;
+}
+
+// draw and helper
+
+const SVGSIZE = 800;
+const SVGMARGIN = 50;
+const PADDING = 10;
+// const MINIMUMNODESIZE = 10;
+
+function ticked() {}
+
+function createInnerSimulation(nodes, canvas, allSimulation, parentNode) {
+	console.log(nodes);
+	// use this instead of forEach so that it is passed by reference.
+
+	// bind for easy reference.
+	for (let i = 0; i < nodes.length; i++) {
+		nodes[i].parent = parentNode;
+	}
+
+	const innerSimulation = d3.forceSimulation(nodes);
+	innerSimulation.force('charge', d3.forceManyBody().strength(-30));
+	innerSimulation.force('x', d3.forceX());
+	innerSimulation.force('y', d3.forceY());
+
+	allSimulation.push(innerSimulation);
+
+	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
+	let membersContainerElement = parentElement
+		.selectAll('g')
+		.data(nodes)
+		.enter()
+		.append('g')
+		.attr('class', 'node')
+		.attr('id', (d) => d.id);
+
+	membersContainerElement.call(
+		d3
+			.drag()
+			.on('start', (d) => {
+				onDragStart(d, allSimulation);
+			})
+			.on('drag', (d) => {
+				onDrag(d, allSimulation);
+			})
+			.on('end', (d) => {
+				onDragEnd(d, allSimulation);
+			})
+	);
+	let memberElements = membersContainerElement
+		.append('rect')
+		.attr('x', 0)
+		.attr('y', 0)
+		.attr('width', 5)
+		.attr('height', 5)
+		.style('fill', 'green')
+		.attr('fill-opacity', '0.2');
+
+	innerSimulation.on('tick', function ticked() {
+		membersContainerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
+		memberElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
+		memberElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
+	});
+
+	// recursive inner simulation.
+	for (let i = 0; i < nodes.length; i++) {
+		if (nodes[i].members) {
+			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i]);
+		}
+	}
+}
+export function draw(svgElement, graphData, drawSettings) {
+	console.log('draw');
+	const simulations: any = [];
+
+	const svg = d3
+		.select(svgElement)
+		.attr('width', SVGSIZE + SVGMARGIN * 2)
+		.attr('height', SVGSIZE + SVGMARGIN * 2);
+
+	const simulation = d3.forceSimulation(graphData.nodes);
+	simulation.force('charge', d3.forceManyBody().strength(-300));
+	simulation.force('center', d3.forceCenter(SVGSIZE / 2, SVGSIZE / 2));
+	simulation.on('tick', function ticked() {
+		// calculate nodes width and height, x and y. only do this calculation once, on master simulation
+		for (let i = 0; i < graphData.flattenNodes.length; i++) {
+			if (graphData.flattenNodes[i].members) {
+				const members = graphData.flattenNodes[i].members;
+				// members location is relative to the parent.
+				let minX = members[0].x + members[0].cx;
+				let maxX = members[0].x + members[0].cx + members[0].width;
+				let minY = members[0].y + members[0].cy;
+				let maxY = members[0].y + members[0].cy + members[0].height;
+
+				for (let j = 0; j < members.length; j++) {
+					if (members[j].x + members[j].cx < minX) {
+						minX = members[j].x;
+					}
+					if (members[j].x + members[j].cx + members[j].width > maxX) {
+						maxX = members[j].x + members[j].cx + members[j].width;
+					}
+					if (members[j].y + members[j].cy < minY) {
+						minY = members[j].y + members[j].cy;
+					}
+					if (members[j].y + members[j].cy + members[j].height > maxY) {
+						maxY = members[j].y + members[j].cy + members[j].height;
+					}
+				}
+
+				graphData.flattenNodes[i].width = maxX - minX + PADDING * 2;
+				graphData.flattenNodes[i].height = maxY - minY + PADDING * 2;
+				// stands for calculated x and y.
+				graphData.flattenNodes[i].cx = minX - PADDING;
+				graphData.flattenNodes[i].cy = minY - PADDING;
+			} else {
+				graphData.flattenNodes[i].width = 10;
+				graphData.flattenNodes[i].height = 10;
+				//   stands for calculated x and y.
+				graphData.flattenNodes[i].cx = 0;
+				graphData.flattenNodes[i].cy = 0;
+			}
+		}
+
+		containerElement.attr('transform', (d) => {
+			return `translate(${d.x},${d.y})`;
+		});
+		nodeElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
+		// cannot use below as this wouldn't move the children of that group, which is the subgraph
+
+		nodeElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
+	});
+
+	const canvas = svg.append('g');
+
+	const containerElement = canvas
+		.append('g')
+		.selectAll('g')
+		.data(graphData.nodes)
+		.enter()
+		.append('g')
+		.attr('class', 'nodes')
+		.attr('id', (d) => d.id);
+
+	const nodeElements = containerElement
+		.append('rect')
+		.attr('x', 0)
+		.attr('y', 0)
+		.attr('width', 10)
+		.attr('height', 10)
+		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1');
+
+	// link
+	let linkElements = canvas
+		.selectAll('line.link')
+		.data(graphData.links)
+		.enter()
+		.append('line')
+		.style('stroke', 'blue')
+		.attr('class', 'link');
+	let linkSimulation = d3
+		.forceSimulation(graphData.flattenNodes)
+		.force(
+			'link',
+			d3
+				.forceLink(graphData.links)
+				.id((d) => {
+					return d.id;
+				})
+				.strength(0)
+		)
+		.on('tick', (e) => {
+			linkElements
+				.attr('x1', (d) => {
+					// change to global coordinates.
+					let result = d.source.x;
+
+					let temp = d.source;
+					while (temp.parent) {
+						result += temp.parent.x;
+						temp = temp.parent;
+					}
+
+					return result;
+				})
+				.attr('y1', (d) => {
+					// change to global coordinates.
+					let result = d.source.y;
+
+					let temp = d.source;
+					while (temp.parent) {
+						result += temp.parent.y;
+						temp = temp.parent;
+					}
+
+					return result;
+				})
+				.attr('x2', (d) => {
+					// change to global coordinates.
+					let result = d.target.x;
+
+					let temp = d.target;
+					while (temp.parent) {
+						result += temp.parent.x;
+						temp = temp.parent;
+					}
+
+					return result;
+				})
+				.attr('y2', (d) => {
+					// change to global coordinates.
+					let result = d.target.y;
+
+					let temp = d.target;
+					while (temp.parent) {
+						result += temp.parent.y;
+						temp = temp.parent;
+					}
+
+					return result;
+				});
+		});
+
+	// create inner simulation.
+	for (let i = 0; i < graphData.nodes.length; i++) {
+		if (graphData.nodes[i].members) {
+			createInnerSimulation(graphData.nodes[i].members, canvas, simulations, graphData.nodes[i]);
+		}
+	}
+	return {
+		simulations,
+		svgElement
+	};
 }
