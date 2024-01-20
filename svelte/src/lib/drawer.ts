@@ -50,13 +50,11 @@ export const tick = (
 		graphElements.groups.attr('height', (d: any) => d.height);
 		
 		// update button positions
-		graphElements.groupButtons.attr('cx', (d: any) => {
-			return d.x;
-		});
-		graphElements.groupButtons.attr('cy', (d: any) => {
-			return d.y;
-		});
-
-		// console.log(graphData.groups);
+		const collapseButton = graphElements.groupButtons.selectAll(".group-button");
+		const liftButton = graphElements.groupButtons.selectAll(".lift-button");
+		collapseButton.attr('cx', (d:any) => d.x);
+		collapseButton.attr('cy', (d:any) => d.y);
+		liftButton.attr('cx', (d:any) => d.x + 25);
+		liftButton.attr('cy', (d:any) => d.y);
 	}
 };

@@ -1,18 +1,28 @@
 <script lang="ts">
+	import type { ConfigType } from "$lib/types";
+
 	export let config: any;
-	export let doRedraw: boolean;
+	let dependencyLimit: string = "";
 </script>
 
 <div class="side-panel-container">
 	<!-- for every config key, create a button to toggle between true and false -->
-	{#each Object.keys(config) as key}
-		<button
-			on:click={() => {
-				config[key] = !config[key];
-				doRedraw = true;
-			}}
-			>{key}: {config[key] ? 'true' : 'false'}
-		</button>
+	{#each Object.keys(config).filter((key) => key !== 'isConfigChanged') as key}
+		{#if typeof config[key] == 'boolean'}
+			<button
+				on:click={() => {
+					config[key] = !config[key];
+					config.isConfigChanged = true;
+				}}
+				>{key}: {config[key] ? 'true' : 'false'}
+			</button>
+		{:else if typeof config[key] == 'number'}
+			<input type='input' bind:value={dependencyLimit} placeholder={key}
+			on:input={() => {
+				config[key] = dependencyLimit === "" ? NaN : Number(dependencyLimit);
+				return true;
+			}}/>
+		{/if}
 	{/each}
 </div>
 

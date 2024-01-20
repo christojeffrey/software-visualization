@@ -54,15 +54,9 @@ export const groups: Group[] = [
 	{
 		id: 'group3',
 		leaves: ['11', '12', '13', '14', '15', '16'],
-		color: '#FFD54F',
-		children: ['group4']
+		color: '#FFD54F'
 	},
-	{
-		id: 'group4',
-		leaves: ['11', '12', '13', '14'],
-		color: '#1FA54F',
-		parent: 'group3'
-	}
+	{ id: 'groupnested', leaves: ['1', '2'], color: '#123456' }
 ];
 
 export const exampleData = {

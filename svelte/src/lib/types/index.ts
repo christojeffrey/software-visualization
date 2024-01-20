@@ -3,8 +3,15 @@ export type ConfigType = {
 	showNodeLabels: boolean;
 	showLinkLabels: boolean;
 	isForceSimulationEnabled: boolean;
-	collapsedGroups: string[];
+	liftDependencies: LiftDependencyType[];
+	dependencyDepth: number;
 };
+
+export type LiftDependencyType = {
+	id: string;
+	level: number;
+};
+
 export type GraphDataType = {
 	nodes: any[];
 	links: any[];
@@ -12,7 +19,6 @@ export type GraphDataType = {
 	groupLinks: any[];
 	groupButtons: any[];
 };
-
 
 export type GraphElementsType = {
 	nodes: any;
