@@ -20,16 +20,16 @@
               {
                 id: "member1",
                 level: 2,
-                // members: [
-                //   {
-                //     id: "member4",
-                //     level: 3,
-                //   },
-                //   {
-                //     id: "member5",
-                //     level: 3,
-                //   },
-                // ],
+                members: [
+                  {
+                    id: "member4",
+                    level: 3,
+                  },
+                  {
+                    id: "member5",
+                    level: 3,
+                  },
+                ],
               },
               {
                 id: "member2",
@@ -74,40 +74,48 @@
           // calculate nodes width and height, x and y. only do this calculation once, on master simulation
           for (let i = 0; i < flattenedNode.length; i++) {
             if (flattenedNode[i].members) {
-              let minMemberXIndex = 0;
-              letMaxMemberXIndex = 0;
-              let minMemberYIndex = 0;
-              let maxMemberYIndex = 0;
               let members = flattenedNode[i].members;
               // members location is relative to the parent.
               let minX = members[0].x;
               let maxX = members[0].x + members[0].width;
               let minY = members[0].y;
               let maxY = members[0].y + members[0].height;
+
+              let minCX = members[0].cx;
+              let minCY = members[0].cy;
               for (let j = 0; j < members.length; j++) {
                 if (members[j].x < minX) {
                   minX = members[j].x;
-                  minMemberXIndex = j;
                 }
                 if (members[j].x + members[j].width > maxX) {
                   maxX = members[j].x + members[j].width;
-                  maxMemberXIndex = j;
                 }
                 if (members[j].y < minY) {
                   minY = members[j].y;
-                  minMemberYIndex = j;
                 }
                 if (members[j].y + members[j].height > maxY) {
                   maxY = members[j].y + members[j].height;
-                  maxMemberYIndex = j;
+                }
+
+                if (members[j].cx < minCX) {
+                  minCX = members[j].cx;
+                }
+                if (members[j].cy < minCY) {
+                  minCY = members[j].cy;
                 }
               }
 
-              flattenedNode[i].width = maxX - minX;
-              flattenedNode[i].height = maxY - minY;
+              flattenedNode[i].width = maxX - minX - minCX;
+              flattenedNode[i].height = maxY - minY - minCY;
+              // stands for calculated x and y.
+              flattenedNode[i].cx = minX + minCX;
+              flattenedNode[i].cy = minY + minCY;
             } else {
               flattenedNode[i].width = 10;
               flattenedNode[i].height = 10;
+              //   stands for calculated x and y.
+              flattenedNode[i].cx = 0;
+              flattenedNode[i].cy = 0;
             }
           }
 
@@ -115,6 +123,9 @@
             return `translate(${d.x},${d.y})`;
           });
           nodeElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
+          // cannot use below as this wouldn't move the children of that group, which is the subgraph
+
+          nodeElements.attr("x", (d) => d.cx).attr("y", (d) => d.cy);
         });
 
         allSimulation.push(simulation);
@@ -273,7 +284,7 @@
         }
 
         const innerSimulation = d3.forceSimulation(nodes);
-        innerSimulation.force("charge", d3.forceManyBody().strength(-3));
+        innerSimulation.force("charge", d3.forceManyBody().strength(-30));
         innerSimulation.force("x", d3.forceX());
         innerSimulation.force("y", d3.forceY());
 
@@ -306,6 +317,7 @@
         innerSimulation.on("tick", function ticked() {
           membersContainerElement.attr("transform", (d) => `translate(${d.x},${d.y})`);
           memberElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
+          memberElements.attr("x", (d) => d.cx).attr("y", (d) => d.cy);
         });
 
         // recursive inner simulation.
