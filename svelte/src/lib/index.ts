@@ -8,3 +8,6 @@ export { draw } from './draw';
 export { cleanCanvas } from './clean-canvas';
 export { linkStrokeValue } from './style-injector';
 export { setupGraphData } from './setup-graph-data';
+
+
+
