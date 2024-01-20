@@ -1,25 +1,42 @@
 <script lang="ts">
     
     import { onMount } from 'svelte';
-    import {cleanCanvas} from "./script";
-	let svgElement: any; // Reference to the svg tag
+    import {cleanCanvas, converter, filter, draw} from "./script";
 	let simulations: any[];
-
+    
 	
     let rawData: any;
-    let config:any;
-    let drawSettings:any;
+    let convertedData: any;
+    const config:any = {};
+    let graphData: any;
+    const drawSettings: any = {};
+	let svgElement: any = {};
     
 	let doRedraw = true;
-	let isMounted = false;
+	let doReconvert = true;
+    let doRefilter = true;
+    let isMounted = false;
+    
 
 	$: {
 		if (isMounted) {
 			// handle config changes
+            if (doReconvert) {
+                // remove the old data	
+                convertedData = converter(rawData);
+                doReconvert = false;
+            }
+            if (doRefilter) {
+                // remove the old data	
+                graphData = filter(config, convertedData);
+                doRefilter = false;
+            }
 			if (doRedraw) {
 				// remove the old data	
-                cleanCanvas();
-
+                cleanCanvas(svgElement, simulations);
+                let result = draw(svgElement, graphData, drawSettings);
+                simulations = result.simulations;
+                svgElement = result.svgElements;
 				doRedraw = false;
 			}
 		}

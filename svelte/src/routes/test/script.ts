@@ -1,4 +1,4 @@
-export function cleanCanvas() {
+export function cleanCanvas(svgElement, simulations) {
 	console.log('testing');
 }
 
