@@ -5,9 +5,9 @@
     import {draw} from "./scripts/draw";
     import {filter} from "./scripts/filter";
     import {converter} from "./scripts/converter";
+
 	let simulations: any[];
     
-	
     let rawData: any;
     let convertedData: any;
     const config:any = {};
@@ -20,7 +20,6 @@
     let doRefilter = true;
     let isMounted = false;
     
-
 	$: {
 		if (isMounted) {
 			// handle config changes
@@ -30,13 +29,11 @@
                 doReconvert = false;
             }
             if (doRefilter) {
-                // remove the old data	
                 graphData = filter(config, convertedData);
                 console.log(graphData);
                 doRefilter = false;
             }
 			if (doRedraw) {
-				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
                 let result = draw(svgElement, graphData, drawSettings);

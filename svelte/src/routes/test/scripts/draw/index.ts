@@ -1,8 +1,9 @@
 import * as d3 from 'd3';
+import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
+import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
-const PADDING = 10;
 // const MINIMUMNODESIZE = 10;
 
 function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, parentNode: any) {
@@ -52,10 +53,8 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 		.style('fill', 'green')
 		.attr('fill-opacity', '0.2');
 
-	innerSimulation.on('tick', function ticked() {
-		membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-		memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
-		memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
+	innerSimulation.on('tick', () => {
+		innerTicked(membersContainerElement, memberElements);
 	});
 
 	// recursive inner simulation.
@@ -65,131 +64,7 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 		}
 	}
 }
-function linkTicked(linkElements: any) {
-	linkElements
-		.attr('x1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.x;
 
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('y1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.y;
-
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('x2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.x;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('y2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.y;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
-		});
-}
-function masterSimulationTicked(graphData: any, containerElement: any, nodeElements: any) {
-	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
-	for (let i = 0; i < graphData.flattenNodes.length; i++) {
-		if (graphData.flattenNodes[i].members) {
-			const members = graphData.flattenNodes[i].members;
-			// members location is relative to the parent.
-			let minX = members[0].x + members[0].cx;
-			let maxX = members[0].x + members[0].cx + members[0].width;
-			let minY = members[0].y + members[0].cy;
-			let maxY = members[0].y + members[0].cy + members[0].height;
-
-			for (let j = 0; j < members.length; j++) {
-				if (members[j].x + members[j].cx < minX) {
-					minX = members[j].x;
-				}
-				if (members[j].x + members[j].cx + members[j].width > maxX) {
-					maxX = members[j].x + members[j].cx + members[j].width;
-				}
-				if (members[j].y + members[j].cy < minY) {
-					minY = members[j].y + members[j].cy;
-				}
-				if (members[j].y + members[j].cy + members[j].height > maxY) {
-					maxY = members[j].y + members[j].cy + members[j].height;
-				}
-			}
-
-			graphData.flattenNodes[i].width = maxX - minX + PADDING * 2;
-			graphData.flattenNodes[i].height = maxY - minY + PADDING * 2;
-			// stands for calculated x and y.
-			graphData.flattenNodes[i].cx = minX - PADDING;
-			graphData.flattenNodes[i].cy = minY - PADDING;
-		} else {
-			graphData.flattenNodes[i].width = 10;
-			graphData.flattenNodes[i].height = 10;
-			//   stands for calculated x and y.
-			graphData.flattenNodes[i].cx = 0;
-			graphData.flattenNodes[i].cy = 0;
-		}
-	}
-
-	containerElement.attr('transform', (d: any) => {
-		return `translate(${d.x},${d.y})`;
-	});
-	nodeElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
-	// cannot use below as this wouldn't move the children of that group, which is the subgraph
-
-	nodeElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
-}
-
-const slowAlpha = 0.001;
-function dragStartedNode(event: any, simulations: any) {
-	simulations.forEach((simulation: any) => {
-		if (!event.active) simulation.alpha(slowAlpha).restart();
-	});
-	event.subject.fx = event.subject.x;
-	event.subject.fy = event.subject.y;
-}
-
-// Update the subject (dragged node) position during drag.
-function draggedNode(event: any, simulations: any) {
-	simulations.forEach((simulation: any) => {
-		simulation.alpha(slowAlpha).restart();
-	});
-	event.subject.fx = event.x;
-	event.subject.fy = event.y;
-}
-
-function dragEndedNode(event: any, simulations: any) {
-	simulations.forEach((simulation: any) => {
-		if (!event.active) simulation.alpha(slowAlpha).restart();
-	});
-	event.subject.fx = null;
-	event.subject.fy = null;
-}
 export function draw(svgElement: any, graphData: any, _drawSettings: any) {
 	console.log('draw');
 	const simulations: any = [];
