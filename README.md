@@ -30,6 +30,8 @@ this is the format that **we** prefer to work with, instead of rawData. It actua
 
 Converted data is **not mutable** unless the rawData is changed. This is shown in the diagram. The config to the left of this data has to change in order to change this data.
 
+you can also think of converted data as modified rawData. So that whenever config is changed, you don't have to recompute the data from the beginning. You can just read from converted data.
+
 here is the type for convertedData
 
 ```typescript
