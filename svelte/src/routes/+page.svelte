@@ -34,7 +34,8 @@
 
 				// setup graphData
 				const graphData = setupGraphData(config, convertedData);
-
+				console.log('graphData');
+				console.log(graphData);
 				// draw
 				const result = draw(config, svgElement, graphData, () => {
 					doRedraw = true;

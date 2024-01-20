@@ -1,6 +1,12 @@
 import type { Group, Link, Node, RawEdge, RawGraphData } from './types';
 
-export const rawToGraphDataConverter = (rawData: RawGraphData) => {
+export const rawToGraphDataConverter = (
+	rawData: RawGraphData
+): {
+	nodes: Node[];
+	links: Link[];
+	groups: Group[];
+} => {
 	const nodes: Node[] = rawData.elements.nodes
 		.filter((node: any) => {
 			return node.data.labels[0] !== 'Container';
