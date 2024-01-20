@@ -10,6 +10,7 @@
       run();
 
       function run() {
+        const PADDING = 3;
         const nodes = [
           { id: "node1", level: 1 },
           { id: "node2", level: 1 },
@@ -96,11 +97,11 @@
                 }
               }
 
-              flattenedNode[i].width = maxX - minX;
-              flattenedNode[i].height = maxY - minY;
+              flattenedNode[i].width = maxX - minX + PADDING * 2;
+              flattenedNode[i].height = maxY - minY + PADDING * 2;
               // stands for calculated x and y.
-              flattenedNode[i].cx = minX;
-              flattenedNode[i].cy = minY;
+              flattenedNode[i].cx = minX - PADDING;
+              flattenedNode[i].cy = minY - PADDING;
             } else {
               flattenedNode[i].width = 10;
               flattenedNode[i].height = 10;
