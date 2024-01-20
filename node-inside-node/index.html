@@ -35,10 +35,10 @@
                 id: "member2",
                 level: 2,
               },
-              {
-                id: "member3",
-                level: 2,
-              },
+              //   {
+              //     id: "member3",
+              //     level: 2,
+              //   },
             ],
           },
         ];
@@ -71,52 +71,38 @@
         simulation.force("x", d3.forceX(width / 2));
         simulation.force("y", d3.forceY(height / 2));
         simulation.on("tick", function ticked() {
-          //   calculate global x and y
-          //   from behind so that parent first.
-          for (let i = flattenedNode.length - 1; i >= 0; i--) {
-            if (flattenedNode[i]?.parent) {
-              let temp = flattenedNode[i];
-              let globalX = temp.x;
-              let globalY = temp.y;
-              while (temp.parent) {
-                globalX += temp.parent.x;
-                globalY += temp.parent.y;
-                temp = temp.parent;
-              }
-              flattenedNode[i].globalX = globalX;
-              flattenedNode[i].globalY = globalY;
-            } else {
-              flattenedNode[i].globalX = flattenedNode[i].x;
-              flattenedNode[i].globalY = flattenedNode[i].y;
-            }
-          }
           // calculate nodes width and height, x and y. only do this calculation once, on master simulation
           for (let i = 0; i < flattenedNode.length; i++) {
             if (flattenedNode[i].members) {
-              console.log(flattenedNode[i]);
-              let minX = flattenedNode[i].members[0].globalX;
-              let maxX = flattenedNode[i].members[0].globalX + flattenedNode[i].members[0].width;
-              let minY = flattenedNode[i].members[0].globalY;
-              let maxY = flattenedNode[i].members[0].globalY + flattenedNode[i].members[0].height;
-
-              console.log(minX, maxX, minY, maxY);
-
-              for (let j = 0; j < flattenedNode[i].members.length; j++) {
-                let currentMember = flattenedNode[i].members[j];
-                if (currentMember.globalX < minX) {
-                  minX = currentMember.globalX;
+              let minMemberXIndex = 0;
+              letMaxMemberXIndex = 0;
+              let minMemberYIndex = 0;
+              let maxMemberYIndex = 0;
+              let members = flattenedNode[i].members;
+              // members location is relative to the parent.
+              let minX = members[0].x;
+              let maxX = members[0].x + members[0].width;
+              let minY = members[0].y;
+              let maxY = members[0].y + members[0].height;
+              for (let j = 0; j < members.length; j++) {
+                if (members[j].x < minX) {
+                  minX = members[j].x;
+                  minMemberXIndex = j;
                 }
-                if (currentMember.globalX + currentMember.width > maxX) {
-                  maxX = currentMember.globalX + currentMember.width;
+                if (members[j].x + members[j].width > maxX) {
+                  maxX = members[j].x + members[j].width;
+                  maxMemberXIndex = j;
                 }
-                if (currentMember.globalY < minY) {
-                  minY = currentMember.globalY;
+                if (members[j].y < minY) {
+                  minY = members[j].y;
+                  minMemberYIndex = j;
                 }
-                if (currentMember.globalY + currentMember.height > maxY) {
-                  maxY = currentMember.globalY + currentMember.height;
+                if (members[j].y + members[j].height > maxY) {
+                  maxY = members[j].y + members[j].height;
+                  maxMemberYIndex = j;
                 }
               }
-              console.log(minX, maxX, minY, maxY);
+
               flattenedNode[i].width = maxX - minX;
               flattenedNode[i].height = maxY - minY;
             } else {
@@ -126,8 +112,7 @@
           }
 
           containerElement.attr("transform", (d) => {
-            // console.log(d);
-            return `translate(${d.x - d.width / 2},${d.y - d.height / 2})`;
+            return `translate(${d.x},${d.y})`;
           });
           nodeElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
         });
@@ -277,6 +262,7 @@
         d.fx = null;
         d.fy = null;
       }
+
       function createInnerSimulation(nodes, canvas, allSimulation, parentNode) {
         console.log(nodes);
         // use this instead of forEach so that it is passed by reference.
@@ -318,7 +304,7 @@
         let memberElements = membersContainerElement.append("rect").attr("x", 0).attr("y", 0).attr("width", 5).attr("height", 5).style("fill", "green").attr("fill-opacity", "0.2");
 
         innerSimulation.on("tick", function ticked() {
-          membersContainerElement.attr("transform", (d) => `translate(${d.x + parentNode.width / 2 - d.width / 2},${d.y + parentNode.height / 2 - d.height / 2})`);
+          membersContainerElement.attr("transform", (d) => `translate(${d.x},${d.y})`);
           memberElements.attr("width", (d) => d.width).attr("height", (d) => d.height);
         });
 
