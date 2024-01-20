@@ -230,19 +230,7 @@
           canvas.attr("transform", d3.event.transform);
         }
 
-        function flattenNode(nodes) {
-          //   reserse the order so that the parent is always at the end.
-          let hasMember = false;
-          let result = [];
-          nodes.forEach((node) => {
-            // order matter.
-            if (node.members) {
-              result.push(...flattenNode(node.members));
-            }
-            result.push(node);
-          });
-          return result;
-        }
+        
       }
       function onDragStart(d, allSimulation) {
         if (!d3.event.active) {

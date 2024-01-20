@@ -1,8 +1,9 @@
 export function cleanCanvas(svgElement, simulations) {
-	console.log('testing');
+	console.log('clean canvas');
 }
 
 export function converter(rawData) {
+	console.log('converter');
 	// hardcode for now
 
 	return {
@@ -47,16 +48,57 @@ export function converter(rawData) {
 	};
 }
 
-export function filter(config, convertedData) {
-	let graphData: any;
+// filter and helper
+
+function assignParentReference(nodes) {
+	// console.log(nodes);
+	nodes.forEach((node, index, arr) => {
+		if (node.members) {
+			node.members.forEach((member, index, arr) => {
+				arr[index].parent = node;
+			});
+			assignParentReference(node.members);
+		}
+	});
+}
+
+export function filter(config: any, convertedData: any) {
+	console.log('filter');
+	const nodes: any = convertedData.nodes;
+	const links: any = convertedData.links;
+	const flattenNodes: any = flattenNode(nodes);
+
+	assignParentReference(nodes);
+	console.log(nodes);
+
+	const graphData: any = {
+		nodes,
+		links,
+		flattenNodes
+	};
 	return graphData;
 }
 
 export function draw(svgElements, graphData, drawSettings) {
+	console.log('draw');
 	let simulations: any;
 
 	return {
 		simulations,
 		svgElements
 	};
+}
+
+function flattenNode(nodes) {
+	//   reserse the order so that the parent is always at the end.
+	let hasMember = false;
+	let result = [];
+	nodes.forEach((node) => {
+		// order matter.
+		if (node.members) {
+			result.push(...flattenNode(node.members));
+		}
+		result.push(node);
+	});
+	return result;
 }
