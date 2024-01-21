@@ -1,7 +1,5 @@
 export type ConfigType = {
 	isGrouped: boolean;
-	useRawData: boolean;
-	isConfigChanged: boolean;
 	showNodeLabels: boolean;
 	showLinkLabels: boolean;
 	isForceSimulationEnabled: boolean;
@@ -10,8 +8,16 @@ export type ConfigType = {
 };
 
 export type LiftDependencyType = {
-	id: string,
-	level: number
+	id: string;
+	level: number;
+};
+
+export type GraphDataType = {
+	nodes: any[];
+	links: any[];
+	groups: any[];
+	groupLinks: any[];
+	groupButtons: any[];
 };
 
 export type GraphElementsType = {
@@ -21,14 +27,6 @@ export type GraphElementsType = {
 	linkLabels: any;
 	groups: any;
 	groupButtons: any;
-};
-export type GraphDataType = {
-	nodes: any[];
-	links: any[];
-	groups: any[];
-	groupLinks: any[];
-	groupButtons: any[];
-	collapsedGroups: any[];
 };
 export type Node = {
 	id: string;
@@ -43,6 +41,8 @@ export type Group = {
 	leaves: string[];
 	color?: string;
 	members?: any[];
+	parent?: string;
+	children?: string[];
 };
 
 export type RawEdge = {

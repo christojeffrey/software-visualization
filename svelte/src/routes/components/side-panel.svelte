@@ -5,7 +5,7 @@
 	let dependencyLimit: string = "";
 </script>
 
-<div>
+<div class="side-panel-container">
 	<!-- for every config key, create a button to toggle between true and false -->
 	{#each Object.keys(config).filter((key) => key !== 'isConfigChanged') as key}
 		{#if typeof config[key] == 'boolean'}
@@ -25,3 +25,16 @@
 		{/if}
 	{/each}
 </div>
+
+<style>
+	.side-panel-container {
+		display: flex;
+		flex-direction: column;
+		width: 200px;
+	}
+	button {
+		margin: 1rem;
+		padding: 1rem;
+		width: 100%;
+	}
+</style>
