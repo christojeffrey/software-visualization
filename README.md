@@ -104,7 +104,7 @@ type Config = {
   bundleEdge: boolean;
   collapsedVertices: string[];
   liftedEdges: string[];
-  shownVerticesType: string[];
+  shownEdgesType: string[];
 };
 ```
 
