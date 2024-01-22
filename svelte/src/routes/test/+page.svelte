@@ -5,10 +5,10 @@
     import {draw} from "./scripts/draw";
     import {filter} from "./scripts/filter";
     import {converter} from "./scripts/converter";
-
+	import { rawData } from '$lib/graph-data';
+	
 	let simulations: any[];
     
-    let rawData: any;
     let convertedData: any;
     const config:any = {};
     let graphData: any;
@@ -30,7 +30,6 @@
             }
             if (doRefilter) {
                 graphData = filter(config, convertedData);
-                console.log(graphData);
                 doRefilter = false;
             }
 			if (doRedraw) {
