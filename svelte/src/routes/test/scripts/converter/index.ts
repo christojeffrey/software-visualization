@@ -36,8 +36,8 @@ export function converter(rawData: any) {
 			}
 		],
 		links: [
-			{ source: 'node1', target: 'node2' },
-			{ source: 'node2', target: 'node3' },
+			{ source: 'node1', target: 'node2', type: 'calls' },
+			{ source: 'node2', target: 'node3', type: 'calls' },
 			{ source: 'member2', target: 'member1' },
 			{ source: 'member2', target: 'node1' }
 		]
