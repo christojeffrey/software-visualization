@@ -129,6 +129,7 @@ export function draw(svgElement: any, graphData: any, _drawSettings: any) {
 			return `url(#${d.type}Gradient)`;
 		})
 		.attr('class', 'link');
+	// To rotate the gradient, since its linear, I thing I can use only the negative or positive attribute of their coordinates. No need to calculate degrees
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
 		.force(
