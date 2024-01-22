@@ -25,7 +25,7 @@ function flattenNode(nodes: any) {
 export function filter(_config: any, convertedData: any) {
 	console.log('filter');
 	const nodes: any = convertedData.nodes;
-	const links: any = convertedData.links;
+	const links: any = convertedData.links.filter((link: any) => _config.shownEdgesType.get(link.type) === true);
 	const flattenNodes: any = flattenNode(nodes);
 
 	assignParentReference(nodes);
