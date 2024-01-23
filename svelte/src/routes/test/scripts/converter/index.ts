@@ -22,7 +22,7 @@ interface RawEdgeType {
 		id: string
 		source: string
 		target: string
-		label: string
+		label: EdgeType
 		properties: {
 			containmentType?: string
 			weight: number
@@ -42,6 +42,18 @@ interface ConvertedEdge {
 	id: string,
 	source: string,
 	target: string,
+	type: EdgeType,
+}
+
+enum EdgeType {
+	contains = "contains",
+	constructs = "constructs",
+	holds = "holds",
+	calls = "calls",
+	accepts = "accepts",
+	specializes = "specializes" ,
+	returns = "returns",
+	accesses = "accesses",
 }
 
 interface ConvertedData {
@@ -90,10 +102,10 @@ export function converter(rawData?: rawInputType) : ConvertedData {
 				}
 			],
 			links: [
-				{ id: "linka", source: 'node1', target: 'node2' },
-				{ id: "linkb", source: 'node2', target: 'node3' },
-				{ id: "linkc", source: 'member2', target: 'member1' },
-				{ id: "linkd", source: 'member2', target: 'node1' }
+				{ id: "linka", source: 'node1', target: 'node2', type: EdgeType.calls },
+				{ id: "linkb", source: 'node2', target: 'node3', type: EdgeType.calls },
+				{ id: "linkc", source: 'member2', target: 'member1', type: EdgeType.calls },
+				{ id: "linkd", source: 'member2', target: 'node1', type: EdgeType.calls }
 			]
 		};
 	}
@@ -132,11 +144,12 @@ export function converter(rawData?: rawInputType) : ConvertedData {
 		node.members.forEach(n => calulateNestingLevels(n, level + 1));
 	});
 
-	const links: ConvertedEdge[] = rawData.elements.edges.map(({data}) => {
+	const links: ConvertedEdge[] = rawData.elements.edges.map(({data}): ConvertedEdge => {
 		return {
 			id: data.id,
 			source: data.source,
 			target: data.target,
+			type: data.label,
 		};
 	});
 
