@@ -1,3 +1,12 @@
+import type { ConvertedData } from "../converter";
+
+export interface ConfigInterface {
+	linkLifting: {
+		id: string,
+		depth: number,
+	}[],
+}
+
 function assignParentReference(nodes: any) {
 	// console.log(nodes);
 	nodes.forEach((node: any, _index: any, _arr: any) => {
@@ -22,15 +31,19 @@ function flattenNode(nodes: any) {
 	return result;
 }
 
-export function filter(_config: any, convertedData: any) {
-	console.log('filter');
-	const nodes: any = convertedData.nodes;
-	const links: any = convertedData.links;
-	const flattenNodes: any = flattenNode(nodes);
+export function filter(_config: ConfigInterface, convertedData: ConvertedData) {
+	const nodes = convertedData.nodes;
+	const links = convertedData.links;
+	const flattenNodes = flattenNode(nodes);
 
 	assignParentReference(nodes);
 
-	const graphData: any = {
+	// Dependency lifting
+	const liftedLinks = links.flatMap(link => {
+		link.source
+	});
+
+	const graphData = {
 		nodes,
 		links,
 		flattenNodes

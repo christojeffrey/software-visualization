@@ -44,7 +44,7 @@ interface ConvertedEdge {
 	target: string,
 }
 
-interface ConvertedData {
+export interface ConvertedData {
 	nodes: ConvertedNode[]
 	links: ConvertedEdge[]
 }

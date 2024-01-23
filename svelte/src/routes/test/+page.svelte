@@ -25,7 +25,7 @@
 			// handle config changes
             if (doReconvert) {
                 // remove the old data	
-                convertedData = converter(rawData);
+                convertedData = converter(undefined);
                 doReconvert = false;
             }
             if (doRefilter) {
