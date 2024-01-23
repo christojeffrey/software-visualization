@@ -22,7 +22,7 @@ interface RawEdgeType {
 		id: string
 		source: string
 		target: string
-		label: EdgeType
+		label: LinkType
 		properties: {
 			containmentType?: string
 			weight: number
@@ -31,21 +31,25 @@ interface RawEdgeType {
 	}
 }
 
-interface ConvertedNode {
+export interface ConvertedNode {
 	id: string,
 	members: ConvertedNode[],
-	parent?: string,
+	parentId?: string,
 	level: number,
 }
 
-interface ConvertedEdge {
+export interface NodesDictionaryType {
+	[id: string] : ConvertedNode
+}
+
+export interface ConvertedEdge {
 	id: string,
 	source: string,
 	target: string,
-	type: EdgeType,
+	type: LinkType,
 }
 
-enum EdgeType {
+enum LinkType {
 	contains = "contains",
 	constructs = "constructs",
 	holds = "holds",
@@ -59,12 +63,13 @@ enum EdgeType {
 export interface ConvertedData {
 	nodes: ConvertedNode[]
 	links: ConvertedEdge[]
+	nodesDictionary: NodesDictionaryType
 }
 
 export function converter(rawData?: rawInputType) : ConvertedData {
 	if (!rawData) {
 		// For now, lets return some test data if no input is provided
-		return {
+		const returnValue: ConvertedData = {
 			nodes: [
 				{ id: 'node1', level: 1, members: [] },
 				{ id: 'node2', level: 1, members: [] },
@@ -102,16 +107,23 @@ export function converter(rawData?: rawInputType) : ConvertedData {
 				}
 			],
 			links: [
-				{ id: "linka", source: 'node1', target: 'node2', type: EdgeType.calls },
-				{ id: "linkb", source: 'node2', target: 'node3', type: EdgeType.calls },
-				{ id: "linkc", source: 'member2', target: 'member1', type: EdgeType.calls },
-				{ id: "linkd", source: 'member2', target: 'node1', type: EdgeType.calls }
-			]
+				{ id: "linka", source: 'node1', target: 'node2', type: LinkType.calls },
+				{ id: "linkb", source: 'node2', target: 'node3', type: LinkType.calls },
+				{ id: "linkc", source: 'member2', target: 'member1', type: LinkType.calls },
+				{ id: "linkd", source: 'member2', target: 'node1', type: LinkType.calls }
+			],
+			nodesDictionary: {},
 		};
+		const recursiveFunction = (n: ConvertedNode) => {
+			returnValue.nodesDictionary[n.id] = n;
+			n.members.forEach(recursiveFunction);
+		};
+		returnValue.nodes.forEach(recursiveFunction);
+		return returnValue;
 	}
 
 	// The actual parsing.
-	const nodes : {[id: string] : ConvertedNode} = {};
+	const nodes: NodesDictionaryType = {};
 
 	// Populate object, so we can create references later
 	rawData.elements.nodes.forEach(({data}: RawNodeType) => {
@@ -130,14 +142,14 @@ export function converter(rawData?: rawInputType) : ConvertedData {
 		// Now, assign its parent
 		const path = data.id.split(".");
 		const parent = path.slice(0,-1).join(".");
-		node.parent = parent // Not a reference so output is serializable
+		node.parentId = parent // Not a reference so output is serializable
 
 		// Add childeren to the parents members
 		nodes[parent]?.members?.push(node);
 	});
 
 	// // Calculate node nesting levels
-	const rootNodes = Object.values(nodes).filter((node) => !node.parent);
+	const rootNodes = Object.values(nodes).filter((node) => !node.parentId);
 	
 	rootNodes.forEach(function calulateNestingLevels(node: ConvertedNode, level: number = 0) {
 		node.level = level;
@@ -156,5 +168,6 @@ export function converter(rawData?: rawInputType) : ConvertedData {
 	return {
 		nodes: Object.values(nodes),
 		links: links,
+		nodesDictionary: nodes,
 	}
 }
