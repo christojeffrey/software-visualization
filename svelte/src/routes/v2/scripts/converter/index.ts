@@ -54,7 +54,8 @@ enum EdgeType {
 	accepts = 'accepts',
 	specializes = 'specializes',
 	returns = 'returns',
-	accesses = 'accesses'
+	accesses = 'accesses',
+	creates = 'creates'
 }
 
 interface ConvertedData {
@@ -108,6 +109,9 @@ export function converter(rawData?: rawInputType): ConvertedData {
 				break;
 			case 'accesses':
 				type = EdgeType.accesses;
+				break;
+			case 'creates':
+				type = EdgeType.creates;
 				break;
 			default:
 				throw new Error(`Unknown edge type ${data.label}`);
