@@ -5,6 +5,7 @@
     import {draw} from "./scripts/draw";
     import {filter} from "./scripts/filter";
     import {converter} from "./scripts/converter";
+	import {createGraphData} from "./scripts/create-graph-data";
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
@@ -17,11 +18,14 @@
 		collapsedVertices: []
 	};
     let graphData: any;
-    const drawSettings: any = {};
+    const drawSettings: any = {
+		minimumVertexSize: 20,
+	};
 	let svgElement: any = {};
     
 	let doReconvert = true;
-    let doRefilter = true;
+	let doRecreateWholeGraphData = true;
+    let doRefilter = false; // nothing to filter at first
 	let doRedraw = true;
 
     let isMounted = false;
@@ -31,16 +35,22 @@
 			// handle config changes
             if (doReconvert) {
 				convertedData = converter(rawData);
-				console.log("convertedData");
-				console.log(convertedData);
                 doReconvert = false;
 
-				// must refilter after reconvert
-				doRefilter = true;
+				// must recreate graph data after reconvert
+				doRecreateWholeGraphData = true;
             }
+			if(doRecreateWholeGraphData){
+				graphData = createGraphData(convertedData);
+				doRecreateWholeGraphData = false;
+				
+				// must refilter after recreate graph data
+				doRefilter = true;
+			}
             if (doRefilter) {
-				graphData = filter(config, convertedData);
+				filter(config, graphData);
                 doRefilter = false;
+				console.log(graphData);
 
 				// must redraw after refilter
 				doRedraw = true;
@@ -52,8 +62,8 @@
                 let result = draw(svgElement, graphData, drawSettings, (datum:any)=>{
 					// on collapse button clicked
 					console.log("on collapse button clicked");
-					config.collapsedVertices.push(datum.id);
-					doRefilter = true;
+					config.collapsedVertices.push(datum);
+					doRedraw = true;
 				}, ()=>{
 					// on lift
 				});

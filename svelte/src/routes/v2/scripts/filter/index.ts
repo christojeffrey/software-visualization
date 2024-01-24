@@ -22,51 +22,39 @@ function flattenNode(nodes: any) {
 	return result;
 }
 
-export function filter(config: any, convertedData: any) {
-	// graphData that is spitted out of this function is always totally brand new
-	// 1. setup
-	// do deep copy
-	const nodes: any = JSON.parse(JSON.stringify(convertedData.nodes));
-	const links: any = JSON.parse(JSON.stringify(convertedData.links));
-	console.log(nodes);
-	console.log(links);
-	const flattenNodes: any = flattenNode(nodes);
-
-	assignParentReference(nodes);
+export function filter(config: any, graphData: any) {
+	console.log('filter');
 	console.log(config);
-	// 2. handle collapsed vertices
-	config.collapsedVertices.forEach((collapsedVertexId: any) => {
+	console.log(graphData);
+
+	// 1. handle collapsed vertices
+	config.collapsedVertices.forEach((collapsedVertex: any) => {
 		// find collapsed vertex in the nodes
-		const collapsedVertexIndex = flattenNodes.findIndex(
-			(node: any) => node.id === collapsedVertexId
+		const collapsedVertexIndex = graphData.flattenNodes.findIndex(
+			(node: any) => node.id === collapsedVertex.id
 		);
 		// flatten the children
-		const flatChildrenId = flattenNode(flattenNodes[collapsedVertexIndex].members).map(
+		const flatChildrenId = flattenNode(graphData.flattenNodes[collapsedVertexIndex].members).map(
 			(node: any) => node.id
 		);
 
 		// A. direct all the links to the parent
 		console.log(flatChildrenId);
-		links.forEach((link: any) => {
-			if (flatChildrenId.includes(link.source)) {
-				link.source = collapsedVertexId;
+		graphData.links.forEach((link: any) => {
+			if (flatChildrenId.includes(link.source.id)) {
+				link.source = collapsedVertex;
 			}
-			if (flatChildrenId.includes(link.target)) {
-				link.target = collapsedVertexId;
+			if (flatChildrenId.includes(link.target.id)) {
+				link.target = collapsedVertex;
 			}
 		});
 		// B. remove the members
 
-		delete flattenNodes[collapsedVertexIndex].members;
+		delete graphData.flattenNodes[collapsedVertexIndex].members;
 
-		flattenNodes.splice(collapsedVertexIndex - flatChildrenId.length, flatChildrenId.length);
+		graphData.flattenNodes.splice(
+			collapsedVertexIndex - flatChildrenId.length,
+			flatChildrenId.length
+		);
 	});
-
-	const graphData: any = {
-		nodes,
-		links,
-		flattenNodes
-	};
-	console.log(graphData);
-	return graphData;
 }

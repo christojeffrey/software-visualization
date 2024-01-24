@@ -55,7 +55,12 @@ export function linkTicked(linkElements: any) {
 			return result;
 		});
 }
-export function masterSimulationTicked(graphData: any, containerElement: any, nodeElements: any) {
+export function masterSimulationTicked(
+	graphData: any,
+	containerElement: any,
+	nodeElements: any,
+	drawSettings: any
+) {
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
 		if (graphData.flattenNodes[i].members && graphData.flattenNodes[i].members.length > 0) {
@@ -87,8 +92,8 @@ export function masterSimulationTicked(graphData: any, containerElement: any, no
 			graphData.flattenNodes[i].cx = minX - PADDING;
 			graphData.flattenNodes[i].cy = minY - PADDING;
 		} else {
-			graphData.flattenNodes[i].width = 10;
-			graphData.flattenNodes[i].height = 10;
+			graphData.flattenNodes[i].width = drawSettings.minimumVertexSize;
+			graphData.flattenNodes[i].height = drawSettings.minimumVertexSize;
 			//   stands for calculated x and y.
 			graphData.flattenNodes[i].cx = 0;
 			graphData.flattenNodes[i].cy = 0;
