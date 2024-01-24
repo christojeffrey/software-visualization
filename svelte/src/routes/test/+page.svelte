@@ -3,14 +3,16 @@
     import { onMount } from 'svelte';
     import {cleanCanvas} from "./scripts/clean-canvas";
     import {draw} from "./scripts/draw";
-    import {filter} from "./scripts/filter";
-    import {converter} from "./scripts/converter";
+    import {filter, type ConfigInterface} from "./scripts/filter";
+    import {converter, type ConvertedData} from "./scripts/converter";
 	import { rawData } from '$lib/graph-data';
 	
 	let simulations: any[];
     
-    let convertedData: any;
-    const config:any = {};
+    let convertedData: ConvertedData;
+    const config: ConfigInterface = {
+		dependencyLifting: [],
+	};
     let graphData: any;
     const drawSettings: any = {};
 	let svgElement: any = {};
@@ -25,7 +27,7 @@
 			// handle config changes
             if (doReconvert) {
                 // remove the old data	
-                convertedData = converter(rawData);
+                convertedData = converter(undefined);
                 doReconvert = false;
             }
             if (doRefilter) {
