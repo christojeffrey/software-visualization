@@ -51,7 +51,7 @@ export function createGraphData(convertedData: any) {
 	const graphData: any = {
 		nodes,
 		links,
-		flattenNodes
+		flattenNodes,
 	};
 	return graphData;
 }

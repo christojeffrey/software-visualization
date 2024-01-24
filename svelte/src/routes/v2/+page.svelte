@@ -10,13 +10,20 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
+	import type { ConfigInterface } from './types';
 	
 	let simulations: any[] = [];
     
 	let rawData: any;
     let convertedData: any;
-    const config:any = {
-		collapsedVertices: []
+    const config:ConfigInterface = {
+		collapsedVertices: [],
+		dependencyLifting: [
+			// { // hardcode for testing
+			// 	nodeId:"lib",
+			// 	depth: 0,
+			// }
+		],
 	};
     let graphData: any;
     const drawSettings: any = {
@@ -51,8 +58,6 @@
 				graphData = createGraphData(convertedData);
 				doRecreateWholeGraphData = false;
 				
-				// must refilter after recreate graph data
-				doRefilter = true;
 			}
             if (doRefilter) {
 				filter(config, graphData);

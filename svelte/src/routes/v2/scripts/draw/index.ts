@@ -155,7 +155,7 @@ export function draw(
 		.data(graphData.links)
 		.enter()
 		.append('line')
-		
+
 		.attr('class', 'link');
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)

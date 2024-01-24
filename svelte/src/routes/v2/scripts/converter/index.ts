@@ -1,70 +1,8 @@
-export interface rawInputType {
-	// (generated via https://transform.tools/json-to-typescript)
-	elements: {
-		nodes: RawNodeType[];
-		edges: RawEdgeType[];
-	};
-}
-
-interface RawNodeType {
-	data: {
-		id: string;
-		properties: {
-			simpleName: string;
-			kind?: string;
-		};
-		labels: string[];
-	};
-}
-
-interface RawEdgeType {
-	data: {
-		id: string;
-		source: string;
-		target: string;
-		label: string;
-		properties: {
-			containmentType?: string;
-			weight: number;
-			specializationType?: string;
-		};
-	};
-}
-
-// converted type
-interface ConvertedNode {
-	id: string;
-	level: number;
-	members?: ConvertedNode[];
-	parent?: string;
-}
-
-interface ConvertedEdge {
-	id: string;
-	source: string;
-	target: string;
-	type: EdgeType;
-}
-
-enum EdgeType {
-	contains = 'contains',
-	constructs = 'constructs',
-	holds = 'holds',
-	calls = 'calls',
-	accepts = 'accepts',
-	specializes = 'specializes',
-	returns = 'returns',
-	accesses = 'accesses',
-	creates = 'creates'
-}
-
-interface ConvertedData {
-	nodes: ConvertedNode[];
-	links: ConvertedEdge[];
-}
+import { type ConvertedData, type ConvertedEdge, type ConvertedNode, EdgeType } from '../../types';
+import type { RawNodeType, rawInputType } from '../../types/raw-data';
 import { simpleData } from './simple-data';
 
-export function converter(rawData?: rawInputType): ConvertedData {
+export function converter(rawData: rawInputType): ConvertedData {
 	// give default data when no data is given
 	if (!rawData) {
 		rawData = simpleData;
@@ -155,6 +93,7 @@ export function converter(rawData?: rawInputType): ConvertedData {
 	}
 	return {
 		nodes,
-		links
+		links,
+		nodesDictionary: nodesAsObject
 	};
 }
