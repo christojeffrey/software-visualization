@@ -1,10 +1,10 @@
 import * as d3 from 'd3';
 
-import { dragEndedGroup, dragStartedGroup, draggedGroup, tick } from '$lib';
-import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
-import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
+import { dragEndedGroup, dragStartedGroup, draggedGroup, tick } from '.';
+import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from './constants';
+import type { ConfigType, GraphDataType, GraphElementsType } from './types';
 import { linkStrokeValue } from './style-injector';
-import { dragEndedNode, dragStartedNode, draggedNode } from '$lib';
+import { dragEndedNode, dragStartedNode, draggedNode } from '.';
 
 export function draw(config: ConfigType, svgElement: any, graphData: GraphDataType, doRedraw: any) {
 	const svg = d3
