@@ -1,7 +1,5 @@
 import type {
-	ConvertedData,
 	ConvertedNode,
-	ConvertedEdge,
 	NodesDictionaryType,
 	GraphData,
 	ConfigInterface,
@@ -64,15 +62,11 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 				: link.target
 		};
 	});
-	console.log('liftedLinks');
-	console.log(liftedLinks);
-	return liftedLinks;
-	// Filter out duplicates
-	return liftedLinks.filter(({ id: id1, ...link1 }, index) => {
-		return (
-			liftedLinks.findIndex(({ id: id2, ...link2 }) => {
-				return JSON.stringify(link1) === JSON.stringify(link2);
-			}) === index
-		);
-	});
+	// Filter out duplicates: same source, target, and type
+	return liftedLinks.filter(
+		(link, index, self) =>
+			self.findIndex(
+				(l) => l.source === link.source && l.target === link.target && l.type === link.type
+			) === index
+	);
 }

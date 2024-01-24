@@ -1,14 +1,10 @@
 import { flattenNode } from '../helper';
 
 export function onVertexCollapseClick(clickedVertex: any, config: any, onFinish: () => void) {
-	console.log('on collapse button clicked');
-
 	// push if not exist
 	if (!config.collapsedVertices.includes(clickedVertex)) {
-		console.log('push');
 		config.collapsedVertices.push(clickedVertex);
 	} else {
-		console.log('remove');
 		doUncollapseVertices(clickedVertex);
 
 		config.collapsedVertices = config.collapsedVertices.filter(

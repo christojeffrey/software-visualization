@@ -1,4 +1,4 @@
-import type { rawInputType } from '.';
+import type { rawInputType } from '../../types/raw-data';
 
 export const simpleData: rawInputType = {
 	elements: {

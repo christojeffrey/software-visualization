@@ -23,7 +23,7 @@ export interface RawEdgeType {
 		id: string;
 		source: string;
 		target: string;
-		label: EdgeType;
+		label: string;
 		properties: {
 			containmentType?: string;
 			weight: number;
