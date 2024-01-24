@@ -22,6 +22,19 @@ function flattenNode(nodes: any) {
 	return result;
 }
 
+function assignLinkReference(links: any, flattenNodes: any) {
+	links.forEach((link: any) => {
+		const sourceIndex = flattenNodes.findIndex((node: any) => node.id === link.source);
+		const targetIndex = flattenNodes.findIndex((node: any) => node.id === link.target);
+		flattenNodes[sourceIndex].outgoingLinks
+			? flattenNodes[sourceIndex].outgoingLinks.push(link)
+			: (flattenNodes[sourceIndex].outgoingLinks = [link]);
+		flattenNodes[targetIndex].incomingLinks
+			? flattenNodes[targetIndex].incomingLinks.push(link)
+			: (flattenNodes[targetIndex].incomingLinks = [link]);
+	});
+}
+
 export function createGraphData(convertedData: any) {
 	console.log('create graph data');
 	// do deep copy
@@ -32,6 +45,8 @@ export function createGraphData(convertedData: any) {
 	const flattenNodes: any = flattenNode(nodes);
 
 	assignParentReference(nodes);
+
+	assignLinkReference(links, flattenNodes);
 
 	const graphData: any = {
 		nodes,

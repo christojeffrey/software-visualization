@@ -63,8 +63,11 @@ export function masterSimulationTicked(
 ) {
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
-		if (graphData.flattenNodes[i].members && graphData.flattenNodes[i].members.length > 0) {
-			const members = graphData.flattenNodes[i].members;
+		const hasShownMembers =
+			graphData.flattenNodes[i].members &&
+			graphData.flattenNodes[i].members.filter((member: any) => !member.hidden).length > 0;
+		if (hasShownMembers) {
+			const members = graphData.flattenNodes[i].members.filter((member: any) => !member.hidden);
 			// members location is relative to the parent.
 			let minX = members[0].x + members[0].cx;
 			let maxX = members[0].x + members[0].cx + members[0].width;

@@ -9,6 +9,7 @@
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
+	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
 	
 	let simulations: any[] = [];
     
@@ -19,7 +20,7 @@
 	};
     let graphData: any;
     const drawSettings: any = {
-		minimumVertexSize: 20,
+		minimumVertexSize: 50,
 	};
 	let svgElement: any = {};
     
@@ -29,6 +30,12 @@
 	let doRedraw = true;
 
     let isMounted = false;
+
+	function handleVertexCollapseClick(datum:any){
+		onVertexCollapseClick(datum, config, ()=>{
+			doRefilter = true;
+		})
+	}
     
 	$: {
 		if (isMounted) {
@@ -59,12 +66,7 @@
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
-                let result = draw(svgElement, graphData, drawSettings, (datum:any)=>{
-					// on collapse button clicked
-					console.log("on collapse button clicked");
-					config.collapsedVertices.push(datum);
-					doRedraw = true;
-				}, ()=>{
+                let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, ()=>{
 					// on lift
 				});
                 simulations = result.simulations;
