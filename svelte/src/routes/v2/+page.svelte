@@ -18,9 +18,10 @@
     const drawSettings: any = {};
 	let svgElement: any = {};
     
-	let doRedraw = true;
 	let doReconvert = true;
     let doRefilter = true;
+	let doRedraw = true;
+
     let isMounted = false;
     
 	$: {
@@ -31,10 +32,16 @@
 				console.log("convertedData");
 				console.log(convertedData);
                 doReconvert = false;
+
+				// must refilter after reconvert
+				doRefilter = true;
             }
             if (doRefilter) {
 				graphData = filter(config, convertedData);
                 doRefilter = false;
+
+				// must redraw after refilter
+				doRedraw = true;
             }
 			if (doRedraw) {
 				// remove the old data	
@@ -51,13 +58,20 @@
 	});
 </script>
 
-<div class="graph">
-	<svg bind:this={svgElement} />
-	<div class = "side-panel">
-		<RawDataInputer bind:rawData/>
+<div class="flex justify-between h-full">
+	<!-- canvas -->
+	<div class="m-6 border-2 border-black w-full">
+		<svg bind:this={svgElement} class="w-full h-full"/>
+	</div>
+
+	<!-- vertical line -->
+	<div class ="bg-neutral-300 w-1"/>
+
+	<!-- sidepanel -->
+	<div class = " m-6 border-2">
+		<RawDataInputer bind:rawData bind:doReconvert/>
 		<ConfigChanger/>
 		<DrawSettingsChanger/>
-
 	</div>
 </div>
 
@@ -67,7 +81,6 @@
 		border: 2px solid black;
 		display: flex;
 		justify-content: space-between;
-		padding: 2rem;
 	}
 	.graph svg {
 		/* border red 2px */
