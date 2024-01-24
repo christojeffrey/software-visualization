@@ -28,4 +28,22 @@ export function setupGradient(svg: any) {
 			.attr('stop-color', colors[1])
 			.attr('stop-opacity', 1);
 	});
+	// Setup the reversed gradient so the direction is correct when it's mirrored for x=0
+	Object.entries(LINK_COLOR_MAP).forEach(([edgeType, colors]) => {
+		const gradient = defs.append('linearGradient').attr('id', `${edgeType}GradientReversed`);
+		// First color stop
+		gradient
+			.append('stop')
+			.attr('offset', '0%')
+			.attr('class', 'start')
+			.attr('stop-color', colors[1])
+			.attr('stop-opacity', 1);
+		// Second color stop
+		gradient
+			.append('stop')
+			.attr('offset', '100%')
+			.attr('class', 'end')
+			.attr('stop-color', colors[0])
+			.attr('stop-opacity', 1);
+	});
 }
