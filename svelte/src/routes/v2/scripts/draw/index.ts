@@ -28,10 +28,9 @@ function createInnerSimulation(
 
 	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
 
-	const shownNodes = nodes.filter((node: any) => !node.hidden);
 	const membersContainerElement = parentElement
 		.selectAll('g')
-		.data(shownNodes)
+		.data(nodes)
 		.enter()
 		.append('g')
 		.attr('class', 'node')
@@ -64,15 +63,9 @@ function createInnerSimulation(
 	});
 
 	// recursive inner simulation.
-	for (let i = 0; i < shownNodes.length; i++) {
-		if (shownNodes[i].members) {
-			createInnerSimulation(
-				shownNodes[i].members,
-				canvas,
-				allSimulation,
-				shownNodes[i],
-				drawSettings
-			);
+	for (let i = 0; i < nodes.length; i++) {
+		if (nodes[i].members) {
+			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i], drawSettings);
 		}
 	}
 }
@@ -104,11 +97,10 @@ export function draw(
 
 	const canvas = svg.append('g');
 
-	const shownNodes = graphData.nodes.filter((node: any) => !node.hidden);
 	const containerElement = canvas
 		.append('g')
 		.selectAll('g')
-		.data(shownNodes)
+		.data(graphData.nodes)
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
@@ -179,13 +171,13 @@ export function draw(
 	simulations.push(linkSimulation);
 
 	// create inner simulation.
-	for (let i = 0; i < shownNodes.length; i++) {
-		if (shownNodes[i].members) {
+	for (let i = 0; i < graphData.nodes.length; i++) {
+		if (graphData.nodes[i].members) {
 			createInnerSimulation(
-				shownNodes[i].members,
+				graphData.nodes[i].members,
 				canvas,
 				simulations,
-				shownNodes[i],
+				graphData.nodes[i],
 				drawSettings
 			);
 		}
