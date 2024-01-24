@@ -1,9 +1,13 @@
 <script lang="ts">
+	import Button from "../../../ui/button.svelte";
+import Heading from "../../../ui/heading.svelte";
+
     export let rawData: any;
 	export let doReconvert: boolean;
 
     let files: any;
     let useExampleData = true;
+	let disableButton = true;
 
 
 	const loadItems = async (file: any) => {
@@ -15,30 +19,35 @@
 	};
 
 	$: {
-		if (files && !useExampleData) {
-			loadItems(files[0]);
+		if (files){
+			disableButton = false;
+		}else{
+			disableButton = true;
 		}
 	}
+
+	// TODO: need to fix. whenever file is changed, bellow is triggered. we don't want unnecessary reconvert
 	$: {
 		if (useExampleData) {
 			rawData = undefined;
 			doReconvert = true;
 		}
+		else{
+			loadItems(files[0]);
+		}
 	}
 </script>
-<div class="border-2 border-neutral-200">
-    raw data inputer
-    <label for="avatar">Upload a jsonfile:</label>
-	<input accept="application/json" bind:files id="avatar" name="avatar" type="file" />
-	<button
-		on:click={() => {
-			if (!files) {
-				useExampleData = true;
-			} else {
-				useExampleData = !useExampleData;
-			}
-		}}
-	>
-		use example data: {useExampleData ? 'true' : 'false'}</button
-	>
+<div class="">
+	<Heading>
+		Input raw data
+	</Heading>
+    <label for="uploader">Upload a json file:</label>
+	<input accept="application/json" bind:files id="uploader" name="uploader" type="file" />
+	<Button class="mt-2" bind:state={useExampleData} onToggle={() => {
+		if (!disableButton) {
+			useExampleData = !useExampleData;
+		}
+	}} bind:disabled={disableButton}>
+		Use example data
+	</Button>
 </div>

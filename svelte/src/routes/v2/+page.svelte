@@ -66,24 +66,14 @@
 
 	<!-- vertical line -->
 	<div class ="bg-neutral-300 w-1"/>
-
+	
 	<!-- sidepanel -->
-	<div class = " m-6 border-2">
+	<div class = "flex flex-col m-6">
+		
 		<RawDataInputer bind:rawData bind:doReconvert/>
+		<div class ="bg-neutral-300 h-[1px]"/>
 		<ConfigChanger/>
+		<div class ="bg-neutral-300 h-[1px]"/>
 		<DrawSettingsChanger/>
 	</div>
 </div>
-
-<style>
-	.graph {
-		/* border black 2px */
-		border: 2px solid black;
-		display: flex;
-		justify-content: space-between;
-	}
-	.graph svg {
-		/* border red 2px */
-		border: 2px solid red;
-	}
-</style>
