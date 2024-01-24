@@ -5,10 +5,13 @@
     import {draw} from "./scripts/draw";
     import {filter} from "./scripts/filter";
     import {converter} from "./scripts/converter";
-	import { rawData } from '$lib/graph-data';
+	import RawDataInputer from './components/raw-data-inputer.svelte';
+	import ConfigChanger from './components/config-changer.svelte';
+	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	
 	let simulations: any[];
     
+	let rawData: any;
     let convertedData: any;
     const config:any = {};
     let graphData: any;
@@ -24,15 +27,17 @@
 		if (isMounted) {
 			// handle config changes
             if (doReconvert) {
-                // remove the old data	
-                convertedData = converter(rawData);
+				convertedData = converter(rawData);
+				console.log("convertedData");
+				console.log(convertedData);
                 doReconvert = false;
             }
             if (doRefilter) {
-                graphData = filter(config, convertedData);
+				graphData = filter(config, convertedData);
                 doRefilter = false;
             }
 			if (doRedraw) {
+				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
                 let result = draw(svgElement, graphData, drawSettings);
@@ -48,7 +53,10 @@
 
 <div class="graph">
 	<svg bind:this={svgElement} />
-	<div>
+	<div class = "side-panel">
+		<RawDataInputer bind:rawData/>
+		<ConfigChanger/>
+		<DrawSettingsChanger/>
 
 	</div>
 </div>

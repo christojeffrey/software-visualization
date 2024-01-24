@@ -23,9 +23,11 @@ function flattenNode(nodes: any) {
 }
 
 export function filter(_config: any, convertedData: any) {
-	console.log('filter');
-	const nodes: any = convertedData.nodes;
-	const links: any = convertedData.links;
+	// do deep copy
+	const nodes: any = JSON.parse(JSON.stringify(convertedData.nodes));
+	const links: any = JSON.parse(JSON.stringify(convertedData.links));
+	console.log(nodes);
+	console.log(links);
 	const flattenNodes: any = flattenNode(nodes);
 
 	assignParentReference(nodes);

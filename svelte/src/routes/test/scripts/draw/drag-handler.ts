@@ -1,4 +1,4 @@
-const slowAlpha = 0.001;
+const slowAlpha = 0.01;
 export function dragStartedNode(event: any, simulations: any) {
 	simulations.forEach((simulation: any) => {
 		if (!event.active) simulation.alpha(slowAlpha).restart();

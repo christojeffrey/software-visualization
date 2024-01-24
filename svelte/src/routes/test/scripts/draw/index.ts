@@ -7,7 +7,6 @@ const SVGMARGIN = 50;
 // const MINIMUMNODESIZE = 10;
 
 function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, parentNode: any) {
-	console.log(nodes);
 	// use this instead of forEach so that it is passed by reference.
 
 	// bind for easy reference.

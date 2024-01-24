@@ -1,160 +1,156 @@
 export interface rawInputType {
 	// (generated via https://transform.tools/json-to-typescript)
 	elements: {
-		nodes: RawNodeType[]
-		edges: RawEdgeType[]
-	}
+		nodes: RawNodeType[];
+		edges: RawEdgeType[];
+	};
 }
 
 interface RawNodeType {
 	data: {
-		id: string
+		id: string;
 		properties: {
-			simpleName: string
-			kind?: string
-		}
-		labels: string[]
-	}
+			simpleName: string;
+			kind?: string;
+		};
+		labels: string[];
+	};
 }
 
 interface RawEdgeType {
 	data: {
-		id: string
-		source: string
-		target: string
-		label: EdgeType
+		id: string;
+		source: string;
+		target: string;
+		label: string;
 		properties: {
-			containmentType?: string
-			weight: number
-			specializationType?: string
-		} 
-	}
+			containmentType?: string;
+			weight: number;
+			specializationType?: string;
+		};
+	};
 }
 
+// converted type
 interface ConvertedNode {
-	id: string,
-	members: ConvertedNode[],
-	parent?: string,
-	level: number,
+	id: string;
+	level: number;
+	members?: ConvertedNode[];
+	parent?: string;
 }
 
 interface ConvertedEdge {
-	id: string,
-	source: string,
-	target: string,
-	type: EdgeType,
+	id: string;
+	source: string;
+	target: string;
+	type: EdgeType;
 }
 
 enum EdgeType {
-	contains = "contains",
-	constructs = "constructs",
-	holds = "holds",
-	calls = "calls",
-	accepts = "accepts",
-	specializes = "specializes" ,
-	returns = "returns",
-	accesses = "accesses",
+	contains = 'contains',
+	constructs = 'constructs',
+	holds = 'holds',
+	calls = 'calls',
+	accepts = 'accepts',
+	specializes = 'specializes',
+	returns = 'returns',
+	accesses = 'accesses'
 }
 
 interface ConvertedData {
-	nodes: ConvertedNode[]
-	links: ConvertedEdge[]
+	nodes: ConvertedNode[];
+	links: ConvertedEdge[];
 }
+import { simpleData } from './simple-data';
 
-export function converter(rawData?: rawInputType) : ConvertedData {
+export function converter(rawData?: rawInputType): ConvertedData {
+	// give default data when no data is given
 	if (!rawData) {
-		// For now, lets return some test data if no input is provided
-		return {
-			nodes: [
-				{ id: 'node1', level: 1, members: [] },
-				{ id: 'node2', level: 1, members: [] },
-				{
-					id: 'node3',
-					level: 1,
-					members: [
-						{
-							id: 'member1',
-							level: 2,
-							members: [
-								{
-									id: 'anak1',
-									level: 3,
-									members: []
-								},
-								{
-									id: 'anak2',
-									level: 3,
-									members: []
-								}
-							]
-						},
-						{
-							id: 'member2',
-							level: 2,
-							members: []
-						},
-						{
-							id: 'member3',
-							level: 2,
-							members: []
-						}
-					]
-				}
-			],
-			links: [
-				{ id: "linka", source: 'node1', target: 'node2', type: EdgeType.calls },
-				{ id: "linkb", source: 'node2', target: 'node3', type: EdgeType.calls },
-				{ id: "linkc", source: 'member2', target: 'member1', type: EdgeType.calls },
-				{ id: "linkd", source: 'member2', target: 'node1', type: EdgeType.calls }
-			]
-		};
+		rawData = simpleData;
 	}
 
 	// The actual parsing.
-	const nodes : {[id: string] : ConvertedNode} = {};
+	// nodes should be array, but let's use object first for faster lookup
+	const nodesAsObject: { [id: string]: ConvertedNode } = {};
 
 	// Populate object, so we can create references later
-	rawData.elements.nodes.forEach(({data}: RawNodeType) => {
-		nodes[data.id] = {
+	rawData.elements.nodes.forEach(({ data }: RawNodeType) => {
+		nodesAsObject[data.id] = {
 			id: data.id,
-			members: [],
-			level: NaN,
+			level: NaN
+		};
+	});
+
+	let links: ConvertedEdge[] = rawData.elements.edges.map(({ data }): ConvertedEdge => {
+		// find the correct type
+		let type: EdgeType;
+		switch (data.label) {
+			case 'contains':
+				type = EdgeType.contains;
+				break;
+			case 'constructs':
+				type = EdgeType.constructs;
+				break;
+			case 'holds':
+				type = EdgeType.holds;
+				break;
+			case 'calls':
+				type = EdgeType.calls;
+				break;
+			case 'accepts':
+				type = EdgeType.accepts;
+				break;
+			case 'specializes':
+				type = EdgeType.specializes;
+				break;
+			case 'returns':
+				type = EdgeType.returns;
+				break;
+			case 'accesses':
+				type = EdgeType.accesses;
+				break;
+			default:
+				throw new Error(`Unknown edge type ${data.label}`);
 		}
-	});
-
-
-	rawData.elements.nodes.forEach(({data})  => {
-		// Get current node
-		const node = nodes[data.id]!;
-
-		// Now, assign its parent
-		const path = data.id.split(".");
-		const parent = path.slice(0,-1).join(".");
-		node.parent = parent // Not a reference so output is serializable
-
-		// Add childeren to the parents members
-		nodes[parent]?.members?.push(node);
-	});
-
-	// // Calculate node nesting levels
-	const rootNodes = Object.values(nodes).filter((node) => !node.parent);
-	
-	rootNodes.forEach(function calulateNestingLevels(node: ConvertedNode, level: number = 0) {
-		node.level = level;
-		node.members.forEach(n => calulateNestingLevels(n, level + 1));
-	});
-
-	const links: ConvertedEdge[] = rawData.elements.edges.map(({data}): ConvertedEdge => {
 		return {
 			id: data.id,
 			source: data.source,
 			target: data.target,
-			type: data.label,
+			type
 		};
 	});
+	// at this point, we have no use for rawData. we only play with links and nodesAsObject
 
-	return {
-		nodes: Object.values(nodes),
-		links: links,
+	// change nodes member based on links 'contains'
+	links.forEach((link) => {
+		if (link.type === EdgeType.contains) {
+			// put child node inside parent node
+
+			// create members array if not exist
+			if (!nodesAsObject[link.source].members) {
+				nodesAsObject[link.source].members = [];
+			}
+			nodesAsObject[link.source].members?.push(nodesAsObject[link.target]);
+
+			// remove child node
+			delete nodesAsObject[link.target];
+		}
+	});
+	// delete links which type is 'contains'
+	links = links.filter((link) => link.type !== EdgeType.contains);
+	const nodes = Object.values(nodesAsObject);
+	calulateNestingLevels(nodes);
+
+	function calulateNestingLevels(node: ConvertedNode[], level: number = 0) {
+		node.forEach((n) => {
+			n.level = level;
+			if (n.members) {
+				calulateNestingLevels(n.members, level + 1);
+			}
+		});
 	}
+	return {
+		nodes,
+		links
+	};
 }
