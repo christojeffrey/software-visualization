@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
+import { setupGradient } from './gradient-setup';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -85,6 +86,8 @@ export function draw(
 		.attr('width', SVGSIZE + SVGMARGIN * 2)
 		.attr('height', SVGSIZE + SVGMARGIN * 2);
 
+	setupGradient(svg);
+
 	const simulation = d3.forceSimulation(graphData.nodes);
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
@@ -152,7 +155,7 @@ export function draw(
 		.data(graphData.links)
 		.enter()
 		.append('line')
-		.style('stroke', 'blue')
+		
 		.attr('class', 'link');
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)

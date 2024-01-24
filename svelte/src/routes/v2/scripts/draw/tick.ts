@@ -53,6 +53,10 @@ export function linkTicked(linkElements: any) {
 			}
 
 			return result;
+		})
+		.attr('stroke', function (this: any, d: any) {
+			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
+			return `url(#${d.type}GradientReversed)`;
 		});
 }
 export function masterSimulationTicked(
