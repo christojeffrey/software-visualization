@@ -9,11 +9,13 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	
-	let simulations: any[];
+	let simulations: any[] = [];
     
 	let rawData: any;
     let convertedData: any;
-    const config:any = {};
+    const config:any = {
+		collapsedVertices: []
+	};
     let graphData: any;
     const drawSettings: any = {};
 	let svgElement: any = {};
@@ -47,7 +49,14 @@
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
-                let result = draw(svgElement, graphData, drawSettings);
+                let result = draw(svgElement, graphData, drawSettings, (datum:any)=>{
+					// on collapse button clicked
+					console.log("on collapse button clicked");
+					config.collapsedVertices.push(datum.id);
+					doRefilter = true;
+				}, ()=>{
+					// on lift
+				});
                 simulations = result.simulations;
 				doRedraw = false;
 			}

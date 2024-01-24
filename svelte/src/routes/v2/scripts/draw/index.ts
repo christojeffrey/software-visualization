@@ -64,7 +64,13 @@ function createInnerSimulation(nodes: any, canvas: any, allSimulation: any, pare
 	}
 }
 
-export function draw(svgElement: any, graphData: any, _drawSettings: any) {
+export function draw(
+	svgElement: any,
+	graphData: any,
+	_drawSettings: any,
+	onCollapse: any,
+	onLift: any
+) {
 	console.log('draw');
 	const simulations: any = [];
 
@@ -112,6 +118,25 @@ export function draw(svgElement: any, graphData: any, _drawSettings: any) {
 		.attr('width', 10)
 		.attr('height', 10)
 		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1');
+
+	const collapseButton = containerElement
+		.append('circle')
+		.attr('r', 5)
+		.attr('cx', 0)
+		.attr('cy', 0)
+		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e, i) => {
+			onCollapse(i);
+		});
+
+	const liftButton = containerElement
+		.append('circle')
+		.attr('r', 5)
+		.attr('cx', 10)
+		.attr('cy', 0)
+		.attr('fill', 'blue')
 		.attr('fill-opacity', '0.1');
 
 	// link
