@@ -19,7 +19,7 @@ switch (headingNumber) {
 }
 </script>
 <div>
-    <p class="{styleClass}">
+    <p class={`${styleClass} ${$$props.class}`}>
         <slot/>
     </p>
 </div>

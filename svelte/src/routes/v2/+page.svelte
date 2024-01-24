@@ -60,12 +60,12 @@
 
 <div class="flex justify-between h-full">
 	<!-- canvas -->
-	<div class="m-6 border-2 border-black w-full">
+	<div class="m-6 w-full">
 		<svg bind:this={svgElement} class="w-full h-full"/>
 	</div>
 
 	<!-- vertical line -->
-	<div class ="bg-neutral-300 w-1"/>
+	<div class ="bg-neutral-300 w-[2px]"/>
 	
 	<!-- sidepanel -->
 	<div class = "flex flex-col m-6">
@@ -75,5 +75,6 @@
 		<ConfigChanger/>
 		<div class ="bg-neutral-300 h-[1px]"/>
 		<DrawSettingsChanger/>
+
 	</div>
 </div>

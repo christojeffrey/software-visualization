@@ -1,3 +1,9 @@
+<script>
+	import Heading from "$ui/heading.svelte";
+
+</script>
 <div>
-    draw settings changer
+    <Heading class="mt-2">
+        Draw Settings Changer
+    </Heading>
 </div>

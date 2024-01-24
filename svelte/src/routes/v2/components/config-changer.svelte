@@ -1,3 +1,9 @@
+<script>
+	import Heading from "$ui/heading.svelte";
+
+</script>
 <div>
-    config changer
+    <Heading class="mt-2">
+        Config Changer
+    </Heading>
 </div>
