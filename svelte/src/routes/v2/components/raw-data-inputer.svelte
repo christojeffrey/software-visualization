@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Button from "../../../ui/button.svelte";
-import Heading from "../../../ui/heading.svelte";
+	import Heading from "$ui/heading.svelte";
 
     export let rawData: any;
 	export let doReconvert: boolean;
