@@ -1,3 +1,5 @@
+import type { ConvertedData } from "../../types";
+
 function assignParentReference(nodes: any) {
 	nodes.forEach((node: any, _index: any, _arr: any) => {
 		if (node.members) {
@@ -34,7 +36,7 @@ function assignLinkReference(links: any, flattenNodes: any) {
 	});
 }
 
-export function createGraphData(convertedData: any) {
+export function createGraphData(convertedData: ConvertedData) {
 	// do deep copy
 	const nodes: any = JSON.parse(JSON.stringify(convertedData.nodes));
 	const links: any = JSON.parse(JSON.stringify(convertedData.links));

@@ -48,8 +48,8 @@ export type GraphData = {
 	flattenNodes: ConvertedNode[];
 };
 export type GraphDataEdge = {
-	source: GraphDataNode;
-	target: GraphDataNode;
+	source: string;
+	target: string;
 	id: string;
 	type: EdgeType;
 };

@@ -3,7 +3,8 @@ import type {
 	NodesDictionaryType,
 	GraphData,
 	ConfigInterface,
-	GraphDataEdge
+	GraphDataEdge,
+	ConvertedEdge
 } from '../../types';
 
 export interface FilteredNode extends ConvertedNode {
@@ -33,11 +34,10 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 	});
 
 	// Execute dependency lifting
-	const liftedLinks = links.map((link: GraphDataEdge): GraphDataEdge => {
+	const liftedLinks = links.map((link): GraphDataEdge => {
 		// Get array of ids of anscestors of source and target vertices
-		console.log(nodesDictionary);
-		const sourceAncestors = getAncestors(nodesDictionary[link.source.id]);
-		const targetAncestors = getAncestors(nodesDictionary[link.target.id]);
+		const sourceAncestors = getAncestors(nodesDictionary[link.source]);
+		const targetAncestors = getAncestors(nodesDictionary[link.target]);
 
 		// Calculate how many ansestors source and target have in common
 		const prefix = commonPrefix(sourceAncestors, targetAncestors);
@@ -54,12 +54,8 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 
 		return {
 			...link,
-			source: sourceAncestors[prefix + liftDistance]
-				? nodesDictionary[sourceAncestors[prefix + liftDistance]]
-				: link.source,
-			target: targetAncestors[prefix + liftDistance]
-				? nodesDictionary[targetAncestors[prefix + liftDistance]]
-				: link.target
+			source: sourceAncestors[prefix + liftDistance] ?? link.source,
+			target: targetAncestors[prefix + liftDistance] ?? link.target,
 		};
 	});
 	// Filter out duplicates: same source, target, and type
