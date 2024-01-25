@@ -78,7 +78,6 @@ export function draw(
 	onCollapse: any,
 	onLift: any
 ) {
-	console.log('draw');
 	const simulations: any = [];
 
 	const svg = d3
@@ -108,6 +107,7 @@ export function draw(
 		.append('g')
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => d.id);
+
 
 	containerElement.call(
 		d3
@@ -147,7 +147,10 @@ export function draw(
 		.attr('cx', drawSettings.minimumVertexSize)
 		.attr('cy', 0)
 		.attr('fill', 'blue')
-		.attr('fill-opacity', '0.1');
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e, i) => {
+			onLift(i);
+		});
 
 	// link
 	const linkElements = canvas

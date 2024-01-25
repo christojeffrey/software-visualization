@@ -10,13 +10,14 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
-	import type { ConfigInterface } from './types';
+	import type { ConfigInterface, ConvertedData, ConvertedNode } from './types';
+	import type { RawInputType } from './types/raw-data';
 	
 	let simulations: any[] = [];
     
-	let rawData: any;
-    let convertedData: any;
-    const config:ConfigInterface = {
+	let rawData: RawInputType;
+    let convertedData: ConvertedData;
+    const config: ConfigInterface = {
 		collapsedVertices: [],
 		dependencyLifting: [
 			// { // hardcode for testing
@@ -62,7 +63,6 @@
             if (doRefilter) {
 				filter(config, graphData);
                 doRefilter = false;
-				console.log(graphData);
 
 				// must redraw after refilter
 				doRedraw = true;
@@ -71,7 +71,7 @@
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
-                let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, ()=>{
+                let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, (node: ConvertedNode): void=>{
 					// on lift
 				});
                 simulations = result.simulations;

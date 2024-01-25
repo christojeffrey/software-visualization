@@ -1,5 +1,4 @@
 function assignParentReference(nodes: any) {
-	// console.log(nodes);
 	nodes.forEach((node: any, _index: any, _arr: any) => {
 		if (node.members) {
 			node.members.forEach((_: any, index: any, arr: any) => {
@@ -36,12 +35,9 @@ function assignLinkReference(links: any, flattenNodes: any) {
 }
 
 export function createGraphData(convertedData: any) {
-	console.log('create graph data');
 	// do deep copy
 	const nodes: any = JSON.parse(JSON.stringify(convertedData.nodes));
 	const links: any = JSON.parse(JSON.stringify(convertedData.links));
-	console.log(nodes);
-	console.log(links);
 	const flattenNodes: any = flattenNode(nodes);
 
 	assignParentReference(nodes);

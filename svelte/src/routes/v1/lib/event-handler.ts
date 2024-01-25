@@ -32,8 +32,7 @@ export function dragStartedGroup(event: any, simulation: any) {
 
 export function draggedGroup(event: any, simulation: any) {
 	simulation.alpha(slowAlpha).restart();
-
-	// console.log(event.subject.y, event.y);
+	
 	const differenceX = event.x - event.subject.fx;
 	const differenceY = event.y - event.subject.fy;
 	event.subject.fy = event.y;
