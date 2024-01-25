@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ConfigType } from "$lib/types";
+	import type { ConfigType } from "../lib/types";
 
 	export let config: any;
 	let dependencyLimit: string = "";
