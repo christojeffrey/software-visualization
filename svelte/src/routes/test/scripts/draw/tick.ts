@@ -53,12 +53,16 @@ export function linkTicked(linkElements: any) {
 			}
 
 			return result;
+		})
+		.attr('stroke', function (this: any, d: any) {
+			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
+			return `url(#${d.type}GradientReversed)`;
 		});
 }
 export function masterSimulationTicked(graphData: any, containerElement: any, nodeElements: any) {
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
-		if (graphData.flattenNodes[i].members) {
+		if (graphData.flattenNodes[i].members && graphData.flattenNodes[i].members.length > 0) {
 			const members = graphData.flattenNodes[i].members;
 			// members location is relative to the parent.
 			let minX = members[0].x + members[0].cx;
