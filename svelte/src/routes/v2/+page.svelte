@@ -20,6 +20,7 @@
     const config: ConfigInterface = {
 		collapsedVertices: [],
 		dependencyLifting: [],
+		dependencyTolerance: 0,
 	};
     let graphData: any;
     const drawSettings: any = {
@@ -45,7 +46,7 @@
 		if (existingLift) {
 			config.dependencyLifting = config.dependencyLifting.filter(i => i.nodeId !== node.id);
 		} else {
-			config.dependencyLifting.push({nodeId: node.id, depth: 0});
+			config.dependencyLifting.push({nodeId: node.id, depth: config.dependencyTolerance});
 		}
 		doRecreateWholeGraphData = true;
 		doRefilter = true;
@@ -77,7 +78,7 @@
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
-				let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, handleDependencyLiftClick);
+				let result = draw(svgElement, graphData, config, drawSettings, handleVertexCollapseClick, handleDependencyLiftClick);
                 simulations = result.simulations;
 				doRedraw = false;
 			}
@@ -102,7 +103,7 @@
 		
 		<RawDataInputer bind:rawData bind:doReconvert/>
 		<div class ="bg-neutral-300 h-[1px]"/>
-		<ConfigChanger/>
+		<ConfigChanger config={config}/>
 		<div class ="bg-neutral-300 h-[1px]"/>
 		<DrawSettingsChanger/>
 

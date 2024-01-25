@@ -4,7 +4,6 @@ import type {
 	GraphData,
 	ConfigInterface,
 	GraphDataEdge,
-	ConvertedEdge
 } from '../../types';
 
 export interface FilteredNode extends ConvertedNode {

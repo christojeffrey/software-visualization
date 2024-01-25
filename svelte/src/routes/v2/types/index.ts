@@ -3,6 +3,7 @@ export interface ConfigInterface {
 		nodeId: string;
 		depth: number;
 	}[];
+	dependencyTolerance: number;
 	collapsedVertices: any[];
 }
 
