@@ -65,11 +65,6 @@
 			}
 			if (doRecreateWholeGraphData) {
 				graphData = createGraphData(convertedData);
-				doRecreateWholeGraphData = false;
-				doRefilter = true;
-			}
-			if (doRecreateWholeGraphData) {
-				graphData = createGraphData(convertedData);
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
