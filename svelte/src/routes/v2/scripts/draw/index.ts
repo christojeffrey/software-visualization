@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
+import type { ConfigInterface } from '../../types';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -74,11 +75,11 @@ function createInnerSimulation(
 export function draw(
 	svgElement: any,
 	graphData: any,
+	config: ConfigInterface,
 	drawSettings: any,
 	onCollapse: any,
 	onLift: any
 ) {
-	console.log('draw');
 	const simulations: any = [];
 
 	const svg = d3
@@ -108,6 +109,7 @@ export function draw(
 		.append('g')
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => d.id);
+
 
 	containerElement.call(
 		d3
@@ -146,8 +148,16 @@ export function draw(
 		.attr('r', drawSettings.minimumVertexSize / 2)
 		.attr('cx', drawSettings.minimumVertexSize)
 		.attr('cy', 0)
-		.attr('fill', 'blue')
-		.attr('fill-opacity', '0.1');
+		.attr('fill', ({id}: any) => {
+			if(config.dependencyLifting.find(({nodeId}) => nodeId === id)) {
+				return 'aqua';
+			}
+			return 'blue';
+		})
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e, i) => {
+			onLift(i);
+		});
 
 	// link
 	const linkElements = canvas

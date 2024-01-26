@@ -1,6 +1,4 @@
-import type { EdgeType } from '.';
-
-export interface rawInputType {
+export interface RawInputType {
 	// (generated via https://transform.tools/json-to-typescript)
 	elements: {
 		nodes: RawNodeType[];
@@ -23,7 +21,8 @@ export interface RawEdgeType {
 		id: string;
 		source: string;
 		target: string;
-		label: string;
+		label?: string; // Does the same as labels
+		labels?: string[];
 		properties: {
 			containmentType?: string;
 			weight: number;

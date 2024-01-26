@@ -3,12 +3,13 @@ export interface ConfigInterface {
 		nodeId: string;
 		depth: number;
 	}[];
+	dependencyTolerance: number;
 	collapsedVertices: any[];
 }
 
 export interface ConvertedNode {
 	id: string;
-	members?: ConvertedNode[];
+	members: ConvertedNode[];
 	parentId?: string;
 	level: number;
 }
@@ -25,6 +26,7 @@ export interface ConvertedEdge {
 }
 
 export enum EdgeType {
+	// (in retrospect, this might not need to be an enum)
 	contains = 'contains',
 	constructs = 'constructs',
 	holds = 'holds',
@@ -33,7 +35,17 @@ export enum EdgeType {
 	specializes = 'specializes',
 	returns = 'returns',
 	accesses = 'accesses',
-	creates = 'creates'
+	creates = 'creates',
+	exhibits = 'exhibits',
+	invokes = 'invokes',
+	type = 'type',
+	hasVariable = 'hasVariable',
+	hasParameter = 'hasParameter',
+	hasScript = 'hasScript',
+	returnType = 'returnType',
+	instantiates = 'instantiates',
+	// Temp fix, some of our input data does not have the edge type.
+	unknown = 'UNKNOWN', 
 }
 
 export interface ConvertedData {
@@ -42,14 +54,14 @@ export interface ConvertedData {
 	nodesDictionary: NodesDictionaryType;
 }
 
-export type GraphData = {
+export type PreGraphData = {
 	nodes: GraphDataNode[];
-	links: GraphDataEdge[];
+	links: PreGraphDataEdge[];
 	flattenNodes: ConvertedNode[];
 };
-export type GraphDataEdge = {
-	source: GraphDataNode;
-	target: GraphDataNode;
+export type PreGraphDataEdge = {
+	source: string;
+	target: string;
 	id: string;
 	type: EdgeType;
 };
@@ -59,6 +71,6 @@ export type GraphDataNode = {
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
 	originalMembers?: GraphDataNode[];
-	outgoingLinks?: GraphDataEdge[];
-	incomingLinks?: GraphDataEdge[];
+	outgoingLinks?: PreGraphDataEdge[];
+	incomingLinks?: PreGraphDataEdge[];
 };

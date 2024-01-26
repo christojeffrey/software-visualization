@@ -9,21 +9,18 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
+	import type { ConfigInterface, ConvertedData, ConvertedNode, EdgeType } from './types';
+	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
-	import type { ConfigInterface, EdgeType } from './types';
 
 	let simulations: any[] = [];
 
-	let rawData: any;
-	let convertedData: any;
+	let rawData: RawInputType;
+	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
 		collapsedVertices: [],
-		dependencyLifting: [
-			// { // hardcode for testing
-			// 	nodeId:"lib",
-			// 	depth: 0,
-			// }
-		]
+		dependencyLifting: [],
+		dependencyTolerance: 0
 	};
 	let graphData: any;
 	let drawSettings: any = {
@@ -45,6 +42,17 @@
 		});
 	}
 
+	function handleDependencyLiftClick(node: ConvertedNode): void {
+		const existingLift = config.dependencyLifting.find((i) => i.nodeId === node.id);
+		if (existingLift) {
+			config.dependencyLifting = config.dependencyLifting.filter((i) => i.nodeId !== node.id);
+		} else {
+			config.dependencyLifting.push({ nodeId: node.id, depth: config.dependencyTolerance });
+		}
+		doRecreateWholeGraphData = true;
+		doRefilter = true;
+	}
+
 	$: {
 		if (isMounted) {
 			// handle config changes
@@ -57,6 +65,11 @@
 			}
 			if (doRecreateWholeGraphData) {
 				graphData = createGraphData(convertedData);
+				doRecreateWholeGraphData = false;
+				doRefilter = true;
+			}
+			if (doRecreateWholeGraphData) {
+				graphData = createGraphData(convertedData);
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
@@ -66,7 +79,6 @@
 			if (doRefilter) {
 				filter(config, graphData);
 				doRefilter = false;
-				console.log(graphData);
 
 				// must redraw after refilter
 				doRedraw = true;
@@ -75,9 +87,14 @@
 				// remove the old data
 				cleanCanvas(svgElement, simulations);
 
-				let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, () => {
-					// on lift
-				});
+				let result = draw(
+					svgElement,
+					graphData,
+					config,
+					drawSettings,
+					handleVertexCollapseClick,
+					handleDependencyLiftClick
+				);
 				simulations = result.simulations;
 				doRedraw = false;
 			}
@@ -101,7 +118,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger />
+		<ConfigChanger bind:config />
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw />
 	</div>

@@ -27,7 +27,6 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 		d3
 			.forceLink(graphData.links)
 			.id((d: any) => {
-				// console.log(d);
 				return d.id;
 			})
 			.strength(0.1)
@@ -76,8 +75,6 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 			.attr('class', 'group-button')
 			.style('fill', 'black')
 			.on('click', (_event: any, data: any) => {
-				// console.log('click');
-				// console.log(data);
 				config.collapsedGroups.push(data.id);
 				doRedraw();
 			});
@@ -127,8 +124,6 @@ export function draw(config: ConfigType, svgElement: any, graphData: GraphDataTy
 		.style('fill', (d: any) => (d.isCollapsedGroup ? 'black' : 'red'))
 		.attr('class', 'node')
 		.on('click', (_event: any, data: any) => {
-			console.log('click');
-			console.log(data);
 			if (data.isCollapsedGroup) {
 				// uncollapse
 				config.collapsedGroups = config.collapsedGroups.filter((id: string) => id !== data.id);

@@ -18,7 +18,6 @@ export function setupGraphData(config: ConfigType, convertedData: any) {
 }
 
 export function collapsedGroupHandler(collapsedGroups: any, graphData: any) {
-	console.log(collapsedGroups);
 	// remove nodes data and group data.
 
 	let filteredNodes = graphData.nodes;
@@ -44,8 +43,6 @@ export function collapsedGroupHandler(collapsedGroups: any, graphData: any) {
 	graphData.groups = graphData.groups.filter(
 		(group: any) => !allChildrenFromCollapsedGroups.includes(group.id)
 	);
-	console.log('allChildrenFromCollapsedGroups');
-	console.log(allChildrenFromCollapsedGroups);
 
 	collapsedGroups.forEach((collapsedGroupId: string) => {
 		// skip if the group is not rendered
@@ -60,12 +57,9 @@ export function collapsedGroupHandler(collapsedGroups: any, graphData: any) {
 		// average the position of the nodes
 		let averageX = 0;
 		let averageY = 0;
-		console.log('collapsedGroup.leaves');
-		console.log(collapsedGroup.leaves);
 		let count = 0;
 		collapsedGroup.leaves.forEach((id: string) => {
 			const node = filteredNodes.find((node: any) => node.id === id);
-			console.log(node);
 			if (node) {
 				averageX += node.x;
 				averageY += node.y;
