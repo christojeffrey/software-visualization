@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import * as d3 from 'd3';
 
-	import { liftLinks, rawToGraphDataConverter, tick } from '$lib';
-	import { rawData, exampleData } from '$lib/graph-data';
-	import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from '$lib/constants';
-	import type { ConfigType, GraphDataType, GraphElementsType } from '$lib/types';
+	import { liftLinks, rawToGraphDataConverter, tick } from './lib';
+	import { rawData, exampleData } from './lib/graph-data';
+	import { SVGSIZE, SVGMARGIN, LINK_COLOR_MAP } from './lib/constants';
+	import type { ConfigType, GraphDataType, GraphElementsType } from './lib/types';
 
 	import SidePanel from './components/side-panel.svelte';
 	import {
@@ -15,8 +15,8 @@
 		dragStartedNode,
 		draggedGroup,
 		draggedNode
-	} from '$lib';
-	import { linkStrokeValue } from '$lib/style-injector';
+	} from './lib';
+	import { linkStrokeValue } from './lib/style-injector';
 
 	let svgElement: any; // Reference to the svg tag
 

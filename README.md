@@ -45,7 +45,7 @@ type Vertex = {
   children?: Vertex[];
 
   // below only used in graphData
-  parent?: Vertex[];
+  parent?: Vertex;
   height?: number;
   width?: number;
   cx?: number;
@@ -107,7 +107,6 @@ type Config = {
   shownEdgesType: string[];
 };
 ```
-
 liftedEdges -> “semua yang ke turunannya, diarahin ke dia”
 
 Anaknya != turunannya
