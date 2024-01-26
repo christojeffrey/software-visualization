@@ -1,9 +1,9 @@
 import type {
 	ConvertedNode,
 	NodesDictionaryType,
-	GraphData,
+	PreGraphData,
 	ConfigInterface,
-	GraphDataEdge,
+	PreGraphDataEdge,
 } from '../../types';
 
 export interface FilteredNode extends ConvertedNode {
@@ -25,7 +25,7 @@ function getAncestors(node: FilteredNode): string[] {
 	else return [node.id];
 }
 
-export function liftDependencies(config: ConfigInterface, graphData: GraphData) {
+export function liftDependencies(config: ConfigInterface, graphData: PreGraphData) {
 	const nodesDictionary: NodesDictionaryType = {};
 	const links = graphData.links;
 	graphData.flattenNodes.forEach((node: ConvertedNode) => {
@@ -33,7 +33,7 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 	});
 
 	// Execute dependency lifting
-	const liftedLinks = links.map((link): GraphDataEdge => {
+	const liftedLinks = links.map((link): PreGraphDataEdge => {
 		// Get array of ids of anscestors of source and target vertices
 		const sourceAncestors = getAncestors(nodesDictionary[link.source]);
 		const targetAncestors = getAncestors(nodesDictionary[link.target]);
