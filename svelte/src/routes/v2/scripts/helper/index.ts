@@ -20,3 +20,4 @@ export function extractAvailableEdgeType(links: GraphDataEdge[]) {
 	});
 	return availableEdgeType;
 }
+
