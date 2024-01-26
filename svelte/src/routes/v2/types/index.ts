@@ -3,6 +3,7 @@ export interface ConfigInterface {
 		nodeId: string;
 		depth: number;
 	}[];
+	dependencyTolerance: number;
 	collapsedVertices: any[];
 }
 
@@ -42,14 +43,14 @@ export interface ConvertedData {
 	nodesDictionary: NodesDictionaryType;
 }
 
-export type GraphData = {
+export type PreGraphData = {
 	nodes: GraphDataNode[];
-	links: GraphDataEdge[];
+	links: PreGraphDataEdge[];
 	flattenNodes: ConvertedNode[];
 };
-export type GraphDataEdge = {
-	source: GraphDataNode;
-	target: GraphDataNode;
+export type PreGraphDataEdge = {
+	source: string;
+	target: string;
 	id: string;
 	type: EdgeType;
 };
@@ -59,6 +60,6 @@ export type GraphDataNode = {
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
 	originalMembers?: GraphDataNode[];
-	outgoingLinks?: GraphDataEdge[];
-	incomingLinks?: GraphDataEdge[];
+	outgoingLinks?: PreGraphDataEdge[];
+	incomingLinks?: PreGraphDataEdge[];
 };

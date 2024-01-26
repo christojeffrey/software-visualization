@@ -10,20 +10,17 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
-	import type { ConfigInterface } from './types';
+	import type { ConfigInterface, ConvertedData, ConvertedNode } from './types';
+	import type { RawInputType } from './types/raw-data';
 	
 	let simulations: any[] = [];
     
-	let rawData: any;
-    let convertedData: any;
-    const config:ConfigInterface = {
+	let rawData: RawInputType;
+    let convertedData: ConvertedData;
+    const config: ConfigInterface = {
 		collapsedVertices: [],
-		dependencyLifting: [
-			// { // hardcode for testing
-			// 	nodeId:"lib",
-			// 	depth: 0,
-			// }
-		],
+		dependencyLifting: [],
+		dependencyTolerance: 0,
 	};
     let graphData: any;
     const drawSettings: any = {
@@ -42,6 +39,17 @@
 		onVertexCollapseClick(datum, config, ()=>{
 			doRefilter = true;
 		})
+	}
+
+	function handleDependencyLiftClick(node: ConvertedNode): void{
+	const existingLift = config.dependencyLifting.find(i => i.nodeId === node.id);
+		if (existingLift) {
+			config.dependencyLifting = config.dependencyLifting.filter(i => i.nodeId !== node.id);
+		} else {
+			config.dependencyLifting.push({nodeId: node.id, depth: config.dependencyTolerance});
+		}
+		doRecreateWholeGraphData = true;
+		doRefilter = true;
 	}
     
 	$: {
@@ -62,7 +70,6 @@
             if (doRefilter) {
 				filter(config, graphData);
                 doRefilter = false;
-				console.log(graphData);
 
 				// must redraw after refilter
 				doRedraw = true;
@@ -71,9 +78,7 @@
 				// remove the old data	
                 cleanCanvas(svgElement, simulations);
 
-                let result = draw(svgElement, graphData, drawSettings, handleVertexCollapseClick, ()=>{
-					// on lift
-				});
+				let result = draw(svgElement, graphData, config, drawSettings, handleVertexCollapseClick, handleDependencyLiftClick);
                 simulations = result.simulations;
 				doRedraw = false;
 			}
@@ -98,7 +103,7 @@
 		
 		<RawDataInputer bind:rawData bind:doReconvert/>
 		<div class ="bg-neutral-300 h-[1px]"/>
-		<ConfigChanger/>
+		<ConfigChanger config={config}/>
 		<div class ="bg-neutral-300 h-[1px]"/>
 		<DrawSettingsChanger/>
 

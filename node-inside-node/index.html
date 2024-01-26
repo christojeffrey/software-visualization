@@ -73,7 +73,6 @@
         simulation.force("y", d3.forceY(height / 2));
         simulation.on("tick", function ticked() {
           // calculate nodes width and height, x and y. only do this calculation once, on master simulation
-          console.log(flattenedNode);
           for (let i = 0; i < flattenedNode.length; i++) {
             if (flattenedNode[i].members) {
               let members = flattenedNode[i].members;
@@ -256,7 +255,6 @@
       }
 
       function createInnerSimulation(nodes, canvas, allSimulation, parentNode) {
-        console.log(nodes);
         // use this instead of forEach so that it is passed by reference.
 
         // bind for easy reference.

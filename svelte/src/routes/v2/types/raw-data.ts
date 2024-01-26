@@ -1,6 +1,4 @@
-import type { EdgeType } from '.';
-
-export interface rawInputType {
+export interface RawInputType {
 	// (generated via https://transform.tools/json-to-typescript)
 	elements: {
 		nodes: RawNodeType[];
