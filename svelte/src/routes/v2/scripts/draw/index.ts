@@ -152,7 +152,7 @@ export function draw(
 	// link
 	const linkElements = canvas
 		.selectAll('line.link')
-		.data(graphData.links)
+		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
 		.append('line')
 
