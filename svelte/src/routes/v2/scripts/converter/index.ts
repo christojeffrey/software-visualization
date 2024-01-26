@@ -16,20 +16,23 @@ export function converter(rawData: RawInputType): ConvertedData {
 	rawData.elements.nodes.forEach(({ data }: RawNodeType) => {
 		nodesAsObject[data.id] = {
 			id: data.id,
-			level: NaN,
+			level: 0,
+			members: [],
 		};
 	});
 
 	let links: ConvertedEdge[] = rawData.elements.edges.map(({ data }): ConvertedEdge => {
 		// Throw an error if label is not of type EdgeType
-		if (!Object.values(EdgeType).includes(data.label as EdgeType)) {
-			throw new Error(`Unknown edge type ${data.label}`);
+		const label = (data.label ?? data.labels?.[0] ?? EdgeType.unknown) as EdgeType;
+		if (!Object.values(EdgeType).includes(label)) {
+			console.log(new Set(rawData.elements.edges.map(r => r.data.label ?? r.data.labels?.[0])));
+			throw new Error(`Unknown edge type ${label}`);
 		}
 		return {
 			id: data.id,
 			source: data.source,
 			target: data.target,
-			type: data.label as EdgeType,
+			type: label,
 		};
 	});
 	// at this point, we have no use for rawData. we only play with links and nodesAsObject
@@ -38,20 +41,13 @@ export function converter(rawData: RawInputType): ConvertedData {
 	links.forEach((link) => {
 		if (link.type === EdgeType.contains) {
 			// put child node inside parent node
-
-			// create members array if not exist
-			if (!nodesAsObject[link.source].members) {
-				nodesAsObject[link.source].members = [];
-			}
-			nodesAsObject[link.source].members?.push(nodesAsObject[link.target]);
-
-			// remove child node
-			delete nodesAsObject[link.target];
+			nodesAsObject[link.source].members.push(nodesAsObject[link.target]);
+			nodesAsObject[link.target].level = NaN;
 		}
 	});
 	// delete links which type is 'contains'
 	links = links.filter((link) => link.type !== EdgeType.contains);
-	const nodes = Object.values(nodesAsObject);
+	const nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
 	calulateNestingLevels(nodes);
 
 	function calulateNestingLevels(node: ConvertedNode[], level: number = 0) {

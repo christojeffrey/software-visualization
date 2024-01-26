@@ -65,7 +65,7 @@
 			if(doRecreateWholeGraphData){
 				graphData = createGraphData(convertedData);
 				doRecreateWholeGraphData = false;
-				
+				doRefilter = true;
 			}
             if (doRefilter) {
 				filter(config, graphData);
