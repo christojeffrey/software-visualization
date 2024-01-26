@@ -21,7 +21,8 @@ export interface RawEdgeType {
 		id: string;
 		source: string;
 		target: string;
-		label: string;
+		label?: string; // Does the same as labels
+		labels?: string[];
 		properties: {
 			containmentType?: string;
 			weight: number;
