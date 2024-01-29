@@ -7,6 +7,12 @@ export interface ConfigInterface {
 	collapsedVertices: any[];
 }
 
+export interface DrawSettingsInterface{
+	minimumVertexSize: number, 
+	shownEdgesType: Map<EdgeType, boolean>,
+	transformation?: {k: number, x: number, y: number}; // Used to remember the last transformation in-between redraws.
+}
+
 export interface ConvertedNode {
 	id: string;
 	members: ConvertedNode[];
