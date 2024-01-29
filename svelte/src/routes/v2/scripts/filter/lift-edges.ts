@@ -1,4 +1,3 @@
-import { debuggingConsole } from '$helper';
 import type {
 	ConvertedNode,
 	NodesDictionaryType,
@@ -54,10 +53,10 @@ export function liftDependencies(config: ConfigInterface, graphData: any) {
 
 	// Execute dependency lifting
 	const liftedLinks = links.map((link: any): PreGraphDataEdge => {
-		// return to original link
+		// return to original link first before calculation
 		link.source = link.originalSource ?? link.source;
 		link.target = link.originalTarget ?? link.target;
-		// debuggingConsole('link', link);
+
 		// Get array of ids of anscestors of source and target vertices
 		const sourceAncestors = getAncestors(nodesDictionary[link.source.id]);
 		const targetAncestors = getAncestors(nodesDictionary[link.target.id]);
@@ -77,8 +76,6 @@ export function liftDependencies(config: ConfigInterface, graphData: any) {
 			Infinity as number
 		);
 
-		// debuggingConsole('liftDistance', liftDistance);
-
 		return {
 			...link,
 			originalSource: link.source,
@@ -87,7 +84,6 @@ export function liftDependencies(config: ConfigInterface, graphData: any) {
 			target: targetAncestors[prefix + liftDistance] ?? link.target
 		};
 	});
-	console.log(liftedLinks);
 	// Filter out duplicates: same source, target, and type
 	return liftedLinks.filter(
 		(link, index, self) =>
