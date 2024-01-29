@@ -10,7 +10,9 @@
 		"sourceMap": true,
 		"strict": true,
 		"paths": {
-			"$ui/*": ["./src/ui/*"]
+			"$ui/*": ["./src/ui/*"],
+			"$helper": ["./src/helper"],
+			"$helper/*": ["./src/helper/*"]
 		}
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias

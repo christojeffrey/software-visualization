@@ -14,7 +14,6 @@
 		let text = await file.text();
 
 		rawData = JSON.parse(text);
-
 		doReconvert = true;
 	};
 

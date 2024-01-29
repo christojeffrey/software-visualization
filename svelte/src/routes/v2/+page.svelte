@@ -12,9 +12,9 @@
 	import type { ConfigInterface, ConvertedData, ConvertedNode, EdgeType } from './types';
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
+	import {debuggingConsole} from '$helper';
 
 	let simulations: any[] = [];
-
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
@@ -41,6 +41,7 @@
 			doRefilter = true;
 		});
 	}
+	debuggingConsole("testing");
 
 	function handleDependencyLiftClick(node: ConvertedNode): void {
 		const existingLift = config.dependencyLifting.find((i) => i.nodeId === node.id);
@@ -52,7 +53,6 @@
 		doRecreateWholeGraphData = true;
 		doRefilter = true;
 	}
-
 	$: {
 		if (isMounted) {
 			// handle config changes
@@ -70,6 +70,9 @@
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
 				);
 				doRecreateWholeGraphData = false;
+
+				// must redraw after recreate
+				doRedraw = true;
 			}
 			if (doRefilter) {
 				filter(config, graphData);

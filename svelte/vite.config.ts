@@ -6,7 +6,8 @@ export default defineConfig({
 	// absolute import
 	resolve: {
 		alias: {
-			$ui: '/src/ui'
+			$ui: '/src/ui',
+			$helper: '/src/helper'
 		}
 	}
 });
