@@ -161,11 +161,10 @@ export function draw(
 
 	// link
 	const linkElements = canvas
-		.selectAll('line.link')
+		.selectAll('path.link')
 		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
-		.append('line')
-
+		.append('path')
 		.attr('class', 'link');
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
