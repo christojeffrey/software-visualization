@@ -27,15 +27,16 @@ function getAncestors(node: any): any[] {
 	else return [node];
 }
 
-export function onDependencyLiftClick(clickedEdge: any, config: any, onFinish: () => void) {
+export function onDependencyLiftClick(clickedNode: any, config: any, onFinish: () => void) {
 	// push if not exist
-	if (!config.dependencyLifting.find((edge: any) => edge.id === clickedEdge.id)) {
-		config.dependencyLifting.push({ node: clickedEdge, depth: config.dependencyTolerance });
+	if (!config.dependencyLifting.find((nodeConfig: any) => nodeConfig.node.id === clickedNode.id)) {
+		config.dependencyLifting.push({ node: clickedNode, depth: config.dependencyTolerance });
 	} else {
 		// remove if exist
 		config.dependencyLifting = config.dependencyLifting.filter(
-			(edge: any) => edge.id !== clickedEdge.id
+			(nodeConfig) => nodeConfig.node.id !== clickedNode.id
 		);
+		console.log(config);
 	}
 	onFinish();
 }
@@ -49,44 +50,44 @@ export function liftDependencies(config: ConfigInterface, graphData: any) {
 		nodesDictionary[node.id] = node;
 	});
 
+	// return all to original
+
 	// Execute dependency lifting
 	const liftedLinks = links.map((link: any): PreGraphDataEdge => {
-		debuggingConsole('link', link);
+		// return to original link
+		link.source = link.originalSource ?? link.source;
+		link.target = link.originalTarget ?? link.target;
+		// debuggingConsole('link', link);
 		// Get array of ids of anscestors of source and target vertices
 		const sourceAncestors = getAncestors(nodesDictionary[link.source.id]);
 		const targetAncestors = getAncestors(nodesDictionary[link.target.id]);
 
-		debuggingConsole('sourceAncestors', sourceAncestors);
-		debuggingConsole('targetAncestors', targetAncestors);
-
 		// Calculate how many ansestors source and target have in common
 		const prefix = commonPrefix(sourceAncestors, targetAncestors);
-
-		debuggingConsole('prefix', prefix);
 
 		// Calculate how deep the link should go (how many levels should remain unlifted)
 		// Infinity denotes lifting dependencies is not done.
 		const liftDistance = [...sourceAncestors, ...targetAncestors].reduce<number>(
 			(acculimator, node) => {
-				debuggingConsole('node', node);
 				const constraint = config.dependencyLifting.find((c) => {
-					console.log('c', c);
 					return c.node === node;
 				});
-				console.log('constraint', constraint);
 				return Math.min(acculimator, constraint?.depth ?? Infinity);
 			},
 			Infinity as number
 		);
 
-		debuggingConsole('liftDistance', liftDistance);
+		// debuggingConsole('liftDistance', liftDistance);
 
 		return {
 			...link,
+			originalSource: link.source,
+			originalTarget: link.target,
 			source: sourceAncestors[prefix + liftDistance] ?? link.source,
 			target: targetAncestors[prefix + liftDistance] ?? link.target
 		};
 	});
+	console.log(liftedLinks);
 	// Filter out duplicates: same source, target, and type
 	return liftedLinks.filter(
 		(link, index, self) =>
