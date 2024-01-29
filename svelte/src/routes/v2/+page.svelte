@@ -27,7 +27,7 @@
 		minimumVertexSize: 50,
 		shownEdgesType: new Map<EdgeType, boolean>()
 	};
-	let svgElement: any = {};
+	let svgElement: SVGElement | undefined = undefined;
 
 	let doReconvert = true;
 	let doRecreateWholeGraphData = true;
@@ -83,7 +83,7 @@
 			}
 			if (doRedraw) {
 				// remove the old data
-				cleanCanvas(svgElement, simulations);
+				cleanCanvas(svgElement!, simulations);
 
 				let result = draw(
 					svgElement,
