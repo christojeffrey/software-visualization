@@ -2,7 +2,7 @@ import * as d3 from 'd3';
 import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
-import type { ConfigInterface } from '../../types';
+import type { ConfigInterface, DrawSettingsInterface } from '../../types';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -16,7 +16,7 @@ function createInnerSimulation(
 	canvas: any,
 	allSimulation: any,
 	parentNode: any,
-	drawSettings: any
+	drawSettings: DrawSettingsInterface,
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -80,7 +80,7 @@ export function draw(
 	svgElement: any,
 	graphData: any,
 	config: ConfigInterface,
-	drawSettings: any,
+	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: any) => void,
 	onLift: (datum: any) => void,
 ) {
@@ -210,10 +210,19 @@ export function draw(
 			.scaleExtent([1, 8])
 			.on('zoom', ({ transform }) => {
 				canvas.attr('transform', transform);
+				drawSettings.transformation = transform;
 			})
 	);
+
+	//Reload last transformation, if avaidable
+	if (drawSettings.transformation) {
+		// (The type of this method is incorrect, annoyingly)
+		canvas.attr('transform', drawSettings.transformation as any)
+	}
+
+
 	return {
 		simulations,
-		svgElement
+		svgElement,
 	};
 }
