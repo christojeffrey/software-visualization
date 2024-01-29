@@ -7,6 +7,10 @@ import type { ConfigInterface } from '../../types';
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
 
+function toHTMLToken(string: string) {
+	return string.replace(/[^A-Za-z0-9]/g, '--');
+}
+
 function createInnerSimulation(
 	nodes: any,
 	canvas: any,
@@ -28,7 +32,7 @@ function createInnerSimulation(
 
 	allSimulation.push(innerSimulation);
 
-	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
+	const parentElement = canvas.select(`#${toHTMLToken(parentNode.id)}`).append('g');
 
 	const membersContainerElement = parentElement
 		.selectAll('g')
@@ -36,7 +40,7 @@ function createInnerSimulation(
 		.enter()
 		.append('g')
 		.attr('class', 'node')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 	membersContainerElement.call(
 		d3
@@ -77,8 +81,8 @@ export function draw(
 	graphData: any,
 	config: ConfigInterface,
 	drawSettings: any,
-	onCollapse: any,
-	onLift: any
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void,
 ) {
 	const simulations: any = [];
 
@@ -108,7 +112,7 @@ export function draw(
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 
 	containerElement.call(
@@ -165,7 +169,6 @@ export function draw(
 		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
 		.append('line')
-
 		.attr('class', 'link');
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
