@@ -182,7 +182,7 @@ export function draw(
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', 'black')
 			.attr('font-size', '10px')
-			.text((d: any) => d.type);
+			.text((d: any) => d.id);
 	}
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)

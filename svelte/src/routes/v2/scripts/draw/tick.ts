@@ -49,6 +49,20 @@ export function linkTicked(linkElements: any, linkLabelElements: any) {
 			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
 			return `url(#${d.type}GradientReversed)`;
 		});
+
+	if (linkLabelElements) {
+		linkLabelElements
+			.attr('x', (d: any) => {
+				const x1 = allResult[d.id].x1;
+				const x2 = allResult[d.id].x2;
+				return (x1 + x2) / 2;
+			})
+			.attr('y', (d: any) => {
+				const y1 = allResult[d.id].y1;
+				const y2 = allResult[d.id].y2;
+				return (y1 + y2) / 2;
+			});
+	}
 }
 export function masterSimulationTicked(
 	graphData: any,
