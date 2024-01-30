@@ -9,7 +9,7 @@ export interface ConfigInterface {
 
 export interface DrawSettingsInterface {
 	minimumVertexSize: number;
-	buttonSize: number;
+	buttonRadius: number;
 	nodeCornerRadius: number;
 	nodePadding: number;
 	shownEdgesType: Map<EdgeType, boolean>;

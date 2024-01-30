@@ -169,7 +169,7 @@ export function draw(
 
 	const collapseButtonElements = containerElement
 		.append('circle')
-		.attr('r', drawSettings.buttonSize)
+		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', 0)
 		.attr('cy', 0)
 		.attr('fill', 'red')
@@ -180,8 +180,8 @@ export function draw(
 
 	const liftButtonElements = containerElement
 		.append('circle')
-		.attr('r', drawSettings.buttonSize)
-		.attr('cx', drawSettings.buttonSize)
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', drawSettings.buttonRadius)
 		.attr('cy', 0)
 		.attr('fill', ({ id }: any) => {
 			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {

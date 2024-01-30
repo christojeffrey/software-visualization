@@ -80,7 +80,7 @@ export function masterSimulationTicked(
 	collapseButtonElements: any,
 	liftButtonElements: any
 ) {
-	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonSize;
+	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
 
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
@@ -140,12 +140,12 @@ export function masterSimulationTicked(
 
 	if (collapseButtonElements) {
 		collapseButtonElements
-			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonSize)
-			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonSize / 2);
+			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius / 2);
 	}
 	if (liftButtonElements) {
 		liftButtonElements
-			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonSize)
-			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonSize / 2);
+			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius / 2);
 	}
 }
