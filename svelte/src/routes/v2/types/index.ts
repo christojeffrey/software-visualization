@@ -7,10 +7,12 @@ export interface ConfigInterface {
 	collapsedVertices: any[];
 }
 
-export interface DrawSettingsInterface{
-	minimumVertexSize: number, 
-	shownEdgesType: Map<EdgeType, boolean>,
-	transformation?: {k: number, x: number, y: number}; // Used to remember the last transformation in-between redraws.
+export interface DrawSettingsInterface {
+	minimumVertexSize: number;
+	shownEdgesType: Map<EdgeType, boolean>;
+	showNodeLabels: boolean;
+	showEdgeLabels: boolean;
+	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 
 export interface ConvertedNode {
@@ -51,7 +53,7 @@ export enum EdgeType {
 	returnType = 'returnType',
 	instantiates = 'instantiates',
 	// Temp fix, some of our input data does not have the edge type.
-	unknown = 'UNKNOWN', 
+	unknown = 'UNKNOWN'
 }
 
 export interface ConvertedData {

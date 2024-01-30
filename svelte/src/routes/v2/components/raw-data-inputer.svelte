@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Button from "../../../ui/button.svelte";
+	import Toggle from "../../../ui/toggle.svelte";
 	import Heading from "$ui/heading.svelte";
 
     export let rawData: any;
@@ -42,11 +42,11 @@
 	</Heading>
     <label for="uploader">Upload a json file:</label>
 	<input accept="application/json" bind:files id="uploader" name="uploader" type="file" />
-	<Button class="mt-2" bind:state={useExampleData} onToggle={() => {
+	<Toggle class="mt-2" bind:state={useExampleData} onToggle={() => {
 		if (!disableButton) {
 			useExampleData = !useExampleData;
 		}
 	}} bind:disabled={disableButton}>
 		Use example data
-	</Button>
+	</Toggle>
 </div>

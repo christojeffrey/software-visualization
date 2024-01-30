@@ -397,19 +397,19 @@
 
 <div class="graph">
 	<svg bind:this={svgElement} />
-	<!-- <button
+	<!-- <Toggle
 		on:click={() => {
 			// remove data
 			d3.select(svgElement).selectChildren().remove();
 		}}>remove data</button
 	> -->
-	<!-- <button
+	<!-- <Toggle
 		on:click={() => {
 			// turn off force
 			simulation.stop();
 		}}>turn off force</button
 	> -->
-	<!-- <button
+	<!-- <Toggle
 			on:click={() => {
 				// turn off force
 				simulation.alpha(0.7).restart();
