@@ -76,7 +76,11 @@ function createInnerSimulation(
 		.attr('fill-opacity', '0.2')
 		.attr('rx', drawSettings.nodeCornerRadius);
 
+	// filter only if has member
 	const collapseButtonElements = membersContainerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', 0)
@@ -88,6 +92,9 @@ function createInnerSimulation(
 		});
 
 	const liftButtonElements = membersContainerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', drawSettings.buttonRadius)
@@ -209,6 +216,9 @@ export function draw(
 		.attr('rx', drawSettings.nodeCornerRadius);
 
 	const collapseButtonElements = containerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', 0)
@@ -220,6 +230,9 @@ export function draw(
 		});
 
 	const liftButtonElements = containerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', drawSettings.buttonRadius)
