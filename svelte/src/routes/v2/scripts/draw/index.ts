@@ -7,6 +7,10 @@ import type { ConfigInterface, DrawSettingsInterface } from '../../types';
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
 
+function toHTMLToken(string: string) {
+	return string.replace(/[^A-Za-z0-9]/g, '--');
+}
+
 function createInnerSimulation(
 	level: number,
 	nodes: any,
@@ -31,7 +35,7 @@ function createInnerSimulation(
 
 	allSimulation.push(innerSimulation);
 
-	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
+	const parentElement = canvas.select(`#${toHTMLToken(parentNode.id)}`).append('g');
 
 	const membersContainerElement = parentElement
 		.selectAll('g')
@@ -39,7 +43,7 @@ function createInnerSimulation(
 		.enter()
 		.append('g')
 		.attr('class', 'node')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 	// handle show node labels
 	let memberLabelElements: any;
@@ -137,8 +141,8 @@ export function draw(
 	graphData: any,
 	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: any,
-	onLift: any
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void,
 ) {
 	const simulations: any = [];
 
@@ -178,7 +182,7 @@ export function draw(
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 	// handle show node labels
 	let nodeLabelsElements: any;
