@@ -31,6 +31,11 @@
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,
 		showNodeLabels: false,
+		nodeDefaultColor: '#6a6ade',
+		nodeColors: [
+			"#32a875",
+			"#d46868",
+		]
 	};
 	let svgElement: SVGElement | undefined = undefined;
 

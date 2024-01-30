@@ -15,6 +15,8 @@ export interface DrawSettingsInterface {
 	shownEdgesType: Map<EdgeType, boolean>;
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;
+	nodeDefaultColor: string;
+	nodeColors: string[];
 	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 

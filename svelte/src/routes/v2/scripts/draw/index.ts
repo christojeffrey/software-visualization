@@ -8,6 +8,7 @@ const SVGSIZE = 800;
 const SVGMARGIN = 50;
 
 function createInnerSimulation(
+	level: number,
 	nodes: any,
 	canvas: any,
 	allSimulation: any,
@@ -69,8 +70,9 @@ function createInnerSimulation(
 		.attr('y', 0)
 		.attr('width', drawSettings.minimumVertexSize)
 		.attr('height', drawSettings.minimumVertexSize)
-		.style('fill', 'green')
-		.attr('fill-opacity', '0.2');
+		.style('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
+		.attr('fill-opacity', '0.2')
+		.attr('rx', drawSettings.nodeCornerRadius);
 
 	innerSimulation.on('tick', () => {
 		innerTicked(membersContainerElement, memberElements, memberLabelElements);
@@ -79,7 +81,14 @@ function createInnerSimulation(
 	// recursive inner simulation.
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i].members) {
-			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i], drawSettings);
+			createInnerSimulation(
+				level + 1,
+				nodes[i].members,
+				canvas,
+				allSimulation,
+				nodes[i],
+				drawSettings
+			);
 		}
 	}
 }
@@ -163,7 +172,7 @@ export function draw(
 		.attr('y', 0)
 		.attr('width', drawSettings.minimumVertexSize)
 		.attr('height', drawSettings.minimumVertexSize)
-		.attr('fill', 'red')
+		.attr('fill', drawSettings.nodeColors[0] ?? drawSettings.nodeDefaultColor)
 		.attr('fill-opacity', '0.1')
 		.attr('rx', drawSettings.nodeCornerRadius);
 
@@ -240,6 +249,7 @@ export function draw(
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		if (graphData.nodes[i].members) {
 			createInnerSimulation(
+				1,
 				graphData.nodes[i].members,
 				canvas,
 				simulations,
