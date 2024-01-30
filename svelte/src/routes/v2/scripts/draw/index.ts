@@ -228,7 +228,7 @@ export function draw(
 			})
 	);
 
-	//Reload last transformation, if avaidable
+	//Reload last transformation, if available
 	if (drawSettings.transformation) {
 		// (The type of this method is incorrect, annoyingly)
 		canvas.attr('transform', drawSettings.transformation as any);
