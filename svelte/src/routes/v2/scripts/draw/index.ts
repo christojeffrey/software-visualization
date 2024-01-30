@@ -12,7 +12,7 @@ function createInnerSimulation(
 	canvas: any,
 	allSimulation: any,
 	parentNode: any,
-	drawSettings: DrawSettingsInterface,
+	drawSettings: DrawSettingsInterface
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -78,7 +78,7 @@ export function draw(
 	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
 	onCollapse: any,
-	onLift: any,
+	onLift: any
 ) {
 	const simulations: any = [];
 
@@ -103,13 +103,13 @@ export function draw(
 
 	const containerElement = canvas
 		.append('g')
+		.attr('id', 'node-canvas')
 		.selectAll('g')
 		.data(graphData.nodes)
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => d.id);
-
 
 	containerElement.call(
 		d3
@@ -148,8 +148,8 @@ export function draw(
 		.attr('r', drawSettings.minimumVertexSize / 2)
 		.attr('cx', drawSettings.minimumVertexSize)
 		.attr('cy', 0)
-		.attr('fill', ({id}: any) => {
-			if(config.dependencyLifting.find(({nodeId}) => nodeId === id)) {
+		.attr('fill', ({ id }: any) => {
+			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {
 				return 'aqua';
 			}
 			return 'blue';
@@ -160,13 +160,30 @@ export function draw(
 		});
 
 	// link
-	const linkElements = canvas
-		.selectAll('line.link')
+	const linkContainer = canvas
+		.append('g')
+		.attr('id', 'link-canvas')
+		.selectAll('g')
 		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
-		.append('line')
+		.append('g')
+		.attr('class', 'links')
+		.attr('id', (d: any) => d.id);
 
-		.attr('class', 'link');
+	const linkElements = linkContainer.append('line').attr('class', 'link');
+
+	// handle show edge labels
+	let linkLabelElements: any;
+	if (drawSettings.showEdgeLabels) {
+		linkLabelElements = linkContainer
+			.append('text')
+			.attr('class', 'link-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.type);
+	}
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
 		.force(
@@ -179,7 +196,7 @@ export function draw(
 				.strength(0)
 		)
 		.on('tick', () => {
-			linkTicked(linkElements);
+			linkTicked(linkElements, linkLabelElements);
 		});
 	simulations.push(linkSimulation);
 
@@ -214,12 +231,11 @@ export function draw(
 	//Reload last transformation, if avaidable
 	if (drawSettings.transformation) {
 		// (The type of this method is incorrect, annoyingly)
-		canvas.attr('transform', drawSettings.transformation as any)
+		canvas.attr('transform', drawSettings.transformation as any);
 	}
-
 
 	return {
 		simulations,
-		svgElement,
+		svgElement
 	};
 }

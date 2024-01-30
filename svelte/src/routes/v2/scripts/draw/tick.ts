@@ -4,55 +4,46 @@ export function innerTicked(membersContainerElement: any, memberElements: any) {
 	memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 	memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
 }
-export function linkTicked(linkElements: any) {
+export function linkTicked(linkElements: any, linkLabelElements: any) {
+	// calculate all the link labels location.
+	const allResult: any = {};
 	linkElements
 		.attr('x1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.x;
+			// callculate once here change to global coordinates.
+			// calculate new source
+			const newLocation = {
+				x1: d.source.x,
+				y1: d.source.y,
+				x2: d.target.x,
+				y2: d.target.y
+			};
 
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
+			let source = d.source;
+			while (source.parent) {
+				newLocation.x1 += source.parent.x;
+				newLocation.y1 += source.parent.y;
+				source = source.parent;
+			}
+			// calculate new target
+			let target = d.target;
+			while (target.parent) {
+				newLocation.x2 += target.parent.x;
+				newLocation.y2 += target.parent.y;
+				target = target.parent;
 			}
 
-			return result;
+			allResult[d.id] = newLocation;
+
+			return allResult[d.id].x1;
 		})
 		.attr('y1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.y;
-
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
+			return allResult[d.id].y1;
 		})
 		.attr('x2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.x;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
-			}
-
-			return result;
+			return allResult[d.id].x2;
 		})
 		.attr('y2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.y;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
+			return allResult[d.id].y2;
 		})
 		.attr('stroke', function (this: any, d: any) {
 			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
