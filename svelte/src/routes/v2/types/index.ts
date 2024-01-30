@@ -1,6 +1,6 @@
 export interface ConfigInterface {
 	dependencyLifting: {
-		nodeId: string;
+		node: GraphDataNode;
 		depth: number;
 	}[];
 	dependencyTolerance: number;
@@ -19,20 +19,24 @@ export interface ConvertedNode {
 	parentId?: string;
 	level: number;
 }
-
-export interface NodesDictionaryType {
-	[id: string]: ConvertedNode;
-}
-
 export interface ConvertedEdge {
 	id: string;
 	source: string;
 	target: string;
 	type: EdgeType;
 }
+export interface ConvertedData {
+	nodes: ConvertedNode[];
+	links: ConvertedEdge[];
+	nodesDictionary: NodesDictionaryType;
+}
 
+export interface NodesDictionaryType {
+	[id: string]: ConvertedNode;
+}
+
+// (in retrospect, this might not need to be an enum)
 export enum EdgeType {
-	// (in retrospect, this might not need to be an enum)
 	contains = 'contains',
 	constructs = 'constructs',
 	holds = 'holds',
@@ -51,25 +55,21 @@ export enum EdgeType {
 	returnType = 'returnType',
 	instantiates = 'instantiates',
 	// Temp fix, some of our input data does not have the edge type.
-	unknown = 'UNKNOWN', 
+	unknown = 'UNKNOWN'
 }
 
-export interface ConvertedData {
-	nodes: ConvertedNode[];
-	links: ConvertedEdge[];
-	nodesDictionary: NodesDictionaryType;
-}
-
-export type PreGraphData = {
+export type GraphData = {
 	nodes: GraphDataNode[];
-	links: PreGraphDataEdge[];
+	links: GraphDataEdge[];
 	flattenNodes: ConvertedNode[];
 };
-export type PreGraphDataEdge = {
-	source: string;
-	target: string;
+export type GraphDataEdge = {
+	source: GraphDataNode;
+	target: GraphDataNode;
 	id: string;
 	type: EdgeType;
+	originalSource?: GraphDataNode;
+	originalTarget?: GraphDataNode;
 };
 export type GraphDataNode = {
 	id: string;
@@ -77,6 +77,6 @@ export type GraphDataNode = {
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
 	originalMembers?: GraphDataNode[];
-	outgoingLinks?: PreGraphDataEdge[];
-	incomingLinks?: PreGraphDataEdge[];
+	outgoingLinks?: GraphDataEdge[];
+	incomingLinks?: GraphDataEdge[];
 };
