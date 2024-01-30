@@ -53,23 +53,17 @@ export function linkTicked(edges: any[], linkElements: any, linkLabelElements: a
 
 		allResult[d.id] = newLocation;
 	});
-	linkElements
-		.attr('x1', (d: any) => {
-			return allResult[d.id].x1;
-		})
-		.attr('y1', (d: any) => {
-			return allResult[d.id].y1;
-		})
-		.attr('x2', (d: any) => {
-			return allResult[d.id].x2;
-		})
-		.attr('y2', (d: any) => {
-			return allResult[d.id].y2;
-		})
-		.attr('stroke', function (this: any, d: any) {
-			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
-			return `url(#${d.type}GradientReversed)`;
-		});
+
+	linkElements.attr('d', function (this: SVGPathElement, d: any) {
+		// Apply gradient here since it is most efficient as it doesn't require recomputation
+		//
+		if (allResult[d.id].x2 > allResult[d.id].x1) this.style.stroke = `url(#${d.type}Gradient)`;
+		else this.style.stroke = `url(#${d.type}GradientReversed)`;
+
+		return `M${
+			allResult[d.id].x1
+		},${allResult[d.id].y1} L${allResult[d.id].x2},${allResult[d.id].y2}`;
+	});
 
 	if (linkLabelElements) {
 		linkLabelElements

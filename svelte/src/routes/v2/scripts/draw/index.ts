@@ -259,7 +259,7 @@ export function draw(
 		.attr('class', 'links')
 		.attr('id', (d: any) => d.id);
 
-	const linkElements = linkContainer.append('line').attr('class', 'link');
+	const linkElements = linkContainer.append('path').attr('class', 'link');
 
 	// handle show edge labels
 	let linkLabelElements: any;

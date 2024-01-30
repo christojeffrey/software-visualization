@@ -13,6 +13,7 @@
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
 	import {debuggingConsole} from '$helper';
+	import { onDependencyLiftClick } from './scripts/filter/lift-edges';
 
 	let simulations: any[] = [];
 	let rawData: RawInputType;
@@ -51,17 +52,12 @@
 			doRefilter = true;
 		});
 	}
-	debuggingConsole("testing");
+
 
 	function handleDependencyLiftClick(node: ConvertedNode): void {
-		const existingLift = config.dependencyLifting.find((i) => i.nodeId === node.id);
-		if (existingLift) {
-			config.dependencyLifting = config.dependencyLifting.filter((i) => i.nodeId !== node.id);
-		} else {
-			config.dependencyLifting.push({ nodeId: node.id, depth: config.dependencyTolerance });
-		}
-		doRecreateWholeGraphData = true;
-		doRefilter = true;
+		onDependencyLiftClick(node, config, () => {
+			doRefilter = true;
+		});
 	}
 	$: {
 		if (isMounted) {
