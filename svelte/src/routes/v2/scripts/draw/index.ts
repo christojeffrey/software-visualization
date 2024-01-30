@@ -314,11 +314,6 @@ export function draw(
 	svg.call(
 		d3
 			.zoom()
-			.extent([
-				[0, 0],
-				[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
-			])
-			.scaleExtent([1, 8])
 			.on('zoom', ({ transform }) => {
 				canvas.attr('transform', transform);
 				drawSettings.transformation = transform;
