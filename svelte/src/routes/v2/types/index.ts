@@ -9,6 +9,9 @@ export interface ConfigInterface {
 
 export interface DrawSettingsInterface {
 	minimumVertexSize: number;
+	buttonSize: number;
+	nodeCornerRadius: number;
+	nodePadding: number;
 	shownEdgesType: Map<EdgeType, boolean>;
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;

@@ -73,7 +73,7 @@ function createInnerSimulation(
 		.attr('fill-opacity', '0.2');
 
 	innerSimulation.on('tick', () => {
-		innerTicked(membersContainerElement, memberElements);
+		innerTicked(membersContainerElement, memberElements, memberLabelElements);
 	});
 
 	// recursive inner simulation.
@@ -106,7 +106,15 @@ export function draw(
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.on('tick', () => {
-		masterSimulationTicked(graphData, containerElement, nodeElements, drawSettings);
+		masterSimulationTicked(
+			graphData,
+			containerElement,
+			nodeElements,
+			drawSettings,
+			nodeLabelsElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
 	});
 
 	simulations.push(simulation);
@@ -125,9 +133,9 @@ export function draw(
 		.attr('id', (d: any) => d.id);
 
 	// handle show node labels
-	let nodeLabelElements: any;
+	let nodeLabelsElements: any;
 	if (drawSettings.showNodeLabels) {
-		nodeLabelElements = containerElement
+		nodeLabelsElements = containerElement
 			.append('text')
 			.attr('class', 'node-label')
 			.attr('text-anchor', 'middle')
@@ -156,11 +164,12 @@ export function draw(
 		.attr('width', drawSettings.minimumVertexSize)
 		.attr('height', drawSettings.minimumVertexSize)
 		.attr('fill', 'red')
-		.attr('fill-opacity', '0.1');
+		.attr('fill-opacity', '0.1')
+		.attr('rx', drawSettings.nodeCornerRadius);
 
-	const collapseButton = containerElement
+	const collapseButtonElements = containerElement
 		.append('circle')
-		.attr('r', drawSettings.minimumVertexSize / 2)
+		.attr('r', drawSettings.buttonSize)
 		.attr('cx', 0)
 		.attr('cy', 0)
 		.attr('fill', 'red')
@@ -169,10 +178,10 @@ export function draw(
 			onCollapse(i);
 		});
 
-	const liftButton = containerElement
+	const liftButtonElements = containerElement
 		.append('circle')
-		.attr('r', drawSettings.minimumVertexSize / 2)
-		.attr('cx', drawSettings.minimumVertexSize)
+		.attr('r', drawSettings.buttonSize)
+		.attr('cx', drawSettings.buttonSize)
 		.attr('cy', 0)
 		.attr('fill', ({ id }: any) => {
 			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {

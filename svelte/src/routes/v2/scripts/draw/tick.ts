@@ -1,8 +1,15 @@
-const PADDING = 10;
-export function innerTicked(membersContainerElement: any, memberElements: any) {
+export function innerTicked(
+	membersContainerElement: any,
+	memberElements: any,
+	nodeLabelsElements: any
+) {
 	membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 	memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
+	if (nodeLabelsElements) {
+		// put it in the top middle
+		nodeLabelsElements.attr('x', (d: any) => d.cx + d.width / 2).attr('y', (d: any) => d.cy + 5);
+	}
 }
 export function linkTicked(linkElements: any, linkLabelElements: any) {
 	// calculate all the link labels location.
@@ -68,8 +75,13 @@ export function masterSimulationTicked(
 	graphData: any,
 	containerElement: any,
 	nodeElements: any,
-	drawSettings: any
+	drawSettings: any,
+	nodeLabelsElements: any,
+	collapseButtonElements: any,
+	liftButtonElements: any
 ) {
+	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonSize;
+
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
 		const hasShownMembers =
@@ -118,4 +130,22 @@ export function masterSimulationTicked(
 	nodeElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 
 	nodeElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
+
+	if (nodeLabelsElements) {
+		// put it in the top middle
+		nodeLabelsElements
+			.attr('x', (d: any) => d.cx + d.width / 2)
+			.attr('y', (d: any) => d.cy + drawSettings.nodePadding);
+	}
+
+	if (collapseButtonElements) {
+		collapseButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonSize)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonSize / 2);
+	}
+	if (liftButtonElements) {
+		liftButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonSize)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonSize / 2);
+	}
 }

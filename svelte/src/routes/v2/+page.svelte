@@ -25,6 +25,9 @@
 	let graphData: any;
 	let drawSettings: DrawSettingsInterface = {
 		minimumVertexSize: 50,
+		buttonSize: 5,
+		nodeCornerRadius: 5,
+		nodePadding:5,
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: true,
 		showNodeLabels: true,
