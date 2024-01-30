@@ -11,7 +11,7 @@ export interface FilteredNode extends ConvertedNode {
 	parent?: FilteredNode;
 }
 // HELPER FUNCTIONS
-// Find length of common prefix of 2 string arrays
+// Find length of common prefix of 2 arrays
 function commonPrefix(a: GraphDataNode[], b: GraphDataNode[]) {
 	let i = 0;
 	while (i < a.length && i < b.length && a[i] === b[i]) {
@@ -20,7 +20,7 @@ function commonPrefix(a: GraphDataNode[], b: GraphDataNode[]) {
 	return i;
 }
 
-// Get the node-ids of all ancestors
+// Get the node of all ancestors
 function getAncestors(node: GraphDataNode): GraphDataNode[] {
 	// return list of ancestors, including node itself. starting from the 'oldest' ancestor
 	if (node?.parent) return [...getAncestors(node.parent), node];
@@ -33,14 +33,13 @@ export function onDependencyLiftClick(
 	onFinish: () => void
 ) {
 	// push if not exist
-	if (!config.dependencyLifting.find((nodeConfig: any) => nodeConfig.node.id === clickedNode.id)) {
+	if (!config.dependencyLifting.find((nodeConfig) => nodeConfig.node.id === clickedNode.id)) {
 		config.dependencyLifting.push({ node: clickedNode, depth: config.dependencyTolerance });
 	} else {
 		// remove if exist
 		config.dependencyLifting = config.dependencyLifting.filter(
 			(nodeConfig) => nodeConfig.node.id !== clickedNode.id
 		);
-		console.log(config);
 	}
 	onFinish();
 }
@@ -53,8 +52,6 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 	graphData.flattenNodes.forEach((node: ConvertedNode) => {
 		nodesDictionary[node.id] = node;
 	});
-
-	// return all to original
 
 	// Execute dependency lifting
 	const liftedLinks = links.map((link: GraphDataEdge): GraphDataEdge => {
