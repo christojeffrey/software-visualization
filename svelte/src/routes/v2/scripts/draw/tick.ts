@@ -1,42 +1,95 @@
-const PADDING = 10;
-
-export function innerTicked(membersContainerElement: any, memberElements: any) {
+export function innerTicked(
+	drawSettings: any,
+	membersContainerElement: any,
+	memberElements: any,
+	nodeLabelsElements: any,
+	collapseButtonElements: any,
+	liftButtonElements: any
+) {
 	membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 	memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
+	if (nodeLabelsElements) {
+		// put it in the top middle
+		nodeLabelsElements.attr('x', (d: any) => d.cx + d.width / 2).attr('y', (d: any) => d.cy + 5);
+	}
+	if (collapseButtonElements) {
+		collapseButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
+	if (liftButtonElements) {
+		liftButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
 }
-export function linkTicked(linkElements: any) {
-	linkElements.attr('d', function (this: SVGPathElement, d: any) {
-		let cx1 = d.source.x,
-			cy1 = d.source.y,
-			cx2 = d.target.x,
-			cy2 = d.target.y;
+export function linkTicked(edges: any[], linkElements: any, linkLabelElements: any) {
+	// calculate all the link labels location.
+	const allResult: any = {};
+	edges.forEach((d: any) => {
+		// callculate once here change to global coordinates.
+		// calculate new source
+		const newLocation = {
+			x1: d.source.x,
+			y1: d.source.y,
+			x2: d.target.x,
+			y2: d.target.y
+		};
 
-		let pointerSource = d.source.parent,
-			pointerTarget = d.target.parent;
-		while (pointerSource || pointerTarget) {
-			cx1 += pointerSource?.x;
-			cy1 += pointerSource?.y;
-			cx2 += pointerTarget?.x;
-			cy2 += pointerTarget?.y;
-			pointerSource = pointerSource?.parent;
-			pointerTarget = pointerTarget?.parent;
+		let source = d.source;
+		while (source.parent) {
+			newLocation.x1 += source.parent.x;
+			newLocation.y1 += source.parent.y;
+			source = source.parent;
+		}
+		// calculate new target
+		let target = d.target;
+		while (target.parent) {
+			newLocation.x2 += target.parent.x;
+			newLocation.y2 += target.parent.y;
+			target = target.parent;
 		}
 
+		allResult[d.id] = newLocation;
+	});
+
+	linkElements.attr('d', function (this: SVGPathElement, d: any) {
 		// Apply gradient here since it is most efficient as it doesn't require recomputation
 		//
-		if (cx2 > cx1) this.style.stroke = `url(#${d.type}Gradient)`;
+		if (allResult[d.id].x2 > allResult[d.id].x1) this.style.stroke = `url(#${d.type}Gradient)`;
 		else this.style.stroke = `url(#${d.type}GradientReversed)`;
 
-		return `M${cx1},${cy1} L${cx2},${cy2}`;
+		return `M${
+			allResult[d.id].x1
+		},${allResult[d.id].y1} L${allResult[d.id].x2},${allResult[d.id].y2}`;
 	});
+
+	if (linkLabelElements) {
+		linkLabelElements
+			.attr('x', (d: any) => {
+				const x1 = allResult[d.id].x1;
+				const x2 = allResult[d.id].x2;
+				return (x1 + x2) / 2;
+			})
+			.attr('y', (d: any) => {
+				const y1 = allResult[d.id].y1;
+				const y2 = allResult[d.id].y2;
+				return (y1 + y2) / 2;
+			});
+	}
 }
 export function masterSimulationTicked(
 	graphData: any,
 	containerElement: any,
 	nodeElements: any,
-	drawSettings: any
+	drawSettings: any,
+	nodeLabelsElements: any,
+	collapseButtonElements: any,
+	liftButtonElements: any
 ) {
+	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
+
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
 	for (let i = 0; i < graphData.flattenNodes.length; i++) {
 		const hasShownMembers =
@@ -85,4 +138,22 @@ export function masterSimulationTicked(
 	nodeElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 
 	nodeElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
+
+	if (nodeLabelsElements) {
+		// put it in the top middle
+		nodeLabelsElements
+			.attr('x', (d: any) => d.cx + d.width / 2)
+			.attr('y', (d: any) => d.cy + drawSettings.nodePadding);
+	}
+
+	if (collapseButtonElements) {
+		collapseButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
+	if (liftButtonElements) {
+		liftButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
 }

@@ -9,7 +9,7 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
-	import type { ConfigInterface, ConvertedData, ConvertedNode, EdgeType } from './types';
+	import type { ConfigInterface, ConvertedData, ConvertedNode, DrawSettingsInterface, EdgeType } from './types';
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
 	import {debuggingConsole} from '$helper';
@@ -24,9 +24,19 @@
 		dependencyTolerance: 0
 	};
 	let graphData: any;
-	let drawSettings: any = {
+	let drawSettings: DrawSettingsInterface = {
 		minimumVertexSize: 50,
-		shownEdgesType: new Map<EdgeType, boolean>()
+		buttonRadius: 5,
+		nodeCornerRadius: 5,
+		nodePadding:5,
+		shownEdgesType: new Map<EdgeType, boolean>(),
+		showEdgeLabels: false,
+		showNodeLabels: false,
+		nodeDefaultColor: '#6a6ade',
+		nodeColors: [
+			"#32a875",
+			"#d46868",
+		]
 	};
 	let svgElement: SVGElement | undefined = undefined;
 
