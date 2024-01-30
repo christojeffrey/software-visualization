@@ -141,11 +141,11 @@ export function masterSimulationTicked(
 	if (collapseButtonElements) {
 		collapseButtonElements
 			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonRadius)
-			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius / 2);
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 	if (liftButtonElements) {
 		liftButtonElements
 			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
-			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius / 2);
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 }
