@@ -3,11 +3,12 @@
 import Heading from '$ui/heading.svelte';
 	import type { DrawSettingsInterface } from '../types';
 	import Input from '$ui/input.svelte';
+	import Button from '$ui/button.svelte';
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
 </script>
 
-<div>
+<div class="overflow-auto">
 	<Heading class="mt-2">Draw Settings Changer</Heading>
 	<!-- Filter Edge -->
 	<div class="filter-edge">
@@ -66,6 +67,9 @@ import Heading from '$ui/heading.svelte';
 		</Toggle>
 	</div>
 
+	<!-- seperator -->
+	<div class="h-8"/>
+
 	<!-- Button Radius -->
 	<div>
 		<Heading headingNumber={5}>Button Radius</Heading>
@@ -89,5 +93,57 @@ import Heading from '$ui/heading.svelte';
 			drawSettings.nodeCornerRadius = Number(e.currentTarget.value);
 			doRedraw = true;
 		}} />
+	</div>
+	<!-- node padding -->
+	<div>
+		<Heading headingNumber={5}>node padding</Heading>
+		<Input type="number" value={drawSettings.nodePadding} onChange={(e) => {
+			drawSettings.nodePadding = Number(e.currentTarget.value);
+			doRedraw = true;
+		}} />
+	</div>
+	<!-- seperator -->
+	<div class="h-8"/>
+
+	<!-- default node color -->
+	<div>
+		<Heading headingNumber={5}>Default Node Color</Heading>
+		<Input type="color" value={drawSettings.nodeDefaultColor} onChange={(e) => {
+			drawSettings.nodeDefaultColor = e.currentTarget.value;
+			doRedraw = true;
+		}} />
+	</div>
+
+	<!-- node colors -->
+	<div>
+		<Heading headingNumber={5}>Node Colors</Heading>
+		{#each drawSettings.nodeColors as color, index}
+		<div class="flex">
+
+				<Input type="color" value={color} onChange={(e) => {
+					drawSettings.nodeColors[index] = e.currentTarget.value;
+					doRedraw = true;
+				}} />
+		<!-- remove level -->
+			<Button
+			onClick={() => {
+				drawSettings.nodeColors.splice(index, 1);
+				doRedraw = true;
+			}}
+			>
+				Remove this level
+			</Button>
+		</div>
+
+		{/each}
+		<!-- add new level -->
+		<Button
+			onClick={() => {
+				drawSettings.nodeColors.push('#000000');
+				doRedraw = true;
+			}}
+		>
+			Add new level
+		</Button>
 	</div>
 </div>

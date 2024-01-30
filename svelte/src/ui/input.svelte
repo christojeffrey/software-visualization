@@ -4,7 +4,6 @@
     export let onChange: (e: any) => void;
 </script>
 
-<div>
     <input
 			class="ml-4 border-2"
 			type={type}
@@ -13,4 +12,3 @@
 			value={value}
 			on:change={onChange}
 		/>
-</div>
