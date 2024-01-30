@@ -1,63 +1,35 @@
 const PADDING = 10;
+
 export function innerTicked(membersContainerElement: any, memberElements: any) {
 	membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
 	memberElements.attr('x', (d: any) => d.cx).attr('y', (d: any) => d.cy);
 }
 export function linkTicked(linkElements: any) {
-	linkElements
-		.attr('x1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.x;
+	linkElements.attr('d', function (this: SVGPathElement, d: any) {
+		let cx1 = d.source.x,
+			cy1 = d.source.y,
+			cx2 = d.target.x,
+			cy2 = d.target.y;
 
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
-			}
+		let pointerSource = d.source.parent,
+			pointerTarget = d.target.parent;
+		while (pointerSource || pointerTarget) {
+			cx1 += pointerSource?.x;
+			cy1 += pointerSource?.y;
+			cx2 += pointerTarget?.x;
+			cy2 += pointerTarget?.y;
+			pointerSource = pointerSource?.parent;
+			pointerTarget = pointerTarget?.parent;
+		}
 
-			return result;
-		})
-		.attr('y1', (d: any) => {
-			// change to global coordinates.
-			let result = d.source.y;
+		// Apply gradient here since it is most efficient as it doesn't require recomputation
+		//
+		if (cx2 > cx1) this.style.stroke = `url(#${d.type}Gradient)`;
+		else this.style.stroke = `url(#${d.type}GradientReversed)`;
 
-			let temp = d.source;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('x2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.x;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.x;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('y2', (d: any) => {
-			// change to global coordinates.
-			let result = d.target.y;
-
-			let temp = d.target;
-			while (temp.parent) {
-				result += temp.parent.y;
-				temp = temp.parent;
-			}
-
-			return result;
-		})
-		.attr('stroke', function (this: any, d: any) {
-			if (this.x2.baseVal.value > this.x1.baseVal.value) return `url(#${d.type}Gradient)`;
-			return `url(#${d.type}GradientReversed)`;
-		});
+		return `M${cx1},${cy1} L${cx2},${cy2}`;
+	});
 }
 export function masterSimulationTicked(
 	graphData: any,
