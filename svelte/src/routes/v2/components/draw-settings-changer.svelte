@@ -46,5 +46,15 @@ import Heading from '$ui/heading.svelte';
 	</div>
 	<div>
 		<Heading headingNumber={5}>Show Node Label</Heading>
+		<Toggle
+			class="ml-4"
+			onToggle={() => {
+				drawSettings.showNodeLabels = !drawSettings.showNodeLabels;
+				doRedraw = true;
+			}}
+			state={drawSettings.showNodeLabels}
+		>
+			{drawSettings.showNodeLabels ? 'Hide' : 'Show'}
+		</Toggle>
 	</div>
 </div>

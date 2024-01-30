@@ -38,6 +38,18 @@ function createInnerSimulation(
 		.attr('class', 'node')
 		.attr('id', (d: any) => d.id);
 
+	// handle show node labels
+	let memberLabelElements: any;
+	if (drawSettings.showNodeLabels) {
+		memberLabelElements = membersContainerElement
+			.append('text')
+			.attr('class', 'node-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.id);
+	}
 	membersContainerElement.call(
 		d3
 			.drag()
@@ -101,6 +113,7 @@ export function draw(
 
 	const canvas = svg.append('g');
 
+	// NODE
 	const containerElement = canvas
 		.append('g')
 		.attr('id', 'node-canvas')
@@ -110,6 +123,19 @@ export function draw(
 		.append('g')
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => d.id);
+
+	// handle show node labels
+	let nodeLabelElements: any;
+	if (drawSettings.showNodeLabels) {
+		nodeLabelElements = containerElement
+			.append('text')
+			.attr('class', 'node-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.id);
+	}
 
 	containerElement.call(
 		d3
@@ -159,7 +185,7 @@ export function draw(
 			onLift(i);
 		});
 
-	// link
+	// LINK
 	const linkContainer = canvas
 		.append('g')
 		.attr('id', 'link-canvas')
@@ -184,6 +210,7 @@ export function draw(
 			.attr('font-size', '10px')
 			.text((d: any) => d.id);
 	}
+
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
 		.force(
