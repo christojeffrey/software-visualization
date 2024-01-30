@@ -7,12 +7,19 @@ import type { ConfigInterface, DrawSettingsInterface } from '../../types';
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
 
+function toHTMLToken(string: string) {
+	return string.replace(/[^A-Za-z0-9]/g, '--');
+}
+
 function createInnerSimulation(
 	nodes: any,
-	canvas: any,
-	allSimulation: any,
+	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
+	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
 	parentNode: any,
+	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void,
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -28,7 +35,7 @@ function createInnerSimulation(
 
 	allSimulation.push(innerSimulation);
 
-	const parentElement = canvas.select(`#${parentNode.id}`).append('g');
+	const parentElement = canvas.select(`#${toHTMLToken(parentNode.id)}`).append('g');
 
 	const membersContainerElement = parentElement
 		.selectAll('g')
@@ -36,9 +43,10 @@ function createInnerSimulation(
 		.enter()
 		.append('g')
 		.attr('class', 'node')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 	membersContainerElement.call(
+		 // @ts-ignore
 		d3
 			.drag()
 			.on('start', (d) => {
@@ -60,6 +68,33 @@ function createInnerSimulation(
 		.style('fill', 'green')
 		.attr('fill-opacity', '0.2');
 
+	const collapseButton = membersContainerElement
+		.append('circle')
+		.attr('r', (d: any) => (d?.members?.length > 1 ? drawSettings.minimumVertexSize / 2 : 0))
+		.attr('cx', 0)
+		.attr('cy', 0)
+		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e, i) => {
+			onCollapse(i);
+		});
+
+	const liftButton = membersContainerElement
+		.append('circle')
+		.attr('r', (d: any) => (d?.members?.length > 1 ? drawSettings.minimumVertexSize / 2 : 0))
+		.attr('cx', drawSettings.minimumVertexSize)
+		.attr('cy', 0)
+		.attr('fill', ({id}: any) => {
+			if(config.dependencyLifting.find(({node}) => node.id === id)) {
+				return 'aqua';
+			}
+			return 'blue';
+		})
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e, i) => {
+			onLift(i);
+		});
+
 	innerSimulation.on('tick', () => {
 		innerTicked(membersContainerElement, memberElements);
 	});
@@ -67,20 +102,20 @@ function createInnerSimulation(
 	// recursive inner simulation.
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i].members) {
-			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i], drawSettings);
+			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i], config, drawSettings, onLift, onCollapse);
 		}
 	}
 }
 
 export function draw(
-	svgElement: any,
+	svgElement: SVGElement,
 	graphData: any,
 	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: any,
-	onLift: any,
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void,
 ) {
-	const simulations: any = [];
+	const simulations: d3.Simulation<d3.SimulationNodeDatum, undefined>[] = [];
 
 	const svg = d3
 		.select(svgElement)
@@ -108,7 +143,7 @@ export function draw(
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d: any) => toHTMLToken(d.id));
 
 
 	containerElement.call(
@@ -149,7 +184,7 @@ export function draw(
 		.attr('cx', drawSettings.minimumVertexSize)
 		.attr('cy', 0)
 		.attr('fill', ({id}: any) => {
-			if(config.dependencyLifting.find(({nodeId}) => nodeId === id)) {
+			if(config.dependencyLifting.find(({node}) => node.id === id)) {
 				return 'aqua';
 			}
 			return 'blue';
@@ -165,7 +200,6 @@ export function draw(
 		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
 		.append('line')
-
 		.attr('class', 'link');
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
@@ -191,13 +225,17 @@ export function draw(
 				canvas,
 				simulations,
 				graphData.nodes[i],
-				drawSettings
+				config,
+				drawSettings,
+				onLift,
+				onCollapse,
 			);
 		}
 	}
 
 	// Add zoom handler
 	svg.call(
+		// @ts-ignore
 		d3
 			.zoom()
 			.extent([
@@ -216,6 +254,10 @@ export function draw(
 		// (The type of this method is incorrect, annoyingly)
 		canvas.attr('transform', drawSettings.transformation as any)
 	}
+
+	simulations.forEach((sim) => {
+		console.log({sim, nodes: sim.nodes()})
+	})
 
 
 	return {

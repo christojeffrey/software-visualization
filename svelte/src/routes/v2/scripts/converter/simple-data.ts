@@ -82,6 +82,24 @@ export const simpleData: RawInputType = {
 					},
 					labels: ['Container']
 				}
+			}, 
+			{
+				data: {
+					id: 'deeper',
+					properties: {
+						simpleName: 'deeper',
+					},
+					labels: [],
+				}
+			},
+			{
+				data: {
+					id: 'deeper2',
+					properties: {
+						simpleName: 'deeper2',
+					},
+					labels: [],
+				}
 			}
 		],
 		edges: [
@@ -205,6 +223,28 @@ export const simpleData: RawInputType = {
 						weight: 1
 					}
 				}
+			},
+			{
+				data: {
+					id: 'twelve',
+					source: 'a',
+					label: 'contains',
+					target: 'deeper',
+					properties: {
+						weight: 1,
+					}
+				}
+			},
+			{
+				data: {
+					id: 'thirteen',
+					source: 'a',
+					label: 'contains',
+					target: 'deeper2',
+					properties: {
+						weight: 1,
+					}
+				},
 			}
 		]
 	}
