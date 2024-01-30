@@ -1,7 +1,10 @@
 export function innerTicked(
+	drawSettings: any,
 	membersContainerElement: any,
 	memberElements: any,
-	nodeLabelsElements: any
+	nodeLabelsElements: any,
+	collapseButtonElements: any,
+	liftButtonElements: any
 ) {
 	membersContainerElement.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d: any) => d.width).attr('height', (d: any) => d.height);
@@ -10,37 +13,48 @@ export function innerTicked(
 		// put it in the top middle
 		nodeLabelsElements.attr('x', (d: any) => d.cx + d.width / 2).attr('y', (d: any) => d.cy + 5);
 	}
+	if (collapseButtonElements) {
+		collapseButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
+	if (liftButtonElements) {
+		liftButtonElements
+			.attr('cx', (d: any) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d: any) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+	}
 }
-export function linkTicked(linkElements: any, linkLabelElements: any) {
+export function linkTicked(edges: any[], linkElements: any, linkLabelElements: any) {
 	// calculate all the link labels location.
 	const allResult: any = {};
+	edges.forEach((d: any) => {
+		// callculate once here change to global coordinates.
+		// calculate new source
+		const newLocation = {
+			x1: d.source.x,
+			y1: d.source.y,
+			x2: d.target.x,
+			y2: d.target.y
+		};
+
+		let source = d.source;
+		while (source.parent) {
+			newLocation.x1 += source.parent.x;
+			newLocation.y1 += source.parent.y;
+			source = source.parent;
+		}
+		// calculate new target
+		let target = d.target;
+		while (target.parent) {
+			newLocation.x2 += target.parent.x;
+			newLocation.y2 += target.parent.y;
+			target = target.parent;
+		}
+
+		allResult[d.id] = newLocation;
+	});
 	linkElements
 		.attr('x1', (d: any) => {
-			// callculate once here change to global coordinates.
-			// calculate new source
-			const newLocation = {
-				x1: d.source.x,
-				y1: d.source.y,
-				x2: d.target.x,
-				y2: d.target.y
-			};
-
-			let source = d.source;
-			while (source.parent) {
-				newLocation.x1 += source.parent.x;
-				newLocation.y1 += source.parent.y;
-				source = source.parent;
-			}
-			// calculate new target
-			let target = d.target;
-			while (target.parent) {
-				newLocation.x2 += target.parent.x;
-				newLocation.y2 += target.parent.y;
-				target = target.parent;
-			}
-
-			allResult[d.id] = newLocation;
-
 			return allResult[d.id].x1;
 		})
 		.attr('y1', (d: any) => {

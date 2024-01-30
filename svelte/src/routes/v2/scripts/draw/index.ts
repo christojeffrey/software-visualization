@@ -13,7 +13,9 @@ function createInnerSimulation(
 	canvas: any,
 	allSimulation: any,
 	parentNode: any,
-	drawSettings: DrawSettingsInterface
+	drawSettings: DrawSettingsInterface,
+	onCollapse: any,
+	onLift: any
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -74,8 +76,36 @@ function createInnerSimulation(
 		.attr('fill-opacity', '0.2')
 		.attr('rx', drawSettings.nodeCornerRadius);
 
+	const collapseButtonElements = membersContainerElement
+		.append('circle')
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', 0)
+		.attr('cy', 0)
+		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e: any, i: any) => {
+			onCollapse(i);
+		});
+
+	const liftButtonElements = membersContainerElement
+		.append('circle')
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', drawSettings.buttonRadius)
+		.attr('cy', 0)
+		.attr('fill', 'blue')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e: any, i: any) => {
+			onLift(i);
+		});
 	innerSimulation.on('tick', () => {
-		innerTicked(membersContainerElement, memberElements, memberLabelElements);
+		innerTicked(
+			drawSettings,
+			membersContainerElement,
+			memberElements,
+			memberLabelElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
 	});
 
 	// recursive inner simulation.
@@ -87,7 +117,9 @@ function createInnerSimulation(
 				canvas,
 				allSimulation,
 				nodes[i],
-				drawSettings
+				drawSettings,
+				onCollapse,
+				onLift
 			);
 		}
 	}
@@ -241,7 +273,7 @@ export function draw(
 				.strength(0)
 		)
 		.on('tick', () => {
-			linkTicked(linkElements, linkLabelElements);
+			linkTicked(graphData.links, linkElements, linkLabelElements);
 		});
 	simulations.push(linkSimulation);
 
@@ -254,7 +286,9 @@ export function draw(
 				canvas,
 				simulations,
 				graphData.nodes[i],
-				drawSettings
+				drawSettings,
+				onCollapse,
+				onLift
 			);
 		}
 	}
