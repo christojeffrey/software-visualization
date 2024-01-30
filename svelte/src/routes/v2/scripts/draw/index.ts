@@ -12,11 +12,14 @@ function toHTMLToken(string: string) {
 }
 
 function createInnerSimulation(
+	level: number,
 	nodes: any,
 	canvas: any,
 	allSimulation: any,
 	parentNode: any,
 	drawSettings: DrawSettingsInterface,
+	onCollapse: any,
+	onLift: any
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -42,6 +45,18 @@ function createInnerSimulation(
 		.attr('class', 'node')
 		.attr('id', (d: any) => toHTMLToken(d.id));
 
+	// handle show node labels
+	let memberLabelElements: any;
+	if (drawSettings.showNodeLabels) {
+		memberLabelElements = membersContainerElement
+			.append('text')
+			.attr('class', 'node-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.id);
+	}
 	membersContainerElement.call(
 		d3
 			.drag()
@@ -61,17 +76,62 @@ function createInnerSimulation(
 		.attr('y', 0)
 		.attr('width', drawSettings.minimumVertexSize)
 		.attr('height', drawSettings.minimumVertexSize)
-		.style('fill', 'green')
-		.attr('fill-opacity', '0.2');
+		.style('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
+		.attr('fill-opacity', '0.2')
+		.attr('rx', drawSettings.nodeCornerRadius);
 
+	// filter only if has member
+	const collapseButtonElements = membersContainerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
+		.append('circle')
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', 0)
+		.attr('cy', 0)
+		.attr('fill', 'red')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e: any, i: any) => {
+			onCollapse(i);
+		});
+
+	const liftButtonElements = membersContainerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
+		.append('circle')
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', drawSettings.buttonRadius)
+		.attr('cy', 0)
+		.attr('fill', 'blue')
+		.attr('fill-opacity', '0.1')
+		.on('click', (_e: any, i: any) => {
+			onLift(i);
+		});
 	innerSimulation.on('tick', () => {
-		innerTicked(membersContainerElement, memberElements);
+		innerTicked(
+			drawSettings,
+			membersContainerElement,
+			memberElements,
+			memberLabelElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
 	});
 
 	// recursive inner simulation.
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i].members) {
-			createInnerSimulation(nodes[i].members, canvas, allSimulation, nodes[i], drawSettings);
+			createInnerSimulation(
+				level + 1,
+				nodes[i].members,
+				canvas,
+				allSimulation,
+				nodes[i],
+				drawSettings,
+				onCollapse,
+				onLift
+			);
 		}
 	}
 }
@@ -98,15 +158,25 @@ export function draw(
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.on('tick', () => {
-		masterSimulationTicked(graphData, containerElement, nodeElements, drawSettings);
+		masterSimulationTicked(
+			graphData,
+			containerElement,
+			nodeElements,
+			drawSettings,
+			nodeLabelsElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
 	});
 
 	simulations.push(simulation);
 
 	const canvas = svg.append('g');
 
+	// NODE
 	const containerElement = canvas
 		.append('g')
+		.attr('id', 'node-canvas')
 		.selectAll('g')
 		.data(graphData.nodes)
 		.enter()
@@ -114,6 +184,18 @@ export function draw(
 		.attr('class', 'nodes')
 		.attr('id', (d: any) => toHTMLToken(d.id));
 
+	// handle show node labels
+	let nodeLabelsElements: any;
+	if (drawSettings.showNodeLabels) {
+		nodeLabelsElements = containerElement
+			.append('text')
+			.attr('class', 'node-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.id);
+	}
 
 	containerElement.call(
 		d3
@@ -133,12 +215,16 @@ export function draw(
 		.attr('y', 0)
 		.attr('width', drawSettings.minimumVertexSize)
 		.attr('height', drawSettings.minimumVertexSize)
-		.attr('fill', 'red')
-		.attr('fill-opacity', '0.1');
+		.attr('fill', drawSettings.nodeColors[0] ?? drawSettings.nodeDefaultColor)
+		.attr('fill-opacity', '0.1')
+		.attr('rx', drawSettings.nodeCornerRadius);
 
-	const collapseButton = containerElement
+	const collapseButtonElements = containerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
-		.attr('r', drawSettings.minimumVertexSize / 2)
+		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', 0)
 		.attr('cy', 0)
 		.attr('fill', 'red')
@@ -147,13 +233,16 @@ export function draw(
 			onCollapse(i);
 		});
 
-	const liftButton = containerElement
+	const liftButtonElements = containerElement
+		.filter((d: any) => {
+			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		})
 		.append('circle')
-		.attr('r', drawSettings.minimumVertexSize / 2)
-		.attr('cx', drawSettings.minimumVertexSize)
+		.attr('r', drawSettings.buttonRadius)
+		.attr('cx', drawSettings.buttonRadius)
 		.attr('cy', 0)
-		.attr('fill', ({id}: any) => {
-			if(config.dependencyLifting.find(({nodeId}) => nodeId === id)) {
+		.attr('fill', ({ id }: any) => {
+			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {
 				return 'aqua';
 			}
 			return 'blue';
@@ -163,13 +252,32 @@ export function draw(
 			onLift(i);
 		});
 
-	// link
-	const linkElements = canvas
-		.selectAll('line.link')
+	// LINK
+	const linkContainer = canvas
+		.append('g')
+		.attr('id', 'link-canvas')
+		.selectAll('g')
 		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
-		.append('line')
-		.attr('class', 'link');
+		.append('g')
+		.attr('class', 'links')
+		.attr('id', (d: any) => d.id);
+
+	const linkElements = linkContainer.append('path').attr('class', 'link');
+
+	// handle show edge labels
+	let linkLabelElements: any;
+	if (drawSettings.showEdgeLabels) {
+		linkLabelElements = linkContainer
+			.append('text')
+			.attr('class', 'link-label')
+			.attr('text-anchor', 'middle')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', 'black')
+			.attr('font-size', '10px')
+			.text((d: any) => d.id);
+	}
+
 	const linkSimulation = d3
 		.forceSimulation(graphData.flattenNodes)
 		.force(
@@ -182,7 +290,7 @@ export function draw(
 				.strength(0)
 		)
 		.on('tick', () => {
-			linkTicked(linkElements);
+			linkTicked(graphData.links, linkElements, linkLabelElements);
 		});
 	simulations.push(linkSimulation);
 
@@ -190,11 +298,14 @@ export function draw(
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		if (graphData.nodes[i].members) {
 			createInnerSimulation(
+				1,
 				graphData.nodes[i].members,
 				canvas,
 				simulations,
 				graphData.nodes[i],
-				drawSettings
+				drawSettings,
+				onCollapse,
+				onLift
 			);
 		}
 	}
@@ -214,15 +325,14 @@ export function draw(
 			})
 	);
 
-	//Reload last transformation, if avaidable
+	//Reload last transformation, if available
 	if (drawSettings.transformation) {
 		// (The type of this method is incorrect, annoyingly)
-		canvas.attr('transform', drawSettings.transformation as any)
+		canvas.attr('transform', drawSettings.transformation as any);
 	}
-
 
 	return {
 		simulations,
-		svgElement,
+		svgElement
 	};
 }

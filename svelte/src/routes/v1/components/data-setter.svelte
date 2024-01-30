@@ -31,7 +31,7 @@
 <div>
 	<label for="avatar">Upload a jsonfile:</label>
 	<input accept="application/json" bind:files id="avatar" name="avatar" type="file" />
-	<button
+	<Toggle
 		on:click={() => {
 			if (!files) {
 				useExampleData = true;
