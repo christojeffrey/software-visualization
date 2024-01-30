@@ -3,6 +3,7 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
 import type { ConfigInterface, DrawSettingsInterface } from '../../types';
+import { squareCollideForce } from './custom-d3-forces';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -32,6 +33,7 @@ function createInnerSimulation(
 	innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 	innerSimulation.force('x', d3.forceX());
 	innerSimulation.force('y', d3.forceY());
+	innerSimulation.force('collide', squareCollideForce(nodes));
 
 	allSimulation.push(innerSimulation);
 
@@ -158,6 +160,7 @@ export function draw(
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
+	simulation.force('collide', squareCollideForce(graphData.nodes))
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
@@ -168,7 +171,7 @@ export function draw(
 			collapseButtonElements,
 			liftButtonElements
 		);
-	});
+	})
 
 	simulations.push(simulation);
 
@@ -243,7 +246,7 @@ export function draw(
 		.attr('cx', drawSettings.buttonRadius)
 		.attr('cy', 0)
 		.attr('fill', ({ id }: any) => {
-			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {
+			if (config.dependencyLifting.find(({ node }) => node.id === id)) {
 				return 'aqua';
 			}
 			return 'blue';
@@ -320,7 +323,7 @@ export function draw(
 				[0, 0],
 				[SVGSIZE + SVGMARGIN * 2, SVGSIZE + SVGMARGIN * 2]
 			])
-			.scaleExtent([1, 8])
+			//.scaleExtent([1, 8]) Our dataset is way larger
 			.on('zoom', ({ transform }) => {
 				canvas.attr('transform', transform);
 				drawSettings.transformation = transform;
