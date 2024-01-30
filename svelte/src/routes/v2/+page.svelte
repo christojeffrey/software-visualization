@@ -92,7 +92,7 @@
 				cleanCanvas(svgElement!, simulations);
 
 				let result = draw(
-					svgElement,
+					svgElement!,
 					graphData,
 					config,
 					drawSettings,
