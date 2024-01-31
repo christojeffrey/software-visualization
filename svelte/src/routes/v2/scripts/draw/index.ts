@@ -3,7 +3,7 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
 import type { ConfigInterface, DrawSettingsInterface } from '../../types';
-import { squareCollideForce } from './custom-d3-forces';
+import { rectangleCollideForce } from './custom-d3-forces';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -33,7 +33,7 @@ function createInnerSimulation(
 	innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 	innerSimulation.force('x', d3.forceX());
 	innerSimulation.force('y', d3.forceY());
-	innerSimulation.force('collide', squareCollideForce(nodes));
+	innerSimulation.force('collide', rectangleCollideForce(nodes));
 
 	allSimulation.push(innerSimulation);
 
@@ -160,7 +160,7 @@ export function draw(
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	simulation.force('collide', squareCollideForce(graphData.nodes))
+	simulation.force('collide', rectangleCollideForce(graphData.nodes))
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
