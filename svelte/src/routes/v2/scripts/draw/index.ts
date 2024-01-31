@@ -14,12 +14,12 @@ function toHTMLToken(string: string) {
 function createInnerSimulation(
 	level: number,
 	nodes: any,
-	canvas: any,
-	allSimulation: any,
+	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
+	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
 	parentNode: any,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: any,
-	onLift: any
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -58,6 +58,7 @@ function createInnerSimulation(
 			.text((d: any) => d.id);
 	}
 	membersContainerElement.call(
+		//@ts-ignore
 		d3
 			.drag()
 			.on('start', (d) => {
@@ -137,14 +138,14 @@ function createInnerSimulation(
 }
 
 export function draw(
-	svgElement: any,
+	svgElement: SVGElement,
 	graphData: any,
 	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: any) => void,
 	onLift: (datum: any) => void,
 ) {
-	const simulations: any = [];
+	const simulations: d3.Simulation<d3.SimulationNodeDatum, undefined>[] = [];
 
 	const svg = d3
 		.select(svgElement)
@@ -312,6 +313,7 @@ export function draw(
 
 	// Add zoom handler
 	svg.call(
+		//@ts-ignore
 		d3
 			.zoom()
 			.extent([
