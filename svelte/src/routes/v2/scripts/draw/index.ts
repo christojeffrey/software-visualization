@@ -19,8 +19,8 @@ function createInnerSimulation(
 	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
 	parentNode: any,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: any,
-	onLift: any
+	onCollapse: (datum: any) => void,
+	onLift: (datum: any) => void
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
