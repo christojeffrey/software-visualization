@@ -3,7 +3,7 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
 import type { ConfigInterface, DrawSettingsInterface } from '../../types';
-import { rectangleCollideForce } from './custom-d3-forces';
+import { radialClampForce, rectangleCollideForce } from './custom-d3-forces';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -14,7 +14,7 @@ function toHTMLToken(string: string) {
 
 function createInnerSimulation(
 	level: number,
-	nodes: any,
+	nodes: any[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
 	parentNode: any,
@@ -30,10 +30,24 @@ function createInnerSimulation(
 	}
 
 	const innerSimulation = d3.forceSimulation(nodes);
-	innerSimulation.force('charge', d3.forceManyBody().strength(-300));
-	innerSimulation.force('x', d3.forceX());
-	innerSimulation.force('y', d3.forceY());
-	innerSimulation.force('collide', rectangleCollideForce(nodes));
+	innerSimulation.force('collide', rectangleCollideForce());
+
+	const useRadialLayout = nodes.length > 0 && nodes.reduce((a: number, item) => item?.members?.length > 0 ? a + 1 : a, 0) === 0;
+	if (useRadialLayout) {
+		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
+		innerSimulation.force('radial', radialClampForce(
+			() => 0.5*parentNode.width,
+			() => 0.5*parentNode.height,
+			() => {
+				const res = nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) / (Math.PI * 2);
+				return res + drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
+			},
+		));
+	} else {
+		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
+		innerSimulation.force('x', d3.forceX());
+		innerSimulation.force('y', d3.forceY());
+	}
 
 	allSimulation.push(innerSimulation);
 

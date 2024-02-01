@@ -1,5 +1,5 @@
 
-import type {SimulationNodeDatum} from "d3";
+import type {Force, SimulationNodeDatum} from "d3";
 
 interface simluationNodeDatumType extends SimulationNodeDatum {
     width: number,
@@ -48,8 +48,14 @@ function calcForceStrength(node1: squareData, node2: squareData, alpha: number) 
         * 5; // random magic number
 }
 
-export function rectangleCollideForce(nodes: simluationNodeDatumType[]) {
-	return function (alpha: number) {
+/**
+ * Creates a rectangular collison force across all nodes
+ * 
+ * Assumes all nodes are rectangles, with a width and height property, rather than circles
+ */
+export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
+    let nodes: simluationNodeDatumType[];
+	function force(alpha: number) {
         // Loop through all nodes for collision check
 		for (let i = 0; i < nodes.length; i++) {
 			for (let j = i + 1; j < nodes.length; j++) {
@@ -92,4 +98,61 @@ export function rectangleCollideForce(nodes: simluationNodeDatumType[]) {
 			}
 		}
 	};
+
+    force.initialize = function (_nodes: simluationNodeDatumType[]) {
+        nodes = _nodes;
+    }
+
+    return force;
+}
+
+/**
+ * Fixes all nodes on the circumference a circle defined by parameters.
+ * 
+ * Unlike the built-in radial force, it fixes nodes rather than moving them,
+ * and allows for the circle coordinates/radius to change.
+ * 
+ * @param x function returning the x-coordinate of the circle center
+ * @param y function returning the y-coordinate of the circle center
+ * @param r function returning the radius the circle
+ * 
+ * 
+ */
+export function radialClampForce(
+    x: () => number, 
+    y: () => number,
+    r: () => number, 
+): Force<simluationNodeDatumType, any> {
+    let nodes: simluationNodeDatumType[]; 
+    // Unused, might want to set this to false after drag.
+    const clamp = true;
+
+    function force(alpha: number) {
+        const cx = x();
+        const cy = y();
+        const radius = r();
+        if (!Number.isNaN(cx) && !Number.isNaN(cy) && !Number.isNaN(radius)) {
+            nodes.forEach(node => {
+                if (node.x && node.y) {
+                    const dx = node.x - cx;
+                    const dy = node.y - cy;
+                    const distance = Math.sqrt(dx ** 2 + dy ** 2);
+                    if (clamp) {
+                        node.x = cx + ((dx / distance) * radius);
+                        node.y = cy + ((dy / distance) * radius);
+                    }
+                    else if (node.vx && node.vy) {
+                        node.vx += ((cx + ((dx / distance) * radius))-node.x) * alpha;
+                        node.vy += ((cy + ((dy / distance) * radius))-node.y) * alpha;
+                    }
+                }
+            });
+        }
+    }
+
+    force.initialize = function (_nodes: simluationNodeDatumType[]) {
+        nodes = _nodes;
+    }
+
+    return force;
 }
