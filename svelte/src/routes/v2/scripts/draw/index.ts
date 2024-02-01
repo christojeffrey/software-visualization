@@ -32,15 +32,14 @@ function createInnerSimulation(
 	const innerSimulation = d3.forceSimulation(nodes);
 	innerSimulation.force('collide', rectangleCollideForce());
 
-	const useRadialLayout = nodes.length > 0 && nodes.reduce((a: number, item) => item?.members?.length > 0 ? a + 1 : a, 0) === 0;
+	const useRadialLayout = nodes.length > 2 && nodes.reduce((a: number, item) => item?.members?.length > 0 ? a + 1 : a, 0) === 0;
 	if (useRadialLayout) {
 		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
 		innerSimulation.force('radial', radialClampForce(
-			() => 0.5*parentNode.width,
-			() => 0.5*parentNode.height,
 			() => {
 				const res = nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) / (Math.PI * 2);
-				return res + drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
+				const radius = res + 2 * drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
+				return radius;
 			},
 		));
 	} else {
@@ -174,7 +173,7 @@ export function draw(
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	simulation.force('collide', rectangleCollideForce(graphData.nodes))
+	simulation.force('collide', rectangleCollideForce())
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,

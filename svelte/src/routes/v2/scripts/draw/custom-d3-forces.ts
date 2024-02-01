@@ -8,46 +8,6 @@ interface simluationNodeDatumType extends SimulationNodeDatum {
     cy?: number,
 }
 
-interface point {
-    x: number,
-    y: number,
-}
-
-interface squareData {
-    topleft: point,
-    bottomright: point,
-    middle: point,
-    width: number,
-    height: number,
-}
-
-function makeSquare(node: simluationNodeDatumType): squareData {
-    const topLeftx = node.x! + node.cx!;
-    const topLefty = node.y! + node.cy!;
-    return {
-        topleft: { // Coordinates of top-left point
-            x: topLeftx,
-            y: topLefty,
-        },
-        bottomright: { // Coordinates of bottomright point
-            x: topLeftx + node.width,
-            y: topLefty + node.height,
-        },
-        middle: {
-            x: topLeftx + node.width,
-            y: topLefty + node.height,
-        },
-        width: node.width,
-        height: node.height,
-    };
-};
-
-function calcForceStrength(node1: squareData, node2: squareData, alpha: number) {
-    return (node1.width + node1.height) / (node1.width + node1.height + node2.width + node2.height)
-        * (1 + alpha)
-        * 5; // random magic number
-}
-
 /**
  * Creates a rectangular collison force across all nodes
  * 
@@ -55,6 +15,48 @@ function calcForceStrength(node1: squareData, node2: squareData, alpha: number) 
  */
 export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
     let nodes: simluationNodeDatumType[];
+
+    interface point {
+        x: number,
+        y: number,
+    }
+    
+    interface squareData {
+        topleft: point,
+        bottomright: point,
+        middle: point,
+        width: number,
+        height: number,
+    }
+    
+    function makeSquare(node: simluationNodeDatumType): squareData {
+        const topLeftx = node.x! + node.cx!;
+        const topLefty = node.y! + node.cy!;
+        return {
+            topleft: { // Coordinates of top-left point
+                x: topLeftx,
+                y: topLefty,
+            },
+            bottomright: { // Coordinates of bottomright point
+                x: topLeftx + node.width,
+                y: topLefty + node.height,
+            },
+            middle: {
+                x: topLeftx + node.width,
+                y: topLefty + node.height,
+            },
+            width: node.width,
+            height: node.height,
+        };
+    };
+    
+    function calcForceStrength(node1: squareData, node2: squareData, alpha: number) {
+        return (node1.width + node1.height) / (node1.width + node1.height + node2.width + node2.height)
+            * (1 + alpha)
+            * 5; // random magic number
+    }
+
+    // actual force calulation
 	function force(alpha: number) {
         // Loop through all nodes for collision check
 		for (let i = 0; i < nodes.length; i++) {
@@ -119,17 +121,17 @@ export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
  * 
  */
 export function radialClampForce(
-    x: () => number, 
-    y: () => number,
     r: () => number, 
 ): Force<simluationNodeDatumType, any> {
     let nodes: simluationNodeDatumType[]; 
-    // Unused, might want to set this to false after drag.
+    // Unused, might want to set this to false after dragging a node.
+    // Might also want to have this set to false at the start of a simluation.
     const clamp = true;
 
+
     function force(alpha: number) {
-        const cx = x();
-        const cy = y();
+        const cx = r();
+        const cy = r();
         const radius = r();
         if (!Number.isNaN(cx) && !Number.isNaN(cy) && !Number.isNaN(radius)) {
             nodes.forEach(node => {
