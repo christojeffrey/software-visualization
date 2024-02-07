@@ -3,6 +3,7 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
 import type { ConfigInterface, DrawSettingsInterface } from '../../types';
+import { radialClampForce, rectangleCollideForce } from './custom-d3-forces';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
@@ -13,7 +14,7 @@ function toHTMLToken(string: string) {
 
 function createInnerSimulation(
 	level: number,
-	nodes: any,
+	nodes: any[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
 	parentNode: any,
@@ -29,9 +30,23 @@ function createInnerSimulation(
 	}
 
 	const innerSimulation = d3.forceSimulation(nodes);
-	innerSimulation.force('charge', d3.forceManyBody().strength(-300));
-	innerSimulation.force('x', d3.forceX());
-	innerSimulation.force('y', d3.forceY());
+	innerSimulation.force('collide', rectangleCollideForce());
+
+	const useRadialLayout = nodes.length > 2 && nodes.reduce((a: number, item) => item?.members?.length > 0 ? a + 1 : a, 0) === 0;
+	if (useRadialLayout) {
+		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
+		innerSimulation.force('radial', radialClampForce(
+			() => {
+				const res = nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) / (Math.PI * 2);
+				const radius = res + 2 * drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
+				return radius;
+			},
+		));
+	} else {
+		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
+		innerSimulation.force('x', d3.forceX());
+		innerSimulation.force('y', d3.forceY());
+	}
 
 	allSimulation.push(innerSimulation);
 
@@ -158,6 +173,7 @@ export function draw(
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
+	simulation.force('collide', rectangleCollideForce())
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
@@ -168,7 +184,7 @@ export function draw(
 			collapseButtonElements,
 			liftButtonElements
 		);
-	});
+	})
 
 	simulations.push(simulation);
 
@@ -243,7 +259,7 @@ export function draw(
 		.attr('cx', drawSettings.buttonRadius)
 		.attr('cy', 0)
 		.attr('fill', ({ id }: any) => {
-			if (config.dependencyLifting.find(({ nodeId }) => nodeId === id)) {
+			if (config.dependencyLifting.find(({ node }) => node.id === id)) {
 				return 'aqua';
 			}
 			return 'blue';
