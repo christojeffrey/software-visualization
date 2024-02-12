@@ -27,19 +27,11 @@ export function doUncollapseVertices(clickedVertex: any) {
 				link.target = link.originalTarget;
 				delete link.originalTarget;
 			}
-			if (link.originalWeight) {
-				link.weight = link.originalWeight;
-				delete link.originalWeight;
-			}
 		});
 		child.outgoingLinks?.forEach((link: any) => {
 			if (link.originalSource) {
 				link.source = link.originalSource;
 				delete link.originalSource;
-			}
-			if (link.originalWeight) {
-				link.weight = link.originalWeight;
-				delete link.originalWeight;
 			}
 		});
 	});
