@@ -92,7 +92,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'a',
 					properties: {
-						weight: 1
+						weight: 100
 					}
 				}
 			},
@@ -103,7 +103,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 1
+						weight: 50
 					}
 				}
 			},
@@ -114,7 +114,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 1
+						weight: 50
 					}
 				}
 			},

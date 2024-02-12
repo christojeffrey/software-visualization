@@ -31,6 +31,7 @@ export interface ConvertedEdge {
 	source: string;
 	target: string;
 	type: EdgeType;
+	weight: number;
 }
 export interface ConvertedData {
 	nodes: ConvertedNode[];
@@ -75,6 +76,8 @@ export type GraphDataEdge = {
 	target: GraphDataNode;
 	id: string;
 	type: EdgeType;
+	weight: number;
+	originalWeight?: number;
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
 };
