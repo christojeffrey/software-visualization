@@ -136,8 +136,8 @@ export function masterSimulationTicked(
 			graphData.flattenNodes[i].cx = minX - PADDING;
 			graphData.flattenNodes[i].cy = minY - PADDING;
 		} else {
-			graphData.flattenNodes[i].width = drawSettings.minimumVertexSize;
-			graphData.flattenNodes[i].height = drawSettings.minimumVertexSize;
+			graphData.flattenNodes[i].width = drawSettings.minimumNodeSize;
+			graphData.flattenNodes[i].height = drawSettings.minimumNodeSize;
 			//   stands for calculated x and y.
 			graphData.flattenNodes[i].cx = 0;
 			graphData.flattenNodes[i].cy = 0;

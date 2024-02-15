@@ -4,11 +4,11 @@ export interface ConfigInterface {
 		depth: number;
 	}[];
 	dependencyTolerance: number;
-	collapsedVertices: GraphDataNode[];
+	collapsedNodes: GraphDataNode[];
 }
 
 export interface DrawSettingsInterface {
-	minimumVertexSize: number;
+	minimumNodeSize: number;
 	buttonRadius: number;
 	nodeCornerRadius: number;
 	nodePadding: number;

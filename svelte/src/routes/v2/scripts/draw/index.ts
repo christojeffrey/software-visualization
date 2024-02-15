@@ -53,7 +53,7 @@ function createInnerSimulation(
 				const res =
 					nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
 					(Math.PI * 2);
-				const radius = res + 2 * drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
+				const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
 				return radius;
 			})
 		);
@@ -104,8 +104,8 @@ function createInnerSimulation(
 		.append('rect')
 		.attr('x', 0)
 		.attr('y', 0)
-		.attr('width', drawSettings.minimumVertexSize)
-		.attr('height', drawSettings.minimumVertexSize)
+		.attr('width', drawSettings.minimumNodeSize)
+		.attr('height', drawSettings.minimumNodeSize)
 		.style('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
 		.attr('fill-opacity', '0.2')
 		.attr('rx', drawSettings.nodeCornerRadius);
@@ -244,8 +244,8 @@ export function draw(
 		.append('rect')
 		.attr('x', 0)
 		.attr('y', 0)
-		.attr('width', drawSettings.minimumVertexSize)
-		.attr('height', drawSettings.minimumVertexSize)
+		.attr('width', drawSettings.minimumNodeSize)
+		.attr('height', drawSettings.minimumNodeSize)
 		.attr('fill', drawSettings.nodeColors[0] ?? drawSettings.nodeDefaultColor)
 		.attr('fill-opacity', '0.1')
 		.attr('rx', drawSettings.nodeCornerRadius);

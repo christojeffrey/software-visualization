@@ -8,7 +8,7 @@
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
-	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
+	import { onNodeCollapseClick } from './scripts/filter/collapse-nodes';
 	import type {
 		ConfigInterface,
 		ConvertedData,
@@ -25,13 +25,13 @@
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
-		collapsedVertices: [],
+		collapsedNodes: [],
 		dependencyLifting: [],
 		dependencyTolerance: 0
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
-		minimumVertexSize: 50,
+		minimumNodeSize: 50,
 		buttonRadius: 5,
 		nodeCornerRadius: 5,
 		nodePadding: 5,
@@ -50,8 +50,8 @@
 
 	let isMounted = false;
 
-	function handleVertexCollapseClick(datum: GraphDataNode) {
-		onVertexCollapseClick(datum, config, () => {
+	function handleNodeCollapseClick(datum: GraphDataNode) {
+		onNodeCollapseClick(datum, config, () => {
 			doRefilter = true;
 		});
 	}
@@ -98,7 +98,7 @@
 					graphData,
 					config,
 					drawSettings,
-					handleVertexCollapseClick,
+					handleNodeCollapseClick,
 					handleDependencyLiftClick
 				);
 				simulations = result.simulations;
