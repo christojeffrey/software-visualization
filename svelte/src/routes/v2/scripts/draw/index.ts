@@ -88,9 +88,8 @@ function createInnerSimulation(
 			.text((d) => d.id);
 	}
 	membersContainerElement.call(
-		//@ts-ignore
 		d3
-			.drag()
+			.drag<SVGGElement, GraphDataNode>()
 			.on('start', (d) => {
 				dragStartedNode(d, allSimulation);
 			})
@@ -342,8 +341,7 @@ export function draw(
 
 	// Add zoom handler
 	svg.call(
-		//@ts-ignore
-		d3.zoom().on('zoom', ({ transform }) => {
+		d3.zoom<SVGElement, unknown>().on('zoom', ({ transform }) => {
 			canvas.attr('transform', transform);
 			drawSettings.transformation = transform;
 		})
@@ -351,9 +349,10 @@ export function draw(
 
 	//Reload last transformation, if available
 	if (drawSettings.transformation) {
-		// (The type of this method is incorrect, annoyingly)
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		canvas.attr('transform', drawSettings.transformation as any);
+		canvas.attr(
+			'transform',
+			`translate(${drawSettings.transformation.x}, ${drawSettings.transformation.y}) scale(${drawSettings.transformation.k})`
+		);
 	}
 
 	return {
