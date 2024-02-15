@@ -1,9 +1,9 @@
-import type { EdgeType, GraphDataEdge, GraphDataNode } from '../../types';
+import type { ConvertedNode, EdgeType, GraphDataEdge, GraphDataNode, SimpleNode } from '../../types';
 
-export function flattenNode(nodes: GraphDataNode[]): GraphDataNode[] {
+export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNode[] {
 	// Recursively flatten the nodes (lift the children to the top level array),
 	// reserse the order so that the parent is always at the end.
-	const result: GraphDataNode[] = [];
+	const result: SimpleNode[] = [];
 	nodes.forEach((node) => {
 		// order matter.
 		if (node.members) {
@@ -11,7 +11,7 @@ export function flattenNode(nodes: GraphDataNode[]): GraphDataNode[] {
 		}
 		result.push(node);
 	});
-	return result;
+	return result as AnyNode[];
 }
 
 export function extractAvailableEdgeType(links: GraphDataEdge[]) {

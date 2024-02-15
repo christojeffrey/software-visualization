@@ -1,14 +1,15 @@
 <script lang="ts">
-	import Toggle from "../../../ui/toggle.svelte";
-	import Heading from "$ui/heading.svelte";
+	import Toggle from '../../../ui/toggle.svelte';
+	import Heading from '$ui/heading.svelte';
+	import type { RawInputType } from '../types/raw-data';
 
-    export let rawData: any;
+	export let rawData: RawInputType | undefined;
 	export let doReconvert: boolean;
 
-    let files: any;
-    let useExampleData = true;
+	
+	let files: any;
+	let useExampleData = true;
 	let disableButton = true;
-
 
 	const loadItems = async (file: any) => {
 		let text = await file.text();
@@ -18,9 +19,9 @@
 	};
 
 	$: {
-		if (files){
+		if (files) {
 			disableButton = false;
-		}else{
+		} else {
 			disableButton = true;
 		}
 	}
@@ -30,23 +31,26 @@
 		if (useExampleData) {
 			rawData = undefined;
 			doReconvert = true;
-		}
-		else{
+		} else {
 			loadItems(files[0]);
 		}
 	}
 </script>
+
 <div class="">
-	<Heading>
-		Input raw data
-	</Heading>
-    <label for="uploader">Upload a json file:</label>
+	<Heading>Input raw data</Heading>
+	<label for="uploader">Upload a json file:</label>
 	<input accept="application/json" bind:files id="uploader" name="uploader" type="file" />
-	<Toggle class="mt-2" bind:state={useExampleData} onToggle={() => {
-		if (!disableButton) {
-			useExampleData = !useExampleData;
-		}
-	}} bind:disabled={disableButton}>
+	<Toggle
+		class="mt-2"
+		bind:state={useExampleData}
+		onToggle={() => {
+			if (!disableButton) {
+				useExampleData = !useExampleData;
+			}
+		}}
+		bind:disabled={disableButton}
+	>
 		Use example data
 	</Toggle>
 </div>

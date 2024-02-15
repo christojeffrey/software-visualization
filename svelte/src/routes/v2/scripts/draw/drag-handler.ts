@@ -2,6 +2,7 @@ import type { GraphDataNode } from '../../types';
 
 const slowAlpha = 0.001;
 export function dragStartedNode(
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	event: any,
 	simulations: d3.Simulation<GraphDataNode, undefined>[]
 ) {
@@ -13,6 +14,7 @@ export function dragStartedNode(
 }
 
 // Update the subject (dragged node) position during drag.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function draggedNode(event: any, simulations: d3.Simulation<GraphDataNode, undefined>[]) {
 	simulations.forEach((simulation) => {
 		simulation.alpha(slowAlpha).restart();
@@ -21,6 +23,7 @@ export function draggedNode(event: any, simulations: d3.Simulation<GraphDataNode
 	event.subject.fy = event.y;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function dragEndedNode(event: any, simulations: d3.Simulation<GraphDataNode, undefined>[]) {
 	simulations.forEach((simulation) => {
 		if (!event.active) simulation.alpha(slowAlpha).restart();

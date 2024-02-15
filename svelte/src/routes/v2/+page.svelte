@@ -14,7 +14,8 @@
 		ConvertedData,
 		DrawSettingsInterface,
 		EdgeType,
-		GraphDataNode
+		GraphDataNode,
+		GraphData
 	} from './types';
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
@@ -28,7 +29,7 @@
 		dependencyLifting: [],
 		dependencyTolerance: 0
 	};
-	let graphData: any;
+	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
 		minimumVertexSize: 50,
 		buttonRadius: 5,

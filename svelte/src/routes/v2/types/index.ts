@@ -20,10 +20,15 @@ export interface DrawSettingsInterface {
 	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 
-export interface ConvertedNode {
+export interface SimpleNode {
 	id: string;
 	level: number;
-	members: ConvertedNode[];
+	members?: SimpleNode[];
+}
+export interface ConvertedNode extends SimpleNode {
+	id: string;
+	level: number;
+	members?: ConvertedNode[];
 	parentId?: string;
 }
 export interface ConvertedEdge {
@@ -36,10 +41,10 @@ export interface ConvertedEdge {
 export interface ConvertedData {
 	nodes: ConvertedNode[];
 	links: ConvertedEdge[];
-	nodesDictionary: NodesDictionaryType;
+	nodesDictionary: SimpleNodesDictionaryType;
 }
 
-export interface NodesDictionaryType {
+export interface SimpleNodesDictionaryType {
 	[id: string]: ConvertedNode;
 }
 
@@ -81,18 +86,26 @@ export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
 }
-export interface GraphDataNode extends d3.SimulationNodeDatum {
+export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	// initial data
 	id: string;
 	level: number;
-	// bellow is initial data but already a Reference
+	// bellow is initial data but already a Reference.
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
 
-	// created by draw steps
-	originalMembers?: GraphDataNode[];
 	outgoingLinks?: GraphDataEdge[];
 	incomingLinks?: GraphDataEdge[];
+
+	// created by draw steps
+	originalMembers?: GraphDataNode[];
+
 	width: number;
 	height: number;
+	cx: number;
+	cy: number;
+
+	// injected by d3
+	x: number;
+	y: number;
 }

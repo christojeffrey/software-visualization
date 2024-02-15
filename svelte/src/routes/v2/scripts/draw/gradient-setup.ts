@@ -10,7 +10,7 @@ const LINK_COLOR_POOL = [
 	['#ffffe5', '#004529']
 ];
 
-export function setupGradient(svg: any) {
+export function setupGradient(svg: d3.Selection<SVGElement, unknown, null, undefined>) {
 	// Use defs to store gradient definitions
 	const defs = svg.append('defs');
 	const poolLength = LINK_COLOR_POOL.length;
