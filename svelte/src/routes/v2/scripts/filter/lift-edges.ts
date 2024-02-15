@@ -6,6 +6,7 @@ import type {
 	GraphData,
 	GraphDataNode
 } from '../../types';
+import { combineWeights } from '../helper';
 
 export interface FilteredNode extends ConvertedNode {
 	parent?: FilteredNode;
@@ -53,8 +54,11 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 		nodesDictionary[node.id] = node;
 	});
 
+	// Combining weight
+	const duplicateLinks = new Map<string, GraphDataEdge[]>();
+
 	// Execute dependency lifting
-	const liftedLinks = links.map((link: GraphDataEdge): GraphDataEdge => {
+	links.forEach((link: GraphDataEdge) => {
 		// return to original link first before calculation
 		link.source = link.originalSource ?? link.source;
 		link.target = link.originalTarget ?? link.target;
@@ -77,20 +81,20 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 			},
 			Infinity as number
 		);
+		const newSource = sourceAncestors[prefix + liftDistance] ?? link.source;
+		const newTarget = targetAncestors[prefix + liftDistance] ?? link.target;
+		// Preparing data for combining weight
+		const key = `${newSource.id}-${newTarget.id}`;
+		duplicateLinks.set(key, [...(duplicateLinks.get(key) ?? []), link]);
 
-		return {
-			...link,
-			originalSource: link.source,
-			originalTarget: link.target,
-			source: sourceAncestors[prefix + liftDistance] ?? link.source,
-			target: targetAncestors[prefix + liftDistance] ?? link.target
-		};
+		link.originalSource = link.source;
+		link.originalTarget = link.target;
+		link.source = newSource;
+		link.target = newTarget;
 	});
-	// Filter out duplicates: same source, target, and type
-	return liftedLinks.filter(
-		(link, index, self) =>
-			self.findIndex(
-				(l) => l.source === link.source && l.target === link.target && l.type === link.type
-			) === index
-	);
+	console.log(duplicateLinks);
+	// Combine weight
+	combineWeights(duplicateLinks);
+
+	return links;
 }

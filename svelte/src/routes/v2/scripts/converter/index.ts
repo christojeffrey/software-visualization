@@ -17,7 +17,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 		nodesAsObject[data.id] = {
 			id: data.id,
 			level: 0,
-			members: [],
+			members: []
 		};
 	});
 
@@ -25,7 +25,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 		// Throw an error if label is not of type EdgeType
 		const label = (data.label ?? data.labels?.[0] ?? EdgeType.unknown) as EdgeType;
 		if (!Object.values(EdgeType).includes(label)) {
-			console.log(new Set(rawData.elements.edges.map(r => r.data.label ?? r.data.labels?.[0])));
+			console.log(new Set(rawData.elements.edges.map((r) => r.data.label ?? r.data.labels?.[0])));
 			throw new Error(`Unknown edge type ${label}`);
 		}
 		return {
@@ -33,6 +33,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 			source: data.source,
 			target: data.target,
 			type: label,
+			weight: data.properties.weight
 		};
 	});
 	// at this point, we have no use for rawData. we only play with links and nodesAsObject
@@ -47,7 +48,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 	});
 	// delete links which type is 'contains'
 	links = links.filter((link) => link.type !== EdgeType.contains);
-	const nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
+	const nodes = Object.values(nodesAsObject).filter((node) => node.level === 0);
 	calulateNestingLevels(nodes);
 
 	function calulateNestingLevels(node: ConvertedNode[], level: number = 0) {
@@ -61,6 +62,6 @@ export function converter(rawData: RawInputType): ConvertedData {
 	return {
 		nodes,
 		links,
-		nodesDictionary: nodesAsObject,
+		nodesDictionary: nodesAsObject
 	};
 }

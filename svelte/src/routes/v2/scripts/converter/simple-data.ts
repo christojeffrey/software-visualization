@@ -75,6 +75,16 @@ export const simpleData: RawInputType = {
 			},
 			{
 				data: {
+					id: 'subMain',
+					properties: {
+						simpleName: 'subMain',
+						kind: 'packages'
+					},
+					labels: ['Structure']
+				}
+			},
+			{
+				data: {
 					id: 'lib',
 					properties: {
 						simpleName: 'lib',
@@ -92,7 +102,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'a',
 					properties: {
-						weight: 1
+						weight: 100
 					}
 				}
 			},
@@ -103,7 +113,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 1
+						weight: 50
 					}
 				}
 			},
@@ -114,7 +124,7 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 1
+						weight: 50
 					}
 				}
 			},
@@ -203,6 +213,28 @@ export const simpleData: RawInputType = {
 					target: 'd',
 					properties: {
 						weight: 1
+					}
+				}
+			},
+			{
+				data: {
+					id: 'twelve',
+					source: 'main',
+					label: 'contains',
+					target: 'subMain',
+					properties: {
+						weight: 20
+					}
+				}
+			},
+			{
+				data: {
+					id: 'thirteen',
+					source: 'subMain',
+					label: 'calls',
+					target: 'db',
+					properties: {
+						weight: 200
 					}
 				}
 			}
