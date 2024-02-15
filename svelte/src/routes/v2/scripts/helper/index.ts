@@ -1,4 +1,4 @@
-import type { ConvertedNode, EdgeType, GraphDataEdge, GraphDataNode, SimpleNode } from '../../types';
+import type { EdgeType, GraphDataEdge, SimpleNode } from '../../types';
 
 export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNode[] {
 	// Recursively flatten the nodes (lift the children to the top level array),
@@ -35,4 +35,8 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
 			edge.weight = totalWeight;
 		});
 	}
+}
+
+export function toHTMLToken(string: string) {
+	return string.replace(/[^A-Za-z0-9]/g, '--');
 }
