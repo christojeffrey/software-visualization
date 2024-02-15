@@ -2,7 +2,13 @@ import * as d3 from 'd3';
 import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
-import type { ConfigInterface, DrawSettingsInterface } from '../../types';
+import type {
+	ConfigInterface,
+	DrawSettingsInterface,
+	GraphData,
+	GraphDataEdge,
+	GraphDataNode
+} from '../../types';
 import { radialClampForce, rectangleCollideForce } from './custom-d3-forces';
 
 const SVGSIZE = 800;
@@ -14,13 +20,13 @@ function toHTMLToken(string: string) {
 
 function createInnerSimulation(
 	level: number,
-	nodes: any[],
+	nodes: GraphDataNode[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
-	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
-	parentNode: any,
+	allSimulation: d3.Simulation<GraphDataNode, undefined>[],
+	parentNode: GraphDataNode,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: (datum: any) => void,
-	onLift: (datum: any) => void
+	onCollapse: (datum: GraphDataNode) => void,
+	onLift: (datum: GraphDataNode) => void
 ) {
 	// use this instead of forEach so that it is passed by reference.
 
@@ -32,16 +38,25 @@ function createInnerSimulation(
 	const innerSimulation = d3.forceSimulation(nodes);
 	innerSimulation.force('collide', rectangleCollideForce());
 
-	const useRadialLayout = nodes.length > 2 && nodes.reduce((a: number, item) => item?.members?.length > 0 ? a + 1 : a, 0) === 0;
+	const useRadialLayout =
+		nodes.length > 2 &&
+		nodes.reduce(
+			(a: number, item) => (item?.members?.length ? (item?.members?.length > 0 ? a + 1 : a) : a),
+			0
+		) === 0;
+
 	if (useRadialLayout) {
 		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
-		innerSimulation.force('radial', radialClampForce(
-			() => {
-				const res = nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) / (Math.PI * 2);
+		innerSimulation.force(
+			'radial',
+			radialClampForce(() => {
+				const res =
+					nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
+					(Math.PI * 2);
 				const radius = res + 2 * drawSettings.minimumVertexSize; // Offset for small circles (2 nodes)
 				return radius;
-			},
-		));
+			})
+		);
 	} else {
 		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
@@ -58,10 +73,10 @@ function createInnerSimulation(
 		.enter()
 		.append('g')
 		.attr('class', 'node')
-		.attr('id', (d: any) => toHTMLToken(d.id));
+		.attr('id', (d) => toHTMLToken(d.id));
 
 	// handle show node labels
-	let memberLabelElements: any;
+	let memberLabelElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
 		memberLabelElements = membersContainerElement
 			.append('text')
@@ -70,7 +85,7 @@ function createInnerSimulation(
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', 'black')
 			.attr('font-size', '10px')
-			.text((d: any) => d.id);
+			.text((d) => d.id);
 	}
 	membersContainerElement.call(
 		//@ts-ignore
@@ -98,8 +113,8 @@ function createInnerSimulation(
 
 	// filter only if has member
 	const collapseButtonElements = membersContainerElement
-		.filter((d: any) => {
-			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		.filter((d) => {
+			return (d.members?.length ?? 0) > 0 || (d.originalMembers?.length ?? 0) > 0;
 		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
@@ -107,13 +122,13 @@ function createInnerSimulation(
 		.attr('cy', 0)
 		.attr('fill', 'red')
 		.attr('fill-opacity', '0.1')
-		.on('click', (_e: any, i: any) => {
+		.on('click', (_e, i) => {
 			onCollapse(i);
 		});
 
 	const liftButtonElements = membersContainerElement
-		.filter((d: any) => {
-			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		.filter((d) => {
+			return (d.members?.length ?? 0) > 0 || (d.originalMembers?.length ?? 0) > 0;
 		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
@@ -121,7 +136,7 @@ function createInnerSimulation(
 		.attr('cy', 0)
 		.attr('fill', 'blue')
 		.attr('fill-opacity', '0.1')
-		.on('click', (_e: any, i: any) => {
+		.on('click', (_e, i) => {
 			onLift(i);
 		});
 	innerSimulation.on('tick', () => {
@@ -140,7 +155,7 @@ function createInnerSimulation(
 		if (nodes[i].members) {
 			createInnerSimulation(
 				level + 1,
-				nodes[i].members,
+				nodes[i].members ?? [],
 				canvas,
 				allSimulation,
 				nodes[i],
@@ -154,13 +169,13 @@ function createInnerSimulation(
 
 export function draw(
 	svgElement: SVGElement,
-	graphData: any,
+	graphData: GraphData,
 	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: (datum: any) => void,
-	onLift: (datum: any) => void,
+	onCollapse: (datum: GraphDataNode) => void,
+	onLift: (datum: GraphDataNode) => void
 ) {
-	const simulations: d3.Simulation<d3.SimulationNodeDatum, undefined>[] = [];
+	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 
 	const svg = d3
 		.select(svgElement)
@@ -173,7 +188,7 @@ export function draw(
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	simulation.force('collide', rectangleCollideForce())
+	simulation.force('collide', rectangleCollideForce());
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
@@ -184,7 +199,7 @@ export function draw(
 			collapseButtonElements,
 			liftButtonElements
 		);
-	})
+	});
 
 	simulations.push(simulation);
 
@@ -199,10 +214,10 @@ export function draw(
 		.enter()
 		.append('g')
 		.attr('class', 'nodes')
-		.attr('id', (d: any) => toHTMLToken(d.id));
+		.attr('id', (d) => toHTMLToken(d.id));
 
 	// handle show node labels
-	let nodeLabelsElements: any;
+	let nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
 		nodeLabelsElements = containerElement
 			.append('text')
@@ -211,13 +226,13 @@ export function draw(
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', 'black')
 			.attr('font-size', '10px')
-			.text((d: any) => d.id);
+			.text((d) => d.id);
 	}
 
 	containerElement.call(
 		d3
-			.drag<any, any>()
-			.on('start', function (this: any, e) {
+			.drag<SVGGElement, GraphDataNode>()
+			.on('start', function (this: SVGGElement, e) {
 				// To combine element drag and pan
 				d3.select(this).raise();
 				dragStartedNode(e, simulations);
@@ -237,8 +252,8 @@ export function draw(
 		.attr('rx', drawSettings.nodeCornerRadius);
 
 	const collapseButtonElements = containerElement
-		.filter((d: any) => {
-			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		.filter((d) => {
+			return (d.members?.length ?? 0) > 0 || (d.originalMembers?.length ?? 0) > 0;
 		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
@@ -251,14 +266,14 @@ export function draw(
 		});
 
 	const liftButtonElements = containerElement
-		.filter((d: any) => {
-			return d.members?.length > 0 || d.originalMembers?.length > 0;
+		.filter((d) => {
+			return (d.members?.length ?? 0) > 0 || (d.originalMembers?.length ?? 0) > 0;
 		})
 		.append('circle')
 		.attr('r', drawSettings.buttonRadius)
 		.attr('cx', drawSettings.buttonRadius)
 		.attr('cy', 0)
-		.attr('fill', ({ id }: any) => {
+		.attr('fill', ({ id }) => {
 			if (config.dependencyLifting.find(({ node }) => node.id === id)) {
 				return 'aqua';
 			}
@@ -274,16 +289,16 @@ export function draw(
 		.append('g')
 		.attr('id', 'link-canvas')
 		.selectAll('g')
-		.data(graphData.links.filter((link: any) => drawSettings.shownEdgesType.get(link.type)))
+		.data(graphData.links.filter((link) => drawSettings.shownEdgesType.get(link.type)))
 		.enter()
 		.append('g')
 		.attr('class', 'links')
-		.attr('id', (d: any) => d.id);
+		.attr('id', (d) => d.id);
 
 	const linkElements = linkContainer.append('path').attr('class', 'link');
 
 	// handle show edge labels
-	let linkLabelElements: any;
+	let linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdge, SVGGElement, unknown>;
 	if (drawSettings.showEdgeLabels) {
 		linkLabelElements = linkContainer
 			.append('text')
@@ -292,7 +307,7 @@ export function draw(
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', 'black')
 			.attr('font-size', '10px')
-			.text((d: any) => d.id);
+			.text((d) => d.id);
 	}
 
 	const linkSimulation = d3
@@ -301,8 +316,8 @@ export function draw(
 			'link',
 			d3
 				.forceLink(graphData.links)
-				.id((d: any) => {
-					return d.id;
+				.id((node) => {
+					return (node as GraphDataNode).id;
 				})
 				.strength(0)
 		)
@@ -313,34 +328,31 @@ export function draw(
 
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
-		if (graphData.nodes[i].members) {
-			createInnerSimulation(
-				1,
-				graphData.nodes[i].members,
-				canvas,
-				simulations,
-				graphData.nodes[i],
-				drawSettings,
-				onCollapse,
-				onLift
-			);
-		}
+		createInnerSimulation(
+			1,
+			graphData.nodes[i].members ?? [], // handle when members is undefined (has no member)
+			canvas,
+			simulations,
+			graphData.nodes[i],
+			drawSettings,
+			onCollapse,
+			onLift
+		);
 	}
 
 	// Add zoom handler
 	svg.call(
 		//@ts-ignore
-		d3
-			.zoom()
-			.on('zoom', ({ transform }) => {
-				canvas.attr('transform', transform);
-				drawSettings.transformation = transform;
-			})
+		d3.zoom().on('zoom', ({ transform }) => {
+			canvas.attr('transform', transform);
+			drawSettings.transformation = transform;
+		})
 	);
 
 	//Reload last transformation, if available
 	if (drawSettings.transformation) {
 		// (The type of this method is incorrect, annoyingly)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		canvas.attr('transform', drawSettings.transformation as any);
 	}
 

@@ -1,7 +1,7 @@
 
 import type {Force, SimulationNodeDatum} from "d3";
 
-interface simluationNodeDatumType extends SimulationNodeDatum {
+interface simulationNodeDatumType extends SimulationNodeDatum {
     width: number,
     height: number,
     cx?: number,
@@ -13,8 +13,8 @@ interface simluationNodeDatumType extends SimulationNodeDatum {
  * 
  * Assumes all nodes are rectangles, with a width and height property, rather than circles
  */
-export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
-    let nodes: simluationNodeDatumType[];
+export function rectangleCollideForce(): Force<simulationNodeDatumType, any>  {
+    let nodes: simulationNodeDatumType[];
 
     interface point {
         x: number,
@@ -29,7 +29,7 @@ export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
         height: number,
     }
     
-    function makeSquare(node: simluationNodeDatumType): squareData {
+    function makeSquare(node: simulationNodeDatumType): squareData {
         const topLeftx = node.x! + node.cx!;
         const topLefty = node.y! + node.cy!;
         return {
@@ -101,7 +101,7 @@ export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
 		}
 	};
 
-    force.initialize = function (_nodes: simluationNodeDatumType[]) {
+    force.initialize = function (_nodes: simulationNodeDatumType[]) {
         nodes = _nodes;
     }
 
@@ -122,8 +122,8 @@ export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
  */
 export function radialClampForce(
     r: () => number, 
-): Force<simluationNodeDatumType, any> {
-    let nodes: simluationNodeDatumType[]; 
+): Force<simulationNodeDatumType, any> {
+    let nodes: simulationNodeDatumType[]; 
     // Unused, might want to set this to false after dragging a node.
     // Might also want to have this set to false at the start of a simluation.
     const clamp = true;
@@ -152,7 +152,7 @@ export function radialClampForce(
         }
     }
 
-    force.initialize = function (_nodes: simluationNodeDatumType[]) {
+    force.initialize = function (_nodes: simulationNodeDatumType[]) {
         nodes = _nodes;
     }
 

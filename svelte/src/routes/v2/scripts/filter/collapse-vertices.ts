@@ -1,7 +1,11 @@
-import type { GraphData, GraphDataEdge } from '../../types';
+import type { ConfigInterface, GraphData, GraphDataEdge, GraphDataNode } from '../../types';
 import { combineWeights, flattenNode } from '../helper';
 
-export function onVertexCollapseClick(clickedVertex: any, config: any, onFinish: () => void) {
+export function onVertexCollapseClick(
+	clickedVertex: GraphDataNode,
+	config: ConfigInterface,
+	onFinish: () => void
+) {
 	// push if not exist
 	if (!config.collapsedVertices.includes(clickedVertex)) {
 		config.collapsedVertices.push(clickedVertex);
@@ -9,26 +13,26 @@ export function onVertexCollapseClick(clickedVertex: any, config: any, onFinish:
 		doUncollapseVertices(clickedVertex);
 
 		config.collapsedVertices = config.collapsedVertices.filter(
-			(vertex: any) => vertex.id !== clickedVertex.id
+			(vertex) => vertex.id !== clickedVertex.id
 		);
 	}
 	onFinish();
 }
-export function doUncollapseVertices(clickedVertex: any) {
+export function doUncollapseVertices(clickedVertex: GraphDataNode) {
 	// return the original members
 	clickedVertex.members = clickedVertex.originalMembers;
 	delete clickedVertex.originalMembers;
 
 	// return to original link for it's children
-	const flatChildren = flattenNode(clickedVertex.members);
-	flatChildren.forEach((child: any) => {
-		child.incomingLinks?.forEach((link: any) => {
+	const flatChildren = flattenNode(clickedVertex.members ?? []);
+	flatChildren.forEach((child) => {
+		child.incomingLinks?.forEach((link) => {
 			if (link.originalTarget) {
 				link.target = link.originalTarget;
 				delete link.originalTarget;
 			}
 		});
-		child.outgoingLinks?.forEach((link: any) => {
+		child.outgoingLinks?.forEach((link) => {
 			if (link.originalSource) {
 				link.source = link.originalSource;
 				delete link.originalSource;
@@ -36,16 +40,16 @@ export function doUncollapseVertices(clickedVertex: any) {
 		});
 	});
 }
-export function doCollapseVertices(config: any, graphData: GraphData) {
-	config.collapsedVertices.forEach((collapsedVertex: any) => {
+export function doCollapseVertices(config: ConfigInterface, graphData: GraphData) {
+	config.collapsedVertices.forEach((collapsedVertex) => {
 		// find collapsed vertex in the nodes
 		const collapsedVertexIndex = graphData.flattenNodes.findIndex(
-			(node: any) => node.id === collapsedVertex.id
+			(node) => node.id === collapsedVertex.id
 		);
 		// flatten the children
-		const flatChildrenId = flattenNode(graphData.flattenNodes[collapsedVertexIndex].members).map(
-			(node: any) => node.id
-		);
+		const flatChildrenId = flattenNode(
+			graphData.flattenNodes[collapsedVertexIndex].members ?? []
+		).map((node) => node.id);
 
 		// A. add new attribute, which is 'originalMembers'
 		graphData.flattenNodes[collapsedVertexIndex].originalMembers =

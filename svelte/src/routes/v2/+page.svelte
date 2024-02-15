@@ -12,16 +12,15 @@
 	import type {
 		ConfigInterface,
 		ConvertedData,
-		ConvertedNode,
 		DrawSettingsInterface,
-		EdgeType
+		EdgeType,
+		GraphDataNode
 	} from './types';
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
-	import { debuggingConsole } from '$helper';
 	import { onDependencyLiftClick } from './scripts/filter/lift-edges';
 
-	let simulations: any[] = [];
+	let simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
@@ -50,13 +49,13 @@
 
 	let isMounted = false;
 
-	function handleVertexCollapseClick(datum: any) {
+	function handleVertexCollapseClick(datum: GraphDataNode) {
 		onVertexCollapseClick(datum, config, () => {
 			doRefilter = true;
 		});
 	}
 
-	function handleDependencyLiftClick(node: ConvertedNode): void {
+	function handleDependencyLiftClick(node: GraphDataNode): void {
 		onDependencyLiftClick(node, config, () => {
 			doRefilter = true;
 		});

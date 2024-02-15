@@ -4,7 +4,7 @@ export interface ConfigInterface {
 		depth: number;
 	}[];
 	dependencyTolerance: number;
-	collapsedVertices: any[];
+	collapsedVertices: GraphDataNode[];
 }
 
 export interface DrawSettingsInterface {
@@ -22,9 +22,9 @@ export interface DrawSettingsInterface {
 
 export interface ConvertedNode {
 	id: string;
+	level: number;
 	members: ConvertedNode[];
 	parentId?: string;
-	level: number;
 }
 export interface ConvertedEdge {
 	id: string;
@@ -66,12 +66,12 @@ export enum EdgeType {
 	unknown = 'UNKNOWN'
 }
 
-export type GraphData = {
+export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
-	flattenNodes: ConvertedNode[];
-};
-export type GraphDataEdge = {
+	flattenNodes: GraphDataNode[];
+}
+export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	source: GraphDataNode;
 	target: GraphDataNode;
 	id: string;
@@ -80,13 +80,19 @@ export type GraphDataEdge = {
 	originalWeight?: number;
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
-};
-export type GraphDataNode = {
+}
+export interface GraphDataNode extends d3.SimulationNodeDatum {
+	// initial data
 	id: string;
 	level: number;
+	// bellow is initial data but already a Reference
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
+
+	// created by draw steps
 	originalMembers?: GraphDataNode[];
 	outgoingLinks?: GraphDataEdge[];
 	incomingLinks?: GraphDataEdge[];
-};
+	width: number;
+	height: number;
+}
