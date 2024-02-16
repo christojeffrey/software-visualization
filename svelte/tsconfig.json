@@ -12,7 +12,11 @@
 		"paths": {
 			"$ui/*": ["./src/ui/*"],
 			"$helper": ["./src/helper"],
-			"$helper/*": ["./src/helper/*"]
+			"$helper/*": ["./src/helper/*"],
+			"$scripts": ["./src/scripts"],
+			"$scripts/*": ["./src/scripts/*"],
+			"$types": ["./src/types"],
+			"$types/*": ["./src/types/*"]
 		}
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
