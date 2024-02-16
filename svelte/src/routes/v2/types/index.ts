@@ -4,11 +4,11 @@ export interface ConfigInterface {
 		depth: number;
 	}[];
 	dependencyTolerance: number;
-	collapsedVertices: any[];
+	collapsedNodes: GraphDataNode[];
 }
 
 export interface DrawSettingsInterface {
-	minimumVertexSize: number;
+	minimumNodeSize: number;
 	buttonRadius: number;
 	nodeCornerRadius: number;
 	nodePadding: number;
@@ -20,11 +20,16 @@ export interface DrawSettingsInterface {
 	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 
-export interface ConvertedNode {
+export interface SimpleNode {
 	id: string;
-	members: ConvertedNode[];
-	parentId?: string;
 	level: number;
+	members?: SimpleNode[];
+}
+export interface ConvertedNode extends SimpleNode {
+	id: string;
+	level: number;
+	members?: ConvertedNode[];
+	parentId?: string;
 }
 export interface ConvertedEdge {
 	id: string;
@@ -36,10 +41,10 @@ export interface ConvertedEdge {
 export interface ConvertedData {
 	nodes: ConvertedNode[];
 	links: ConvertedEdge[];
-	nodesDictionary: NodesDictionaryType;
+	nodesDictionary: SimpleNodesDictionaryType;
 }
 
-export interface NodesDictionaryType {
+export interface SimpleNodesDictionaryType {
 	[id: string]: ConvertedNode;
 }
 
@@ -66,12 +71,12 @@ export enum EdgeType {
 	unknown = 'UNKNOWN'
 }
 
-export type GraphData = {
+export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
-	flattenNodes: ConvertedNode[];
-};
-export type GraphDataEdge = {
+	flattenNodes: GraphDataNode[];
+}
+export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	source: GraphDataNode;
 	target: GraphDataNode;
 	id: string;
@@ -80,13 +85,27 @@ export type GraphDataEdge = {
 	originalWeight?: number;
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
-};
-export type GraphDataNode = {
+}
+export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
+	// initial data
 	id: string;
 	level: number;
+	// bellow is initial data but already a Reference.
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
-	originalMembers?: GraphDataNode[];
+
 	outgoingLinks?: GraphDataEdge[];
 	incomingLinks?: GraphDataEdge[];
-};
+
+	// created by draw steps
+	originalMembers?: GraphDataNode[];
+
+	width: number;
+	height: number;
+	cx: number;
+	cy: number;
+
+	// injected by d3
+	x: number;
+	y: number;
+}

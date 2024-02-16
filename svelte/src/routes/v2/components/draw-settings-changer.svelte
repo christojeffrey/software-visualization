@@ -84,9 +84,9 @@
 		<Heading headingNumber={5}>Node Size</Heading>
 		<Input
 			type="number"
-			value={drawSettings.minimumVertexSize}
+			value={drawSettings.minimumNodeSize}
 			onChange={(e) => {
-				drawSettings.minimumVertexSize = Number(e.currentTarget.value);
+				drawSettings.minimumNodeSize = Number(e.currentTarget.value);
 				doRedraw = true;
 			}}
 		/>

@@ -1,55 +1,61 @@
-import type { ConvertedData } from "../../types";
+import type {
+	ConvertedData,
+	ConvertedEdge,
+	ConvertedNode,
+	GraphData,
+	GraphDataEdge,
+	GraphDataNode
+} from '../../types';
+import { flattenNode } from '../helper';
 
-function assignParentReference(nodes: any) {
-	nodes.forEach((node: any, _index: any, _arr: any) => {
+function assignParentReference(nodes: GraphDataNode[]) {
+	nodes.forEach((node, _index, _arr) => {
 		if (node.members) {
-			node.members.forEach((_: any, index: any, arr: any) => {
+			node.members.forEach((_, index, arr) => {
 				arr[index].parent = node;
 			});
 			assignParentReference(node.members);
 		}
 	});
 }
-function flattenNode(nodes: any) {
-	//   reserse the order so that the parent is always at the end.
-	const result: any[] = [];
-	nodes.forEach((node: any) => {
-		// order matter.
-		if (node.members) {
-			result.push(...flattenNode(node.members));
-		}
-		result.push(node);
-	});
-	return result;
-}
 
-function assignLinkReference(links: any, flattenNodes: any) {
-	links.forEach((link: any) => {
-		const sourceIndex = flattenNodes.findIndex((node: any) => node.id === link.source);
-		const targetIndex = flattenNodes.findIndex((node: any) => node.id === link.target);
-		flattenNodes[sourceIndex].outgoingLinks
-			? flattenNodes[sourceIndex].outgoingLinks.push(link)
-			: (flattenNodes[sourceIndex].outgoingLinks = [link]);
-		flattenNodes[targetIndex].incomingLinks
-			? flattenNodes[targetIndex].incomingLinks.push(link)
-			: (flattenNodes[targetIndex].incomingLinks = [link]);
+function assignLinkReference(
+	links: ConvertedEdge[],
+	flattenNodes: ConvertedNode[],
+	graphDataFlattenNodes: GraphDataNode[]
+) {
+	links.forEach((link) => {
+		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
+		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
+
+		const graphDataLink = link as unknown as GraphDataEdge;
+		graphDataFlattenNodes[sourceIndex].outgoingLinks
+			? graphDataFlattenNodes[sourceIndex].outgoingLinks?.push(graphDataLink)
+			: (graphDataFlattenNodes[sourceIndex].outgoingLinks = [graphDataLink]);
+		graphDataFlattenNodes[targetIndex].incomingLinks
+			? graphDataFlattenNodes[targetIndex].incomingLinks?.push(graphDataLink)
+			: (graphDataFlattenNodes[targetIndex].incomingLinks = [graphDataLink]);
 	});
 }
 
-export function createGraphData(convertedData: ConvertedData) {
+export function createGraphData(convertedData: ConvertedData): GraphData {
 	// do deep copy
-	const nodes: any = JSON.parse(JSON.stringify(convertedData.nodes));
-	const links: any = JSON.parse(JSON.stringify(convertedData.links));
-	const flattenNodes: any = flattenNode(nodes);
+	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
+	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
-	assignParentReference(nodes);
+	const links: ConvertedEdge[] = JSON.parse(JSON.stringify(convertedData.links));
 
-	assignLinkReference(links, flattenNodes);
+	const graphDataNodes = nodes as GraphDataNode[];
+	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
 
-	const graphData: any = {
-		nodes,
-		links,
-		flattenNodes,
+	assignParentReference(graphDataNodes);
+
+	assignLinkReference(links, flattenNodes, graphDataFlattenNodes);
+
+	const graphData: GraphData = {
+		nodes: graphDataNodes,
+		links: links as unknown as GraphDataEdge[],
+		flattenNodes: graphDataFlattenNodes
 	};
 	return graphData;
 }

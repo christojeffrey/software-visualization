@@ -1,16 +1,17 @@
-import type { EdgeType, GraphDataEdge } from '../../types';
+import type { EdgeType, GraphDataEdge, SimpleNode } from '../../types';
 
-export function flattenNode(nodes: any) {
-	//   reserse the order so that the parent is always at the end.
-	const result: any[] = [];
-	nodes.forEach((node: any) => {
+export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNode[] {
+	// Recursively flatten the nodes (lift the children to the top level array),
+	// reserse the order so that the parent is always at the end.
+	const result: SimpleNode[] = [];
+	nodes.forEach((node) => {
 		// order matter.
 		if (node.members) {
 			result.push(...flattenNode(node.members));
 		}
 		result.push(node);
 	});
-	return result;
+	return result as AnyNode[];
 }
 
 export function extractAvailableEdgeType(links: GraphDataEdge[]) {
@@ -34,4 +35,8 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
 			edge.weight = totalWeight;
 		});
 	}
+}
+
+export function toHTMLToken(string: string) {
+	return string.replace(/[^A-Za-z0-9]/g, '--');
 }

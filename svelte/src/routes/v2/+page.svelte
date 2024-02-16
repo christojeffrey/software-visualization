@@ -8,35 +8,38 @@
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
-	import { onVertexCollapseClick } from './scripts/filter/collapse-vertices';
-	import type { ConfigInterface, ConvertedData, ConvertedNode, DrawSettingsInterface, EdgeType } from './types';
+	import { onNodeCollapseClick } from './scripts/filter/collapse-nodes';
+	import type {
+		ConfigInterface,
+		ConvertedData,
+		DrawSettingsInterface,
+		EdgeType,
+		GraphDataNode,
+		GraphData
+	} from './types';
 	import type { RawInputType } from './types/raw-data';
 	import { extractAvailableEdgeType } from './scripts/helper';
-	import {debuggingConsole} from '$helper';
 	import { onDependencyLiftClick } from './scripts/filter/lift-edges';
 
-	let simulations: any[] = [];
+	let simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
-		collapsedVertices: [],
+		collapsedNodes: [],
 		dependencyLifting: [],
 		dependencyTolerance: 0
 	};
-	let graphData: any;
+	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
-		minimumVertexSize: 50,
+		minimumNodeSize: 50,
 		buttonRadius: 5,
 		nodeCornerRadius: 5,
-		nodePadding:5,
+		nodePadding: 5,
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,
-		showNodeLabels: false,
+		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
-		nodeColors: [
-			"#32a875",
-			"#d46868",
-		]
+		nodeColors: ['#32a875', '#d46868']
 	};
 	let svgElement: SVGElement | undefined = undefined;
 
@@ -47,14 +50,13 @@
 
 	let isMounted = false;
 
-	function handleVertexCollapseClick(datum: any) {
-		onVertexCollapseClick(datum, config, () => {
+	function handleNodeCollapseClick(datum: GraphDataNode) {
+		onNodeCollapseClick(datum, config, () => {
 			doRefilter = true;
 		});
 	}
 
-
-	function handleDependencyLiftClick(node: ConvertedNode): void {
+	function handleDependencyLiftClick(node: GraphDataNode): void {
 		onDependencyLiftClick(node, config, () => {
 			doRefilter = true;
 		});
@@ -96,7 +98,7 @@
 					graphData,
 					config,
 					drawSettings,
-					handleVertexCollapseClick,
+					handleNodeCollapseClick,
 					handleDependencyLiftClick
 				);
 				simulations = result.simulations;
