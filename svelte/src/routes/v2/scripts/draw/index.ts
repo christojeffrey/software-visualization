@@ -2,11 +2,14 @@ import * as d3 from 'd3';
 import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
-import type { ConfigInterface, DrawSettingsInterface } from '../../types';
+import type { ConfigInterface, DrawSettingsInterface, EdgeType } from '../../types';
 import { radialClampForce, rectangleCollideForce } from './custom-d3-forces';
+import type { simluationLinkType, simluationNodeDatumType } from './types';
+import { addStaticTreeLayout } from './tree-layout';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
+let allNodes: simluationNodeDatumType[] = []; // Should go in the longterm
 
 function toHTMLToken(string: string) {
 	return string.replace(/[^A-Za-z0-9]/g, '--');
@@ -14,15 +17,15 @@ function toHTMLToken(string: string) {
 
 function createInnerSimulation(
 	level: number,
-	nodes: any[],
+	nodes: simluationNodeDatumType[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
-	allSimulation: d3.Simulation<d3.SimulationNodeDatum, undefined>[],
-	parentNode: any,
+	allSimulation: d3.Simulation<simluationNodeDatumType, undefined>[],
+	parentNode: simluationNodeDatumType,
 	drawSettings: DrawSettingsInterface,
-	onCollapse: (datum: any) => void,
-	onLift: (datum: any) => void
+	onCollapse: (datum: simluationNodeDatumType) => void,
+	onLift: (datum: simluationNodeDatumType) => void
 ) {
-	// use this instead of forEach so that it is passed by reference.
+	if (nodes.length < 1) return;
 
 	// bind for easy reference.
 	for (let i = 0; i < nodes.length; i++) {
@@ -46,6 +49,7 @@ function createInnerSimulation(
 		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
+		addStaticTreeLayout(allNodes, innerSimulation);
 	}
 
 	allSimulation.push(innerSimulation);
@@ -160,7 +164,8 @@ export function draw(
 	onCollapse: (datum: any) => void,
 	onLift: (datum: any) => void,
 ) {
-	const simulations: d3.Simulation<d3.SimulationNodeDatum, undefined>[] = [];
+	const simulations: d3.Simulation<simluationNodeDatumType, undefined>[] = [];
+	allNodes = graphData.nodes;
 
 	const svg = d3
 		.select(svgElement)
@@ -169,11 +174,11 @@ export function draw(
 
 	setupGradient(svg);
 
-	const simulation = d3.forceSimulation(graphData.nodes);
+	const simulation = d3.forceSimulation(graphData.nodes) as d3.Simulation<simluationNodeDatumType, undefined>;
 	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
-	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	simulation.force('collide', rectangleCollideForce())
+	//simulation.force('y', d3.forceY(SVGSIZE / 2));
+	simulation.force('collide', rectangleCollideForce());
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
@@ -326,6 +331,7 @@ export function draw(
 			);
 		}
 	}
+	addStaticTreeLayout(graphData.nodes, simulation);
 
 	// Add zoom handler
 	svg.call(
