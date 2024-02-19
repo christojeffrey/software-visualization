@@ -1,6 +1,6 @@
 
 import type {Force, SimulationNodeDatum} from "d3";
-import type { simluationNodeDatumType } from "./types";
+import type { simluationLinkType, simluationNodeDatumType } from "./types";
 
 /**
  * Creates a rectangular collison force across all nodes
@@ -92,7 +92,7 @@ export function rectangleCollideForce(): Force<simluationNodeDatumType, any>  {
                             Math.abs(node1.middle.y - node2.middle.y) - ((node1.height + node2.height)/2),
                         );
 
-                        chargeForce(node1, node2, alpha, i, j, 250*(1/clearDistance));
+                        chargeForce(node1, node2, alpha, i, j, 500*(1/clearDistance));
                     }
                 }
 			}
@@ -176,6 +176,47 @@ export function radialClampForce(
 
     force.initialize = function (_nodes: simluationNodeDatumType[]) {
         nodes = _nodes;
+    }
+
+    return force;
+}
+
+export function downForce(): Force<simluationNodeDatumType, any> {
+    let nodes: simluationNodeDatumType[]; 
+    const nodeMap: Map<string, Set<simluationLinkType>> = new Map();
+
+    function force(alpha: number) {
+        nodes.forEach((node) => {
+            const set = nodeMap.get(node.id);
+            set?.forEach((link) => {
+                link.source.incomingLinks?.forEach((l) => set.add(l));
+                link.source.members.forEach(m => m.incomingLinks?.forEach(l => set.add(l)));
+            })
+        });
+
+        const sorted = [...nodeMap.entries()].sort(([_a, a], [_b, b]) => {
+            return (a.size < b.size) ? -1 : 1;
+        });
+        nodes.forEach((node) => {
+            const set = nodeMap.get(node.id);
+            const index = sorted.findIndex(([id, _]) => {
+                return node.id === id;
+            });
+            const weight = (index ?? 0) * 30;
+            console.log({weight});
+            node.vy! += weight * alpha;
+        });
+    }
+
+    force.initialize = function (_nodes: simluationNodeDatumType[]) {
+        nodes = _nodes;
+        nodes.forEach(node => {
+            const set = new Set(node.incomingLinks);
+            nodeMap.set(node.id, set);
+            node.members.forEach(node => {
+                node.incomingLinks?.forEach((link) => set.add(link));
+            })
+        })
     }
 
     return force;

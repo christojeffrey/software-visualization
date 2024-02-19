@@ -3,7 +3,7 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './tick';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 import { setupGradient } from './gradient-setup';
 import type { ConfigInterface, DrawSettingsInterface, EdgeType } from '../../types';
-import { radialClampForce, rectangleCollideForce } from './custom-d3-forces';
+import { downForce, radialClampForce, rectangleCollideForce } from './custom-d3-forces';
 import type { simluationLinkType, simluationNodeDatumType } from './types';
 import { addStaticTreeLayout } from './tree-layout';
 
@@ -49,7 +49,7 @@ function createInnerSimulation(
 		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
-		//addStaticTreeLayout(allNodes, innerSimulation);
+		innerSimulation.force('tree', downForce());
 	}
 
 	allSimulation.push(innerSimulation);
@@ -309,7 +309,7 @@ export function draw(
 				.id((d: any) => {
 					return d.id;
 				})
-				.strength(0)
+				.strength(0.2)
 		)
 		.on('tick', () => {
 			linkTicked(graphData.links, linkElements, linkLabelElements);
