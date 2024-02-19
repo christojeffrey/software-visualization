@@ -49,7 +49,7 @@ function createInnerSimulation(
 		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
-		addStaticTreeLayout(allNodes, innerSimulation);
+		//addStaticTreeLayout(allNodes, innerSimulation);
 	}
 
 	allSimulation.push(innerSimulation);
@@ -331,7 +331,7 @@ export function draw(
 			);
 		}
 	}
-	addStaticTreeLayout(graphData.nodes, simulation);
+	//addStaticTreeLayout(graphData.nodes, simulation);
 
 	// Add zoom handler
 	svg.call(
