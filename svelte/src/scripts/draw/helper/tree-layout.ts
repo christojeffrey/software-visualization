@@ -126,14 +126,11 @@ export function addStaticTreeLayout(nodes: simluationNodeDatumType[], simulation
         let res = 30;
         for (let i = 0; i < d.treeData!.level; i++) {
             let maxHeight = 0;
-            console.log({i, map: levelMap.get(i), mapWhole: levelMap});
             levelMap.get(i)!.forEach(node => {
-                console.log({width: node.width});
                 maxHeight = Math.max(node.height ?? 0, maxHeight ?? 0);
             });
             res += maxHeight
         }
-        console.log({res, max: d.treeData?.level});
         return res;
     });
 

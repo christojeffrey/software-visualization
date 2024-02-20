@@ -203,7 +203,6 @@ export function downForce(): Force<GraphDataNode, undefined> {
                 return node.id === id;
             });
             const weight = (index ?? 0) * 30;
-            console.log({weight});
             node.vy! += weight * alpha;
         });
     }
