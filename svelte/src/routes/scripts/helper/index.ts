@@ -1,12 +1,5 @@
 import type { EdgeType, GraphDataEdge, SimpleNode } from '$types';
 
-// debugging purpose
-export function debuggingConsole(...args: never[]) {
-	if (import.meta.env.VITE_DEBUGGING_MODE === 'true') {
-		console.log(...args);
-	}
-}
-
 export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNode[] {
 	// Recursively flatten the nodes (lift the children to the top level array),
 	// reserse the order so that the parent is always at the end.

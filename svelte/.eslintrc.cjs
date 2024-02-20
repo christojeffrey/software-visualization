@@ -1,11 +1,11 @@
 module.exports = {
 	rules: {
 		// allow explicit any
-		'@typescript-eslint/no-explicit-any': 'off',
+		// '@typescript-eslint/no-explicit-any': 'off',
 		// allow unused vars
-		'@typescript-eslint/no-unused-vars': 'off',
-		// allow ts-ignore pragma 
-		'@typescript-eslint/ban-ts-comment': 'off',
+		'@typescript-eslint/no-unused-vars': 'off'
+		// allow ts-ignore pragma
+		// '@typescript-eslint/ban-ts-comment': 'off'
 	},
 	root: true,
 	extends: [

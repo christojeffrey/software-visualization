@@ -7,7 +7,9 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$ui: '/src/ui',
-			$helper: '/src/helper'
+			$helper: '/src/helper',
+			$scripts: '/src/scripts',
+			$types: '/src/types'
 		}
 	}
 });
