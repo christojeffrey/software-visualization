@@ -17,7 +17,7 @@ export function onNodeCollapseClick(
 	onFinish();
 }
 export function doUncollapseNodes(clickedNode: GraphDataNode) {
-	// return the original members
+	// return to the original members
 	clickedNode.members = clickedNode.originalMembers;
 	delete clickedNode.originalMembers;
 

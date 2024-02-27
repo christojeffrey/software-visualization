@@ -134,6 +134,7 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	// create simulation
 	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 
 	const svg = d3
@@ -149,6 +150,8 @@ export function draw(
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
 	simulation.on('tick', () => {
+		// setTimeout(function () {
+		//your code to be executed after 1 second
 		masterSimulationTicked(
 			graphData,
 			containerElements,
@@ -158,6 +161,7 @@ export function draw(
 			collapseButtonElements,
 			liftButtonElements
 		);
+		// }, 100);
 	});
 
 	simulations.push(simulation);

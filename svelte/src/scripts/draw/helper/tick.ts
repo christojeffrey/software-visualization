@@ -10,20 +10,19 @@ export function innerTicked(
 ) {
 	membersContainerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
-	memberElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
 	if (nodeLabelsElements) {
 		// put it in the top middle
-		nodeLabelsElements.attr('x', (d) => d.cx + d.width / 2).attr('y', (d) => d.cy + 5);
+		nodeLabelsElements.attr('x', (d) => d.width / 2).attr('y', (d) => 5);
 	}
 	if (collapseButtonElements) {
 		collapseButtonElements
-			.attr('cx', (d) => d.cx + d.width - 4 * drawSettings.buttonRadius)
-			.attr('cy', (d) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+			.attr('cx', (d) => d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d) => drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 	if (liftButtonElements) {
 		liftButtonElements
-			.attr('cx', (d) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
-			.attr('cy', (d) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+			.attr('cx', (d) => d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d) => drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 }
 export function linkTicked(
@@ -102,45 +101,69 @@ export function masterSimulationTicked(
 	collapseButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
 	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>
 ) {
+	// add delay to the simulation
+
 	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
 
-	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
-	for (let i = 0; i < graphData.flattenNodes.length; i++) {
-		const hasMembers = (graphData.flattenNodes[i].members ?? []).length > 0;
-		if (hasMembers) {
-			const members = graphData.flattenNodes[i].members ?? [];
-			// members location is relative to the parent.
-			let minX = members[0].x + members[0].cx;
-			let maxX = members[0].x + members[0].cx + members[0].width;
-			let minY = members[0].y + members[0].cy;
-			let maxY = members[0].y + members[0].cy + members[0].height;
-
-			for (let j = 0; j < members.length; j++) {
-				if (members[j].x + members[j].cx < minX) {
-					minX = members[j].x;
-				}
-				if (members[j].x + members[j].cx + members[j].width > maxX) {
-					maxX = members[j].x + members[j].cx + members[j].width;
-				}
-				if (members[j].y + members[j].cy < minY) {
-					minY = members[j].y + members[j].cy;
-				}
-				if (members[j].y + members[j].cy + members[j].height > maxY) {
-					maxY = members[j].y + members[j].cy + members[j].height;
-				}
+	// calculate nodes width and height, x and y (which is cx and cy) - based on the location of the its members.
+	// only do this calculation once, on master simulation
+	calculateWidthHeighXandYBasedOnChildrenRecursive(graphData.nodes);
+	function upcateMembersPosistion(
+		nodes: GraphDataNode[] | undefined,
+		shifterX: number,
+		shifterY: number
+	) {
+		if (nodes && nodes.length > 0) {
+			for (let i = 0; i < nodes.length; i++) {
+				// nodes[i].x = 0;
+				// nodes[i].y = 0;
+				nodes[i].x = nodes[i].x + shifterX;
+				nodes[i].y = nodes[i].y + shifterY;
+				// upcateMembersPosistion(nodes[i].members, shifterX, shifterY);
 			}
+		}
+	}
+	function calculateWidthHeighXandYBasedOnChildrenRecursive(topMostNodes: GraphDataNode[]) {
+		for (let i = 0; i < topMostNodes.length; i++) {
+			const hasMembers = (topMostNodes[i].members ?? []).length > 0;
+			if (hasMembers) {
+				const members = topMostNodes[i].members ?? [];
 
-			graphData.flattenNodes[i].width = maxX - minX + PADDING * 2;
-			graphData.flattenNodes[i].height = maxY - minY + PADDING * 2;
-			// stands for calculated x and y.
-			graphData.flattenNodes[i].cx = minX - PADDING;
-			graphData.flattenNodes[i].cy = minY - PADDING;
-		} else {
-			graphData.flattenNodes[i].width = drawSettings.minimumNodeSize;
-			graphData.flattenNodes[i].height = drawSettings.minimumNodeSize;
-			//   stands for calculated x and y.
-			graphData.flattenNodes[i].cx = 0;
-			graphData.flattenNodes[i].cy = 0;
+				// calculate children position based on its children. its recursive.
+				calculateWidthHeighXandYBasedOnChildrenRecursive(members);
+				// members location is relative to the parent.
+				let minX = members[0].x;
+				let maxX = members[0].x + members[0].width;
+				let minY = members[0].y;
+				let maxY = members[0].y + members[0].height;
+
+				for (let j = 0; j < members.length; j++) {
+					if (members[j].x < minX) {
+						minX = members[j].x;
+					}
+					if (members[j].x + members[j].width > maxX) {
+						maxX = members[j].x + members[j].width;
+					}
+					if (members[j].y < minY) {
+						minY = members[j].y;
+					}
+					if (members[j].y + members[j].height > maxY) {
+						maxY = members[j].y + members[j].height;
+					}
+				}
+
+				topMostNodes[i].width = maxX - minX + PADDING * 2;
+				topMostNodes[i].height = maxY - minY + PADDING * 2;
+
+				topMostNodes[i].x += minX;
+				topMostNodes[i].y += minY;
+
+				// update childrens position based on the new parent position
+				upcateMembersPosistion(members, -minX, -minY);
+			} else {
+				topMostNodes[i].width = drawSettings.minimumNodeSize;
+				topMostNodes[i].height = drawSettings.minimumNodeSize;
+			}
 		}
 	}
 
@@ -149,23 +172,19 @@ export function masterSimulationTicked(
 	});
 	nodeElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
 
-	nodeElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
-
 	if (nodeLabelsElements) {
 		// put it in the top middle
-		nodeLabelsElements
-			.attr('x', (d) => d.cx + d.width / 2)
-			.attr('y', (d) => d.cy + drawSettings.nodePadding);
+		nodeLabelsElements.attr('x', (d) => d.width / 2).attr('y', (d) => drawSettings.nodePadding);
 	}
 
 	if (collapseButtonElements) {
 		collapseButtonElements
-			.attr('cx', (d) => d.cx + d.width - 4 * drawSettings.buttonRadius)
-			.attr('cy', (d) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+			.attr('cx', (d) => d.width - 4 * drawSettings.buttonRadius)
+			.attr('cy', (d) => drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 	if (liftButtonElements) {
 		liftButtonElements
-			.attr('cx', (d) => d.cx + d.width - 1.5 * drawSettings.buttonRadius)
-			.attr('cy', (d) => d.cy + drawSettings.nodePadding + drawSettings.buttonRadius);
+			.attr('cx', (d) => d.width - 1.5 * drawSettings.buttonRadius)
+			.attr('cy', (d) => drawSettings.nodePadding + drawSettings.buttonRadius);
 	}
 }
