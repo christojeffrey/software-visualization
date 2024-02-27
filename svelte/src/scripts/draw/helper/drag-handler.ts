@@ -1,6 +1,6 @@
 import type { GraphDataNode } from '../../../types';
 
-const slowAlpha = 0.001;
+const slowAlpha = 0.7;
 export function dragStartedNode(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	event: any,

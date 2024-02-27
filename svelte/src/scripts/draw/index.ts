@@ -144,10 +144,11 @@ export function draw(
 	setupGradient(svg);
 
 	const simulation = d3.forceSimulation(graphData.nodes);
-	simulation.force('charge', d3.forceManyBody().strength(-3000));
+	simulation.force('charge', d3.forceManyBody().strength(-1000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
+	// TODO: Just draw the links here, without any forces
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
@@ -200,20 +201,19 @@ export function draw(
 		linkLabelElements = addLinkLabelElements(linkContainer);
 	}
 
-	const linkSimulation = d3
-		.forceSimulation(graphData.flattenNodes)
-		.force(
-			'link',
-			d3
-				.forceLink(graphData.links)
-				.id((node) => {
-					return (node as GraphDataNode).id;
-				})
-				.strength(0)
-		)
-		.on('tick', () => {
-			linkTicked(graphData.links, linkElements, linkLabelElements);
-		});
+	const linkSimulation = d3.forceSimulation([]);
+	// .force(
+	// 	'link',
+	// 	d3
+	// 		.forceLink(graphData.links)
+	// 		.id((node) => {
+	// 			return (node as GraphDataNode).id;
+	// 		})
+	// 		.strength(0)
+	// )
+	// .on('tick', () => {
+	// 	linkTicked(graphData.links, linkElements, linkLabelElements);
+	// });
 	simulations.push(linkSimulation);
 
 	// create inner simulation.
