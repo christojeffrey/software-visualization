@@ -1,11 +1,11 @@
 // PLAN B CHARGE FORCE!
 
 import * as d3 from "d3";
-import type { simluationLinkType, simluationNodeDatumType } from "./types";
+import type { simulationLinkType, simulationNodeDatumType } from "./types";
 
-interface simluationNodeDatumTypeExt extends simluationNodeDatumType {
+interface simulationNOdeDatumTypeExt extends simulationNodeDatumType {
 	treeData?: {
-		targets: Map<simluationNodeDatumType, number>; // Store nodes at lower level
+		targets: Map<simulationNodeDatumType, number>; // Store nodes at lower level
 		level: number; // The depth of the node in the tree
 	}
 };
@@ -18,14 +18,14 @@ interface simluationNodeDatumTypeExt extends simluationNodeDatumType {
  * 
  * TODO move to parser
  * */ 
-function findArboricity(nodes: simluationNodeDatumTypeExt[]) {
+function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 	// Helper functions
-	function getOutLinks(node: simluationNodeDatumTypeExt): simluationLinkType[] {
+	function getOutLinks(node: simulationNOdeDatumTypeExt): simulationLinkType[] {
 		return node.members.flatMap(m => getOutLinks(m))
 		.concat(node.outgoingLinks ?? []);
 	};
 
-	function getCompoundNode(node: simluationNodeDatumType): simluationNodeDatumType {
+	function getCompoundNode(node: simulationNodeDatumType): simulationNodeDatumType {
 		if (nodes.includes(node)) {
 			return node;
 		} else if (node.parent) {
@@ -36,7 +36,7 @@ function findArboricity(nodes: simluationNodeDatumTypeExt[]) {
 	}
 
 	// (Works in place!)
-	function liftOutLinks(node: simluationNodeDatumTypeExt, links: simluationLinkType[]) {
+	function liftOutLinks(node: simulationNOdeDatumTypeExt, links: simulationLinkType[]) {
 		links.forEach((link) => {
 			const outNode = getCompoundNode(link.target);
 			if (outNode !== node) {
@@ -58,20 +58,20 @@ function findArboricity(nodes: simluationNodeDatumTypeExt[]) {
 	});
 
 	// Get node with maximum outgoing connections, we assume this is the root of the first arboricity.
-	const findRootReduce = (a: simluationNodeDatumTypeExt, node: simluationNodeDatumTypeExt) => 
+	const findRootReduce = (a: simulationNOdeDatumTypeExt, node: simulationNOdeDatumTypeExt) => 
 		node.treeData!.targets.size > a.treeData!.targets.size ? node : a;
 	const initialRoot = nodes.reduce(findRootReduce);
 	initialRoot.treeData!.level = 0;
 
 	// Set up hull data
-	const nodesCovered = new Set<simluationNodeDatumTypeExt>();
-	const levelMap = new Map<number, Set<simluationNodeDatumTypeExt>>(); // Necacary for calculating force strength eventually.
+	const nodesCovered = new Set<simulationNOdeDatumTypeExt>();
+	const levelMap = new Map<number, Set<simulationNOdeDatumTypeExt>>(); // Necacary for calculating force strength eventually.
 
 	/**
 	 * Helper function, to caculate arboricity/tree structure (Greedy algorithm)
 	 * Assumes everything is connected
 	 * */
-	function calculateTree(node: simluationNodeDatumTypeExt, level: number): void {
+	function calculateTree(node: simulationNOdeDatumTypeExt, level: number): void {
 		// Add current node to cover
 		node.treeData!.level = level;
 		if (levelMap.has(level)) {
@@ -81,7 +81,7 @@ function findArboricity(nodes: simluationNodeDatumTypeExt[]) {
 		};
 		nodesCovered.add(node);
 
-		let options : {weigth: number; target: simluationNodeDatumTypeExt; level: number}[] = [];
+		let options : {weigth: number; target: simulationNOdeDatumTypeExt; level: number}[] = [];
 		do {
 			options = [];
 			nodesCovered.forEach((n) => {
@@ -120,9 +120,9 @@ function findArboricity(nodes: simluationNodeDatumTypeExt[]) {
 	return levelMap;
 }
 
-export function addStaticTreeLayout(nodes: simluationNodeDatumType[], simulation: d3.Simulation<simluationNodeDatumType, undefined>) {
+export function addStaticTreeLayout(nodes: simulationNodeDatumType[], simulation: d3.Simulation<simulationNodeDatumType, undefined>) {
     const levelMap = findArboricity(nodes);
-    const treeForce = d3.forceY((d: simluationNodeDatumTypeExt) => {
+    const treeForce = d3.forceY((d: simulationNOdeDatumTypeExt) => {
         let res = 30;
         for (let i = 0; i < d.treeData!.level; i++) {
             let maxHeight = 0;
