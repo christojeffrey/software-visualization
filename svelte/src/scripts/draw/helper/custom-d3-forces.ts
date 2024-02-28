@@ -37,8 +37,8 @@ export function rectangleCollideForce(): Force<GraphDataNode, undefined>  {
                 y: topLefty + node.height,
             },
             middle: {
-                x: topLeftx + node.width,
-                y: topLefty + node.height,
+                x: topLeftx + 0.5*node.width,
+                y: topLefty + 0.5*node.height,
             },
             width: node.width,
             height: node.height,
