@@ -103,7 +103,7 @@
 					handleNodeCollapseClick,
 					handleDependencyLiftClick
 				);
-				simulations = result.simulations;
+				simulations = result.simulations.map(s => s.simulation);
 				doRedraw = false;
 			}
 		}

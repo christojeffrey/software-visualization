@@ -1,13 +1,13 @@
 import * as d3 from 'd3';
 
-import type { DrawSettingsInterface, GraphDataEdgeD3, GraphDataNode } from '$types';
+import type { AllSimulationData, DrawSettingsInterface, GraphDataEdgeD3, GraphDataNode } from '$types';
 import { toHTMLToken } from '$helper';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 
 export function addNodeContainerElements(
 	parent: d3.Selection<SVGGElement, unknown, null, undefined>,
 	graphDataNodes: GraphDataNode[],
-	allSimulation: d3.Simulation<GraphDataNode, undefined>[]
+	allSimulation: AllSimulationData
 ) {
 	// add node container and drag handler
 	const temp = parent

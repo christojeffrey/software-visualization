@@ -119,3 +119,9 @@ export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	x: number;
 	y: number;
 }
+
+export type AllSimulationData = {
+	simulation: d3.Simulation<GraphDataNode, undefined>;
+	isLeaf: boolean;
+	level: number;
+}[];

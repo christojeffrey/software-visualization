@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { toHTMLToken } from '$helper';
 import type {
+	AllSimulationData,
 	ConfigInterface,
 	DrawSettingsInterface,
 	GraphData,
@@ -72,13 +73,28 @@ function makeSimulationLinks(
 	return result;
 }
 
+async function timeSimulations(allSimulation: AllSimulationData,) {
+	const sleep = (m: number) => new Promise(r => setTimeout(r, m))
+
+	const leafSimulations = allSimulation.filter(({isLeaf}) => isLeaf)
+	leafSimulations.forEach(({simulation}) => {
+		simulation.restart();
+	});
+	await sleep(1000);
+	leafSimulations.forEach(({simulation}) => { 
+		simulation.stop();
+	});
+	const outerSimulations = allSimulation.filter(({isLeaf}) => !isLeaf);
+	outerSimulations.forEach(({simulation}) => simulation.restart())
+}
+
 function createInnerSimulation(
 	level: number,
 	nodes: GraphDataNode[], // Nodes in the inner simulation
 	allLinks: GraphDataEdge[], // All links, including those outside the simulation
 	allNodes: GraphDataNode[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
-	allSimulation: d3.Simulation<GraphDataNode, undefined>[],
+	allSimulation: AllSimulationData,
 	parentNode: GraphDataNode,
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
@@ -94,7 +110,7 @@ function createInnerSimulation(
 	}
 
 	// create simulation and add forces
-	const innerSimulation = d3.forceSimulation(nodes);
+	const innerSimulation = d3.forceSimulation(nodes).stop();
 	innerSimulation.force('collide', rectangleCollideForce());
 
 	const useRadialLayout =
@@ -121,7 +137,7 @@ function createInnerSimulation(
 		innerSimulation.force('y', d3.forceY());
 		innerSimulation.force('tree', downForce());
 	}
-	allSimulation.push(innerSimulation);
+	allSimulation.push({simulation: innerSimulation, isLeaf: useRadialLayout, level: parentNode.level});
 
 	// add elements
 	const parentElement = canvas.select(`#${toHTMLToken(parentNode.id)}`).append('g');
@@ -151,16 +167,16 @@ function createInnerSimulation(
 
 	const innerLinks = makeSimulationLinks(allLinks, nodes, allNodes, parentNode);
 	
-		innerSimulation
-			.force(
-				'link',
-				d3
-					.forceLink(innerLinks)
-					.id((node) => {
-						return (node as GraphDataNode).id;
-					})
-					.strength(0)
-			);
+	innerSimulation
+		.force(
+			'link',
+			d3
+				.forceLink(innerLinks)
+				.id((node) => {
+					return (node as GraphDataNode).id;
+				})
+				.strength(0)
+		);
 	
 	const linkContainer = addLinkContainerElements(canvas, innerLinks, drawSettings);
 	const linkElements = addLinkElements(linkContainer);
@@ -205,7 +221,7 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
-	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
+	const simulations: AllSimulationData = [];
 
 	const svg = d3
 		.select(svgElement)
@@ -214,7 +230,7 @@ export function draw(
 
 	setupGradient(svg);
 
-	const simulation = d3.forceSimulation(graphData.nodes);
+	const simulation = d3.forceSimulation(graphData.nodes).stop();
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
@@ -230,7 +246,7 @@ export function draw(
 		);
 	});
 
-	simulations.push(simulation);
+	simulations.push({simulation: simulation, isLeaf: false, level: 0});
 
 	const canvas = svg.append('g').attr('id', 'node-canvas');
 
@@ -336,6 +352,9 @@ export function draw(
 			`translate(${drawSettings.transformation.x}, ${drawSettings.transformation.y}) scale(${drawSettings.transformation.k})`
 		);
 	}
+
+	// Run the simulations
+	timeSimulations(simulations);
 
 	return {
 		simulations,
