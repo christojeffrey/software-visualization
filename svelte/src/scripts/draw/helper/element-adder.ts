@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode } from '$types';
+import type { DrawSettingsInterface, GraphDataEdgeD3, GraphDataNode } from '$types';
 import { toHTMLToken } from '$helper';
 import { dragEndedNode, dragStartedNode, draggedNode } from './drag-handler';
 
@@ -106,7 +106,7 @@ export function addLiftEdgeButtonElements(
 
 export function addLinkContainerElements(
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
-	graphDataLinks: GraphDataEdge[],
+	graphDataLinks: GraphDataEdgeD3[],
 	drawSettings: DrawSettingsInterface
 ) {
 	return canvas
@@ -121,13 +121,13 @@ export function addLinkContainerElements(
 }
 
 export function addLinkElements(
-	linkContainerElements: d3.Selection<SVGGElement, GraphDataEdge, SVGGElement, unknown>
+	linkContainerElements: d3.Selection<SVGGElement, GraphDataEdgeD3, SVGGElement, unknown>
 ) {
 	return linkContainerElements.append('path').attr('class', 'link');
 }
 
 export function addLinkLabelElements(
-	linkContainerElements: d3.Selection<SVGGElement, GraphDataEdge, SVGGElement, unknown>
+	linkContainerElements: d3.Selection<SVGGElement, GraphDataEdgeD3, SVGGElement, unknown>
 ) {
 	return linkContainerElements
 		.append('text')

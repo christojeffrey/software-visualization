@@ -78,8 +78,8 @@ export interface GraphData {
 	flattenNodes: GraphDataNode[];
 }
 export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
-	source: GraphDataNode;
-	target: GraphDataNode;
+	source: string; // What the d3 force simulation considers to be the source node
+	target: string;
 	id: string;
 	type: EdgeType;
 	weight: number;
@@ -87,6 +87,14 @@ export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
 }
+
+export interface GraphDataEdgeD3 extends Omit<GraphDataEdge, 'source'|'target'> {
+	source: GraphDataNode; // What the d3 force simulation considers to be the source node
+	target: GraphDataNode;
+	realSource: GraphDataNode; // Actual source node
+	realTarget: GraphDataNode;
+}
+
 export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	// initial data
 	id: string;
@@ -94,6 +102,7 @@ export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	// bellow is initial data but already a Reference.
 	members?: GraphDataNode[];
 	parent?: GraphDataNode;
+	ancestors?: GraphDataNode[];
 
 	outgoingLinks?: GraphDataEdge[];
 	incomingLinks?: GraphDataEdge[];

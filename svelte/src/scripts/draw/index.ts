@@ -5,6 +5,7 @@ import type {
 	DrawSettingsInterface,
 	GraphData,
 	GraphDataEdge,
+	GraphDataEdgeD3,
 	GraphDataNode
 } from '$types';
 
@@ -25,9 +26,57 @@ import { innerTicked, linkTicked, masterSimulationTicked } from './helper/tick';
 const SVGSIZE = 800;
 const SVGMARGIN = 50;
 
+/**
+ * Filters and maps links to make them suitable to use for a linkforce within a simulation (inner or outer)
+ * Every link will only be present in the innermost simulation where it can exists, meaning the simulation 
+ * corresponding to the node which is the least common ancestor to the source and target node.
+ * 
+ * WARNING: The resulting object will contain IDs rather than links. However, D3 will replace them with 
+ * objects in place if this method is used as intended, hence the incorrect return type.
+ */
+function makeSimulationLinks(
+	links: GraphDataEdge[], 
+	simulationNodes: GraphDataNode[], // Nodes present in the simulation of parentNode 
+	allNodes: GraphDataNode[], // All nodes (flattened)
+	parentNode?: GraphDataNode, // Leave undefined for mastersimulation
+): GraphDataEdgeD3[] {
+	/** Returns the id of the ancestor of node s, present in the given nodeList */
+	function findIdInNodeList(s: string, nodeList: GraphDataNode[] = simulationNodes): string | undefined {
+		return nodeList.find(n => n.id === s || findIdInNodeList(s, n.members ?? []))?.id
+	}
+
+	/** Checks if parentNode is the least common ancestor of the 2 given nodes */
+	function parentIsLCA(id1: string, id2: string) {
+		const n1 = allNodes.find(n => n.id === id1)!;
+		const n2 = allNodes.find(n => n.id === id2)!;
+		const zipped = [n1, ...n1.ancestors!].map((e, i) => [e, [n2, ...n2.ancestors!][i]])
+		const parentId = zipped.findLast(n => n[0]?.id === n[1]?.id)?.[0]?.id;
+		return parentId === parentNode?.id;
+	}
+
+	// @ts-expect-error See method description.
+	const result: GraphDataEdgeD3[] = links.flatMap((l => {	
+		const source = findIdInNodeList(l.source);
+		const target = findIdInNodeList(l.target);
+		if (parentIsLCA(l.source, l.target)) {
+			return [{...l,
+				source: source,
+				target: target,
+				realSource: allNodes.find(n => n.id === l.source),
+				realTarget: allNodes.find(n => n.id === l.target),
+			}]
+		} else {
+			return [];
+		}
+	}));
+	return result;
+}
+
 function createInnerSimulation(
 	level: number,
-	nodes: GraphDataNode[],
+	nodes: GraphDataNode[], // Nodes in the inner simulation
+	allLinks: GraphDataEdge[], // All links, including those outside the simulation
+	allNodes: GraphDataNode[],
 	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	allSimulation: d3.Simulation<GraphDataNode, undefined>[],
 	parentNode: GraphDataNode,
@@ -72,17 +121,6 @@ function createInnerSimulation(
 		innerSimulation.force('y', d3.forceY());
 		innerSimulation.force('tree', downForce());
 	}
-	// add on tick handler
-	innerSimulation.on('tick', () => {
-		innerTicked(
-			drawSettings,
-			membersContainerElement,
-			memberElements,
-			memberLabelElements,
-			collapseButtonElements,
-			liftButtonElements
-		);
-	});
 	allSimulation.push(innerSimulation);
 
 	// add elements
@@ -111,12 +149,43 @@ function createInnerSimulation(
 		onLift
 	);
 
+	const innerLinks = makeSimulationLinks(allLinks, nodes, allNodes, parentNode);
+	
+		innerSimulation
+			.force(
+				'link',
+				d3
+					.forceLink(innerLinks)
+					.id((node) => {
+						return (node as GraphDataNode).id;
+					})
+					.strength(0)
+			);
+	
+	const linkContainer = addLinkContainerElements(canvas, innerLinks, drawSettings);
+	const linkElements = addLinkElements(linkContainer);
+
+	// add on tick handler
+	innerSimulation.on('tick', () => {
+		linkTicked(innerLinks, linkElements, undefined),
+		innerTicked(
+			drawSettings,
+			membersContainerElement,
+			memberElements,
+			memberLabelElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
+	});
+	
 	// recursive inner simulation.
 	for (let i = 0; i < nodes.length; i++) {
 		if (nodes[i].members) {
 			createInnerSimulation(
 				level + 1,
 				nodes[i].members ?? [],
+				allLinks,
+				allNodes,
 				canvas,
 				allSimulation,
 				nodes[i],
@@ -189,39 +258,60 @@ export function draw(
 	const liftButtonElements = addLiftEdgeButtonElements(containerElements, drawSettings, onLift);
 
 	// LINK
+	const links = makeSimulationLinks(graphData.links, graphData.nodes, graphData.flattenNodes, undefined);
+
 	// add link container elements
-	const linkContainer = addLinkContainerElements(canvas, graphData.links, drawSettings);
+	const linkContainer = addLinkContainerElements(canvas, links, drawSettings);
 
 	// add link elements
 	const linkElements = addLinkElements(linkContainer);
 
 	// handle show edge labels
-	let linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdge, SVGGElement, unknown>;
+	let linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdgeD3, SVGGElement, unknown>;
 	if (drawSettings.showEdgeLabels) {
 		linkLabelElements = addLinkLabelElements(linkContainer);
 	}
 
-	const linkSimulation = d3
-		.forceSimulation(graphData.flattenNodes)
+	// Link helper functions
+	function findNode (n: GraphDataNode): GraphDataNode {
+		return graphData.nodes.includes(n) ? n : findNode(n.parent!);
+	}
+	function findNodeId(s: string): string {
+		const node = graphData.nodes.find(n => n.id === s);
+		return node ? node.id : findNodeId(
+			graphData.flattenNodes.find(n => n.id === s)!.parent!.id
+		);
+	}
+	simulation
 		.force(
 			'link',
 			d3
-				.forceLink(graphData.links)
+				.forceLink(links)
 				.id((node) => {
-					return (node as GraphDataNode).id;
+					return findNode(node as GraphDataNode).id;
 				})
 				.strength(0)
 		)
 		.on('tick', () => {
-			linkTicked(graphData.links, linkElements, linkLabelElements);
+			linkTicked(links, linkElements, linkLabelElements);
+			masterSimulationTicked(
+				graphData,
+				containerElements,
+				nodeElements,
+				drawSettings,
+				nodeLabelsElements,
+				collapseButtonElements,
+				liftButtonElements
+			);
 		});
-	simulations.push(linkSimulation);
 
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		createInnerSimulation(
 			1,
 			graphData.nodes[i].members ?? [], // handle when members is undefined (has no member)
+			graphData.links,
+			graphData.flattenNodes,
 			canvas,
 			simulations,
 			graphData.nodes[i],

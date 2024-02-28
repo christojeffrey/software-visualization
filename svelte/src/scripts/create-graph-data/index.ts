@@ -18,6 +18,17 @@ function assignParentReference(nodes: GraphDataNode[]) {
 			assignParentReference(node.members);
 		}
 	});
+	nodes.forEach((node) => {
+		const result: GraphDataNode[] = [];
+		const recurse = (n: GraphDataNode) => {
+			if (n.parent) {
+				result.push(n.parent);
+				recurse(n.parent)
+			}
+		}
+		recurse(node);
+		node.ancestors = result;
+	});
 }
 
 function assignLinkReference(
