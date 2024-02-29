@@ -103,8 +103,6 @@ export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 
 	width: number;
 	height: number;
-	cx: number;
-	cy: number;
 
 	// injected by d3
 	x: number;
