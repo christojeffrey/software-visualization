@@ -92,7 +92,6 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 		link.source = newSource;
 		link.target = newTarget;
 	});
-	console.log(duplicateLinks);
 	// Combine weight
 	combineWeights(duplicateLinks);
 

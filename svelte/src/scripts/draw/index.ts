@@ -8,7 +8,7 @@ import type {
 	GraphDataNode
 } from '$types';
 
-import { radialClampForce, rectangleCollideForce } from './helper/custom-d3-forces';
+import { downForce, radialClampForce, rectangleCollideForce } from './helper/custom-d3-forces';
 import {
 	addCollapseNodeButtonElements,
 	addLiftEdgeButtonElements,
@@ -35,6 +35,8 @@ function createInnerSimulation(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	if (nodes.length < 1) return;
+
 	// use this instead of forEach so that it is passed by reference.
 
 	// bind for easy reference.
@@ -66,9 +68,9 @@ function createInnerSimulation(
 			})
 		);
 	} else {
-		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
+		innerSimulation.force('tree', downForce());
 	}
 	// add on tick handler
 	innerSimulation.on('tick', () => {
@@ -144,7 +146,6 @@ export function draw(
 	setupGradient(svg);
 
 	const simulation = d3.forceSimulation(graphData.nodes);
-	simulation.force('charge', d3.forceManyBody().strength(-3000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
