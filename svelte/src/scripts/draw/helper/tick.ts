@@ -1,6 +1,7 @@
 import type { DrawSettingsInterface, GraphData, GraphDataEdgeD3, GraphDataNode } from '$types';
 
 export function innerTicked(
+	nodes: GraphDataNode[],
 	drawSettings: DrawSettingsInterface,
 	membersContainerElement: d3.Selection<SVGGElement, GraphDataNode, SVGGElement, unknown>,
 	memberElements: d3.Selection<SVGRectElement, GraphDataNode, SVGGElement, unknown>,
@@ -8,6 +9,12 @@ export function innerTicked(
 	collapseButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
 	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>
 ) {
+	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
+
+	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
+	updateNodePosition(nodes, PADDING, drawSettings.minimumNodeSize);
+
+
 	membersContainerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
 	memberElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
 	memberElements.attr('x', (d) => d.cx).attr('y', (d) => d.cy);
@@ -41,7 +48,7 @@ export function linkTicked(
 		};
 	} = {};
 	edges.forEach((d) => {
-		// callculate once here change to global coordinates.
+		// calculate once here change to global coordinates.
 		// calculate new source
 		const newLocation = {
 			x1: d.realSource.x || 0,
@@ -103,44 +110,7 @@ export function masterSimulationTicked(
 	const PADDING = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
 
 	// calculate nodes width and height, x and y. only do this calculation once, on master simulation
-	for (let i = 0; i < graphData.flattenNodes.length; i++) {
-		const hasMembers = (graphData.flattenNodes[i].members ?? []).length > 0;
-		if (hasMembers) {
-			const members = graphData.flattenNodes[i].members ?? [];
-			// members location is relative to the parent.
-			let minX = members[0].x + members[0].cx;
-			let maxX = members[0].x + members[0].cx + members[0].width;
-			let minY = members[0].y + members[0].cy;
-			let maxY = members[0].y + members[0].cy + members[0].height;
-
-			for (let j = 0; j < members.length; j++) {
-				if (members[j].x + members[j].cx < minX) {
-					minX = members[j].x;
-				}
-				if (members[j].x + members[j].cx + members[j].width > maxX) {
-					maxX = members[j].x + members[j].cx + members[j].width;
-				}
-				if (members[j].y + members[j].cy < minY) {
-					minY = members[j].y + members[j].cy;
-				}
-				if (members[j].y + members[j].cy + members[j].height > maxY) {
-					maxY = members[j].y + members[j].cy + members[j].height;
-				}
-			}
-
-			graphData.flattenNodes[i].width = maxX - minX + PADDING * 2;
-			graphData.flattenNodes[i].height = maxY - minY + PADDING * 2;
-			// stands for calculated x and y.
-			graphData.flattenNodes[i].cx = minX - PADDING;
-			graphData.flattenNodes[i].cy = minY - PADDING;
-		} else {
-			graphData.flattenNodes[i].width = drawSettings.minimumNodeSize;
-			graphData.flattenNodes[i].height = drawSettings.minimumNodeSize;
-			//   stands for calculated x and y.
-			graphData.flattenNodes[i].cx = 0;
-			graphData.flattenNodes[i].cy = 0;
-		}
-	}
+	updateNodePosition(graphData.nodes, PADDING, drawSettings.minimumNodeSize);
 
 	containerElement.attr('transform', (d) => {
 		return `translate(${d.x || 0},${d.y || 0})`;
@@ -165,5 +135,49 @@ export function masterSimulationTicked(
 		liftButtonElements
 			.attr('cx', (d) => (d.cx || 0) + (d.width || 0) - 1.5 * drawSettings.buttonRadius)
 			.attr('cy', (d) => (d.cy || 0) + (drawSettings.nodePadding || 0) + drawSettings.buttonRadius);
+	}
+}
+
+function updateNodePosition(nodes: GraphDataNode[], PADDING: number, minimumNodeSize: number) {
+	for (let i = 0; i < nodes.length; i++) {
+		const hasMembers = (nodes[i].members ?? []).length > 0;
+		if (hasMembers) {
+			const members = nodes[i].members ?? [];
+			// members location is relative to the parent.
+			let minX = members[0].x + members[0].cx;
+			let maxX = members[0].x + members[0].cx + members[0].width;
+			let minY = members[0].y + members[0].cy;
+			let maxY = members[0].y + members[0].cy + members[0].height;
+
+			for (let j = 0; j < members.length; j++) {
+				if (members[j].x + members[j].cx < minX) {
+					minX = members[j].x;
+				}
+				if (members[j].x + members[j].cx + members[j].width > maxX) {
+					maxX = members[j].x + members[j].cx + members[j].width;
+				}
+				if (members[j].y + members[j].cy < minY) {
+					minY = members[j].y + members[j].cy;
+				}
+				if (members[j].y + members[j].cy + members[j].height > maxY) {
+					maxY = members[j].y + members[j].cy + members[j].height;
+				}
+			}
+
+			if (Number.isNaN(maxX) || Number.isNaN(maxY) || Number.isNaN(minX) || Number.isNaN(minY) || Number.isNaN(minimumNodeSize)) {
+				console.error('Unexpected NaN');
+			}
+			nodes[i].width = maxX - minX + PADDING * 2;
+			nodes[i].height = maxY - minY + PADDING * 2;
+			// stands for calculated x and y.
+			nodes[i].cx = minX - PADDING;
+			nodes[i].cy = minY - PADDING;
+		} else {
+			nodes[i].width = minimumNodeSize;
+			nodes[i].height = minimumNodeSize;
+			//   stands for calculated x and y.
+			nodes[i].cx = 0;
+			nodes[i].cy = 0;
+		}
 	}
 }

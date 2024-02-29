@@ -1,6 +1,6 @@
 
 import type {Force} from "d3";
-import type { GraphDataNode, GraphDataEdge } from "$types";
+import type { GraphDataNode, GraphDataEdgeD3 } from "$types";
 
 /**
  * Creates a rectangular collison force across all nodes
@@ -51,13 +51,13 @@ export function rectangleCollideForce(): Force<GraphDataNode, undefined>  {
             * 20; // random magic number
     }
 
-    // actual force calulation
+    // actual force calculation
 	function force(alpha: number) {
         // Loop through all nodes for collision check
 		for (let i = 0; i < nodes.length; i++) {
 			for (let j = i + 1; j < nodes.length; j++) {
                 if (nodes[i].x && nodes[i].y && nodes[j].x && nodes[j].y) {
-                    // Caclulate x and y position of the top-left and bottom-right corner of the node, and middle position.
+                    // Calculate x and y position of the top-left and bottom-right corner of the node, and middle position.
                     const node1 = makeSquare(nodes[i]);
 				    const node2 = makeSquare(nodes[j]);
                     
@@ -183,7 +183,7 @@ export function radialClampForce(
 
 export function downForce(): Force<GraphDataNode, undefined> {
     let nodes: GraphDataNode[]; 
-    const nodeMap: Map<string, Set<GraphDataEdge>> = new Map();
+    const nodeMap: Map<string, Set<GraphDataEdgeD3>> = new Map();
 
     function force(alpha: number) {
         nodes.forEach((node) => {

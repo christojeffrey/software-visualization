@@ -73,19 +73,35 @@ function makeSimulationLinks(
 	return result;
 }
 
-async function timeSimulations(allSimulation: AllSimulationData,) {
-	const sleep = (m: number) => new Promise(r => setTimeout(r, m))
+/**
+ * Restart the given simulations in specified order
+ */
+async function timeSimulations(allSimulation: AllSimulationData) {
+	// Helper function, so we can use await to set a timeout 
+	// (yes, js does not provide this out of the box afaik 🙄 ...)
+	const sleep = (m: number) => new Promise(r => setTimeout(r, m));
 
+	// Filter for 3 levels: top (mastersimulation only), 
+	// middle (any non-leaf, non-master simulation) and leaf (simulation with no sub-simulation)
 	const leafSimulations = allSimulation.filter(({isLeaf}) => isLeaf)
+	const middleSimulations = allSimulation.filter(({isLeaf, level}) => level != 0 && !isLeaf);
+	const masterSimulations = allSimulation.filter(({isLeaf, level}) => !isLeaf && level === 0);
+
+	// First run leaf simulations
 	leafSimulations.forEach(({simulation}) => {
 		simulation.restart();
 	});
-	await sleep(1000);
+
+	// Then middle
+	await sleep(5000);
 	leafSimulations.forEach(({simulation}) => { 
 		simulation.stop();
 	});
-	const outerSimulations = allSimulation.filter(({isLeaf}) => !isLeaf);
-	outerSimulations.forEach(({simulation}) => simulation.restart())
+	middleSimulations.forEach(({simulation}) => simulation.restart())
+
+	// Last: Master
+	await sleep(5000);
+	masterSimulations.forEach(({simulation}) => simulation.restart());
 }
 
 function createInnerSimulation(
@@ -185,6 +201,7 @@ function createInnerSimulation(
 	innerSimulation.on('tick', () => {
 		linkTicked(innerLinks, linkElements, undefined),
 		innerTicked(
+			nodes,
 			drawSettings,
 			membersContainerElement,
 			memberElements,
