@@ -3,7 +3,7 @@ export type { RawInputType } from './raw-data';
 export interface ConfigInterface {
 	dependencyLifting: {
 		node: GraphDataNode;
-		depth: number;
+		sensitivity: number;
 	}[];
 	dependencyTolerance: number;
 	collapsedNodes: GraphDataNode[];
@@ -94,14 +94,17 @@ export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	id: string;
 	level: number;
 	// bellow is initial data but already a Reference.
-	members?: GraphDataNode[];
+	members: GraphDataNode[];
 	parent?: GraphDataNode;
 
-	outgoingLinks?: GraphDataEdge[];
-	incomingLinks?: GraphDataEdge[];
+	outgoingLinks: GraphDataEdge[];
+	incomingLinks: GraphDataEdge[];
+
+	originalOutgoingLinks: GraphDataEdge[];
+	originalIncomingLinks: GraphDataEdge[];
 
 	// created by draw steps
-	originalMembers?: GraphDataNode[];
+	originalMembers: GraphDataNode[];
 
 	width: number;
 	height: number;

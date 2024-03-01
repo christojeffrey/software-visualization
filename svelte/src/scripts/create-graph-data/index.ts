@@ -16,6 +16,7 @@ function assignParentReference(nodes: GraphDataNode[]) {
 				arr[index].parent = node;
 			});
 			assignParentReference(node.members);
+			node.originalMembers = node.members;
 		}
 	});
 }
@@ -30,12 +31,11 @@ function assignLinkReference(
 		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
 
 		const graphDataLink = link as unknown as GraphDataEdge;
-		graphDataFlattenNodes[sourceIndex].outgoingLinks
-			? graphDataFlattenNodes[sourceIndex].outgoingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[sourceIndex].outgoingLinks = [graphDataLink]);
-		graphDataFlattenNodes[targetIndex].incomingLinks
-			? graphDataFlattenNodes[targetIndex].incomingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[targetIndex].incomingLinks = [graphDataLink]);
+		graphDataFlattenNodes[sourceIndex].outgoingLinks.push(graphDataLink);
+		graphDataFlattenNodes[sourceIndex].originalOutgoingLinks.push(graphDataLink);
+
+		graphDataFlattenNodes[targetIndex].incomingLinks.push(graphDataLink);
+		graphDataFlattenNodes[targetIndex].originalIncomingLinks.push(graphDataLink);
 	});
 }
 
@@ -50,6 +50,14 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
 
 	assignParentReference(graphDataNodes);
+
+	// add originalIncoming and outgoingLinks
+	graphDataFlattenNodes.forEach((node) => {
+		node.outgoingLinks = [];
+		node.originalOutgoingLinks = [];
+		node.incomingLinks = [];
+		node.originalIncomingLinks = [];
+	});
 
 	assignLinkReference(links, flattenNodes, graphDataFlattenNodes);
 

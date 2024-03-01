@@ -59,6 +59,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 			}
 		});
 	}
+	console.log(nodes);
 	return {
 		nodes,
 		links

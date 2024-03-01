@@ -20,9 +20,6 @@ export function draggedNode(event: any, simulations: d3.Simulation<GraphDataNode
 		simulation.alpha(slowAlpha).restart();
 	});
 
-	console.log('draggedNode', new Date());
-	console.log(event.x, event.y);
-	console.log(event);
 	event.subject.x = event.x;
 	event.subject.y = event.y;
 }
