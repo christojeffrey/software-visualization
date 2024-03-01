@@ -40,43 +40,35 @@ export function doUncollapseNodes(clickedNode: GraphDataNode) {
 }
 export function doCollapseNodes(config: ConfigInterface, graphData: GraphData) {
 	config.collapsedNodes.forEach((collapsedNode) => {
-		// find collapsed node in the nodes
-		const collapsedNodeIndex = graphData.flattenNodes.findIndex(
-			(node) => node.id === collapsedNode.id
-		);
 		// flatten the children
-		const flatChildrenId = flattenNode(
-			graphData.flattenNodes[collapsedNodeIndex].members ?? []
-		).map((node) => node.id);
+		const flatChildrenId = flattenNode(collapsedNode.members ?? []).map((node) => node.id);
 
 		// A. add new attribute, which is 'originalMembers'
-		graphData.flattenNodes[collapsedNodeIndex].originalMembers =
-			graphData.flattenNodes[collapsedNodeIndex].members;
-		delete graphData.flattenNodes[collapsedNodeIndex].members;
+		collapsedNode.originalMembers = collapsedNode.members;
+		delete collapsedNode.members;
 
 		const duplicateLinks: Map<string, GraphDataEdge[]> = new Map<string, GraphDataEdge[]>();
 		// B. redirect link. save the original link as 'originalSource' and 'originalTarget'. Combine the weights
 		graphData.links.forEach((link: GraphDataEdge) => {
 			// Check if link original source or target is parent
-			if (
-				link.source === graphData.flattenNodes[collapsedNodeIndex] ||
-				link.target === graphData.flattenNodes[collapsedNodeIndex]
-			) {
+			if (link.source === collapsedNode || link.target === collapsedNode) {
 				const key = `${link.source.id}-${link.target.id}`;
 				duplicateLinks.set(key, [...(duplicateLinks.get(key) ?? []), link]);
 			}
 			// redirect to parent
 			// check if source is in flatChildrenId
 			if (flatChildrenId.includes(link.source.id)) {
+				// backup original source
 				link.originalSource = link.source;
-				link.source = graphData.flattenNodes[collapsedNodeIndex];
+				link.source = collapsedNode;
 				const key = `${link.source.id}-${link.target.id}`;
 				duplicateLinks.set(key, [...(duplicateLinks.get(key) ?? []), link]);
 			}
 			// check if target is in flatChildrenId
 			if (flatChildrenId.includes(link.target.id)) {
+				// backup original source
 				link.originalTarget = link.target;
-				link.target = graphData.flattenNodes[collapsedNodeIndex];
+				link.target = collapsedNode;
 				const key = `${link.source.id}-${link.target.id}`;
 				duplicateLinks.set(key, [...(duplicateLinks.get(key) ?? []), link]);
 			}
