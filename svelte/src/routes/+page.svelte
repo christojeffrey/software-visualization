@@ -42,7 +42,8 @@
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
-		nodeColors: ['#32a875', '#d46868']
+		nodeColors: ['#32a875', '#d46868'],
+		disableAnimation: false
 	};
 	let svgElement: SVGElement | undefined = undefined;
 

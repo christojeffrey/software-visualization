@@ -20,6 +20,7 @@ export interface DrawSettingsInterface {
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
 	nodeColors: string[];
+	disableAnimation: boolean;
 	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 

@@ -215,8 +215,8 @@ export function draw(
 		.on('tick', () => {
 			linkTicked(graphData.links, linkElements, linkLabelElements);
 		});
-	simulations.push(linkSimulation);
 
+	simulations.push(linkSimulation);
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		createInnerSimulation(
@@ -229,6 +229,13 @@ export function draw(
 			onCollapse,
 			onLift
 		);
+	}
+
+	// disable alpha
+	if (drawSettings.disableAnimation) {
+		simulations.forEach((s) => {
+			s.alpha(0);
+		});
 	}
 
 	// Add zoom handler

@@ -63,6 +63,20 @@
 			{drawSettings.showNodeLabels ? 'Hide' : 'Show'}
 		</Toggle>
 	</div>
+	<!-- Enable/disable Animation -->
+	<div>
+		<Heading headingNumber={5}>Enable Animation</Heading>
+		<Toggle
+			class="ml-4"
+			onToggle={() => {
+				drawSettings.disableAnimation = !drawSettings.disableAnimation;
+				doRedraw = true;
+			}}
+			state={!drawSettings.disableAnimation}
+		>
+			{drawSettings.disableAnimation ? 'Disable' : 'Enable'}
+		</Toggle>
+	</div>
 
 	<!-- seperator -->
 	<div class="h-8" />
