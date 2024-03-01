@@ -86,8 +86,8 @@ export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	type: EdgeType;
 	weight: number;
 	originalWeight?: number;
-	originalSource?: GraphDataNode;
-	originalTarget?: GraphDataNode;
+	originalSource: GraphDataNode;
+	originalTarget: GraphDataNode;
 }
 export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	// initial data

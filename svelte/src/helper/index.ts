@@ -1,7 +1,7 @@
 import type { EdgeType, GraphDataEdge, SimpleNode } from '$types';
 
 // debugging purpose
-export function debuggingConsole(...args: never[]) {
+export function debuggingConsole(...args: unknown[]) {
 	if (import.meta.env.VITE_DEBUGGING_MODE === 'true') {
 		console.log(...args);
 	}

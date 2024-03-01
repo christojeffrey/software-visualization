@@ -1,24 +1,4 @@
-import type { ConvertedNode, ConfigInterface, GraphDataNode } from '$types';
-
-export interface FilteredNode extends ConvertedNode {
-	parent?: FilteredNode;
-}
-export function onDependencyLiftClick(
-	clickedNode: GraphDataNode,
-	config: ConfigInterface,
-	onFinish: () => void
-) {
-	// push if not exist
-	if (!config.dependencyLifting.find((nodeConfig) => nodeConfig.node.id === clickedNode.id)) {
-		config.dependencyLifting.push({ node: clickedNode, sensitivity: config.dependencyTolerance });
-	} else {
-		// remove if exist
-		config.dependencyLifting = config.dependencyLifting.filter(
-			(nodeConfig) => nodeConfig.node.id !== clickedNode.id
-		);
-	}
-	onFinish();
-}
+import type { ConfigInterface, GraphDataNode } from '$types';
 
 export function liftDependencies(config: ConfigInterface) {
 	config.dependencyLifting.forEach((nodeConfig) => {
@@ -41,16 +21,16 @@ export function redirectAllEdgeToDestinationNode(
 	if (nodeToBeRedirected.level - redirectDestination.level > sensitivity) {
 		// do redirect
 		nodeToBeRedirected.outgoingLinks.forEach((link) => {
-			link.originalSource = link.source;
 			link.source = redirectDestination;
 		});
 		nodeToBeRedirected.incomingLinks.forEach((link) => {
-			link.originalTarget = link.target;
 			link.target = redirectDestination;
 		});
 
-		redirectDestination.outgoingLinks.push(...(nodeToBeRedirected.outgoingLinks ?? []));
-		redirectDestination.incomingLinks.push(...(nodeToBeRedirected.incomingLinks ?? []));
+		redirectDestination.outgoingLinks.push(...nodeToBeRedirected.outgoingLinks);
+		redirectDestination.incomingLinks.push(...nodeToBeRedirected.incomingLinks);
+		nodeToBeRedirected.outgoingLinks = [];
+		nodeToBeRedirected.incomingLinks = [];
 	}
 
 	nodeToBeRedirected.members.forEach((member) => {
