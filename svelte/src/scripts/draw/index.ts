@@ -234,7 +234,7 @@ export function draw(
 	// disable alpha
 	if (drawSettings.disableAnimation) {
 		simulations.forEach((s) => {
-			s.alpha(0.001);
+			s.alpha(0.00001); // check slowAlpha for more detail.
 		});
 	}
 

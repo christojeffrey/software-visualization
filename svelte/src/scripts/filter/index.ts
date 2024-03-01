@@ -4,18 +4,19 @@ import { liftDependencies } from './lift-edges';
 
 export function filter(config: ConfigInterface, graphData: GraphData) {
 	// reset all
+	// TODO: add the reasoning for this inside the doc.
 	resetNodeMemberToOriginal(graphData.flattenNodes);
 	resetLinksSourceAndTargetToOriginal(graphData.links);
-
-	// handle collapsed vertices
-	doCollapseNodes(config);
-	// we want to collapse first. if we lift first, then collapse, links that are redirected to the father might be redirected back to him. scenario: lift to the grandparent, collapse the father.
-
+	// order doesn't matter here. TODO: add reasoning inside doc
 	// handle dependency lifting
 	liftDependencies(config);
+	// handle collapsed vertices
+	doCollapseNodes(config);
 }
 
-function doCombineEdgesWeight(config: ConfigInterface, graphData: GraphData) {}
+function doCombineEdgesWeight(config: ConfigInterface, graphData: GraphData) {
+	// TODO: impement this, and move it to another file
+}
 
 function resetNodeMemberToOriginal(nodes: GraphDataNode[]) {
 	nodes.forEach((node) => {

@@ -3,13 +3,11 @@ import { redirectAllEdgeToDestinationNode } from './lift-edges';
 
 export function doCollapseNodes(config: ConfigInterface) {
 	config.collapsedNodes.forEach((collapsedNode) => {
-		// B. redirect link
+		// redirect link
 		const redirectDestination = collapsedNode;
 		redirectAllEdgeToDestinationNode(redirectDestination, collapsedNode);
 
-		// A. remove the members
+		// remove the members
 		collapsedNode.members = [];
-
-		// Combine weight
 	});
 }

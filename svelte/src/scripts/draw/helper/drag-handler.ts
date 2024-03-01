@@ -1,6 +1,6 @@
 import type { GraphDataNode } from '../../../types';
 
-const slowAlpha = 0.001;
+const slowAlpha = 0.0001; // based on this: https://d3js.org/d3-force/simulation#simulation_alphaMin. we want the the alpha to be lower than alpha min (the default is 0.001) so that the animation is stopping. don't turn this into 0. it will crash after many ticks (try this by dragging the node for a long time).
 export function dragStartedNode(
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	event: any,
