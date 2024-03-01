@@ -14,6 +14,7 @@ export interface DrawSettingsInterface {
 	buttonRadius: number;
 	nodeCornerRadius: number;
 	nodePadding: number;
+	textSize: number;
 	shownEdgesType: Map<EdgeType, boolean>;
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;

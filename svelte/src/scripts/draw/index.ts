@@ -91,7 +91,7 @@ function createInnerSimulation(
 	// handle show node labels
 	let memberLabelElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		memberLabelElements = addNodeLabelElements(membersContainerElement);
+		memberLabelElements = addNodeLabelElements(membersContainerElement, drawSettings);
 	}
 
 	const memberElements = addNodeElements(membersContainerElement, drawSettings, level);
@@ -150,8 +150,6 @@ export function draw(
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
 	simulation.on('tick', () => {
-		// setTimeout(function () {
-		//your code to be executed after 1 second
 		masterSimulationTicked(
 			graphData,
 			containerElements,
@@ -161,7 +159,6 @@ export function draw(
 			collapseButtonElements,
 			liftButtonElements
 		);
-		// }, 100);
 	});
 
 	simulations.push(simulation);
@@ -175,7 +172,7 @@ export function draw(
 	// handle show node labels
 	let nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		nodeLabelsElements = addNodeLabelElements(containerElements);
+		nodeLabelsElements = addNodeLabelElements(containerElements, drawSettings);
 	}
 
 	// add node element
