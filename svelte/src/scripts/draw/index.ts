@@ -21,6 +21,7 @@ import {
 } from './helper/element-adder';
 import { setupGradient } from './helper/gradient-setup';
 import { innerTicked, linkTicked, masterSimulationTicked } from './helper/tick';
+import { customForceLink } from './helper/link-force';
 
 const SVGSIZE = 800;
 const SVGMARGIN = 50;

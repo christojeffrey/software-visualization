@@ -1,96 +1,70 @@
-import type { GraphDataEdge } from "$types";
-import type { Simulation } from "d3";
+import type { GraphDataEdge, GraphDataNode } from '$types';
+import type { Simulation, SimulationLinkDatum, SimulationNodeDatum } from 'd3';
 
-function index(d) {
-  return d.index;
+function index(d: SimulationNodeDatum) {
+	return d.index;
 }
 
-function find(nodeById, nodeId) {
-  const node = nodeById.get(nodeId);
-  if (!node) throw new Error("node not found: " + nodeId);
-  return node;
-}
+export function customForceLink(
+	links: GraphDataEdge[]
+): d3.ForceLink<d3.SimulationNodeDatum, d3.SimulationLinkDatum<GraphDataNode>> {
+	let id = index,
+		nodes: GraphDataNode[],
+		iterations = 1;
 
-export function customForceLink(links: GraphDataEdge[] | undefined): d3.ForceLink<d3.SimulationNodeDatum, GraphDataEdge> {
-  let id = index,
-      strength = 0,
-      strengths,
-      distance = 30,
-      distances,
-      nodes,
-      count,
-      bias,
-      random,
-      iterations = 1;
+	const strength = 0,
+		distance = 10;
 
-  if (links == null) links = [];
+	if (links == null) links = [];
 
-  function force(alpha) {
-    for (var k = 0, n = links.length; k < iterations; ++k) {
-      for (var i = 0, link, source, target, x, y, l, b; i < n; ++i) {
-        link = links[i], source = link.source, target = link.target;
-        x = target.x + target.vx - source.x - source.vx;
-        y = target.y + target.vy - source.y - source.vy;
-        l = Math.sqrt(x * x + y * y);
-      }
-    }
-  }
+	function force() {
+		for (let k = 0, n = links?.length; k < iterations; ++k) {
+			for (let i = 0, link, source, target, x, y, l; i < n; ++i) {
+				link = links[i];
+				console.log(link)
+				source = link.source;
+				target = link.target;
+				x = target.x - source.x;
+				y = target.y - source.y;
+				l = Math.sqrt(x * x + y * y);
+				x *= l;
+				y *= l;
+			}
+		}
+	}
 
-  function initialize() {
-    let i,
-        n = nodes.length,
-        m = links.length,
-        nodeById = new Map(nodes.map((d, i) => [id(d, i, nodes), d])),
-        link;
+	function initialize() {
+		if (!nodes) return;
 
-    for (i = 0, count = new Array(n); i < m; ++i) {
-      link = links[i], link.index = i;
-      if (typeof link.source !== "object") link.source = find(nodeById, link.source);
-      if (typeof link.target !== "object") link.target = find(nodeById, link.target);
-      count[link.source.index] = (count[link.source.index] || 0) + 1;
-      count[link.target.index] = (count[link.target.index] || 0) + 1;
-    }
+		console.log('initialized')
+	}
 
-    for (i = 0, bias = new Array(m); i < m; ++i) {
-      link = links[i], bias[i] = count[link.source.index] / (count[link.source.index] + count[link.target.index]);
-    }
+	force.initialize = function (_nodes: GraphDataNode[]) {
+		nodes = _nodes;
+		initialize();
+	};
 
-    distances = new Array(m), initializeDistance();
-  }
+	force.links = function (_: GraphDataEdge[]) {
+		return arguments.length ? ((links = _), initialize(), force) : links;
+	};
 
-  function initializeDistance() {
-    if (!nodes) return;
+	force.id = function (_: unknown) {
+		return arguments.length
+			? ((id = _ as (d: SimulationNodeDatum) => number | undefined), force)
+			: id;
+	};
 
-    for (var i = 0, n = links.length; i < n; ++i) {
-      distances[i] = +distance(links[i], i, links);
-    }
-  }
+	force.iterations = function (_: unknown) {
+		return arguments.length ? ((iterations = +(_ as number)), force) : iterations;
+	};
 
-  force.initialize = function(_nodes, _random) {
-    nodes = _nodes;
-    random = _random;
-    initialize();
-  };
+	force.strength = function (_: unknown) {
+		return strength;
+	};
 
-  force.links = function(_) {
-    return arguments.length ? (links = _, initialize(), force) : links;
-  };
+	force.distance = function (_: unknown) {
+		return distance;
+	};
 
-  force.id = function(_) {
-    return arguments.length ? (id = _, force) : id;
-  };
-
-  force.iterations = function(_) {
-    return arguments.length ? (iterations = +_, force) : iterations;
-  };
-
-  force.strength = function(_) {
-    return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initializeStrength(), force) : strength;
-  };
-
-  force.distance = function(_) {
-    return arguments.length ? (distance = typeof _ === "function" ? _ : constant(+_), initializeDistance(), force) : distance;
-  };
-
-  return force;
+	return force;
 }
