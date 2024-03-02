@@ -46,7 +46,7 @@ function createInnerSimulation(
 
 	// create simulation and add forces
 	const innerSimulation = d3.forceSimulation(nodes);
-	// innerSimulation.force('collide', rectangleCollideForce());
+	innerSimulation.force('collide', rectangleCollideForce());
 
 	const useRadialLayout =
 		nodes.length > 2 &&
@@ -149,7 +149,7 @@ export function draw(
 	const simulation = d3.forceSimulation(graphData.nodes);
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	// simulation.force('collide', rectangleCollideForce());
+	simulation.force('collide', rectangleCollideForce());
 	simulation.on('tick', () => {
 		masterSimulationTicked(
 			graphData,
