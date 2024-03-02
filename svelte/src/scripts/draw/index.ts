@@ -8,7 +8,7 @@ import type {
 	GraphDataNode
 } from '$types';
 
-import { radialClampForce, rectangleCollideForce } from './helper/custom-d3-forces';
+import { downForce, radialClampForce, rectangleCollideForce } from './helper/custom-d3-forces';
 import {
 	addCollapseNodeButtonElements,
 	addLiftEdgeButtonElements,
@@ -35,6 +35,8 @@ function createInnerSimulation(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	if (nodes.length < 1) return;
+
 	// use this instead of forEach so that it is passed by reference.
 
 	// bind for easy reference.
@@ -55,20 +57,20 @@ function createInnerSimulation(
 
 	if (useRadialLayout) {
 		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
-		innerSimulation.force(
-			'radial',
-			radialClampForce(() => {
-				const res =
-					nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
-					(Math.PI * 2);
-				const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
-				return radius;
-			})
-		);
+		// innerSimulation.force(
+		// 	'radial',
+		// 	radialClampForce(() => {
+		// 		const res =
+		// 			nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
+		// 			(Math.PI * 2);
+		// 		const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
+		// 		return radius;
+		// 	})
+		// );
 	} else {
-		innerSimulation.force('charge', d3.forceManyBody().strength(-300));
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
+		// innerSimulation.force('tree', downForce());
 	}
 	// add on tick handler
 	innerSimulation.on('tick', () => {
@@ -91,7 +93,7 @@ function createInnerSimulation(
 	// handle show node labels
 	let memberLabelElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		memberLabelElements = addNodeLabelElements(membersContainerElement);
+		memberLabelElements = addNodeLabelElements(membersContainerElement, drawSettings);
 	}
 
 	const memberElements = addNodeElements(membersContainerElement, drawSettings, level);
@@ -134,6 +136,7 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	// create simulation
 	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 
 	const svg = d3
@@ -144,7 +147,6 @@ export function draw(
 	setupGradient(svg);
 
 	const simulation = d3.forceSimulation(graphData.nodes);
-	simulation.force('charge', d3.forceManyBody().strength(-1000));
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
@@ -172,7 +174,7 @@ export function draw(
 	// handle show node labels
 	let nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		nodeLabelsElements = addNodeLabelElements(containerElements);
+		nodeLabelsElements = addNodeLabelElements(containerElements, drawSettings);
 	}
 
 	// add node element
@@ -201,21 +203,22 @@ export function draw(
 		linkLabelElements = addLinkLabelElements(linkContainer);
 	}
 
-	const linkSimulation = d3.forceSimulation([]);
-	// .force(
-	// 	'link',
-	// 	d3
-	// 		.forceLink(graphData.links)
-	// 		.id((node) => {
-	// 			return (node as GraphDataNode).id;
-	// 		})
-	// 		.strength(0)
-	// )
-	// .on('tick', () => {
-	// 	linkTicked(graphData.links, linkElements, linkLabelElements);
-	// });
-	simulations.push(linkSimulation);
+	const linkSimulation = d3
+		.forceSimulation(graphData.flattenNodes)
+		.force(
+			'link',
+			d3
+				.forceLink(graphData.links)
+				.id((node) => {
+					return (node as GraphDataNode).id;
+				})
+				.strength(0)
+		)
+		.on('tick', () => {
+			linkTicked(graphData.links, linkElements, linkLabelElements);
+		});
 
+	simulations.push(linkSimulation);
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		createInnerSimulation(
@@ -228,6 +231,13 @@ export function draw(
 			onCollapse,
 			onLift
 		);
+	}
+
+	// disable alpha
+	if (drawSettings.disableAnimation) {
+		simulations.forEach((s) => {
+			s.alpha(0.00001); // check slowAlpha for more detail.
+		});
 	}
 
 	// Add zoom handler

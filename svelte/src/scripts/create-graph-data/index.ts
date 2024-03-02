@@ -16,27 +16,35 @@ function assignParentReference(nodes: GraphDataNode[]) {
 				arr[index].parent = node;
 			});
 			assignParentReference(node.members);
+			node.originalMembers = node.members;
 		}
 	});
 }
 
-function assignLinkReference(
+function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 	links: ConvertedEdge[],
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
 ) {
+	const graphDataLinks = links as unknown as GraphDataEdge[];
 	links.forEach((link) => {
 		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
 		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
 
 		const graphDataLink = link as unknown as GraphDataEdge;
-		graphDataFlattenNodes[sourceIndex].outgoingLinks
-			? graphDataFlattenNodes[sourceIndex].outgoingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[sourceIndex].outgoingLinks = [graphDataLink]);
-		graphDataFlattenNodes[targetIndex].incomingLinks
-			? graphDataFlattenNodes[targetIndex].incomingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[targetIndex].incomingLinks = [graphDataLink]);
+		const nodeSource = graphDataFlattenNodes[sourceIndex];
+		const nodeTarget = graphDataFlattenNodes[targetIndex];
+		nodeSource.outgoingLinks.push(graphDataLink);
+		nodeSource.originalOutgoingLinks.push(graphDataLink);
+
+		nodeTarget.incomingLinks.push(graphDataLink);
+		nodeTarget.originalIncomingLinks.push(graphDataLink);
+
+		// assign original source and target
+		graphDataLink.originalSource = nodeSource;
+		graphDataLink.originalTarget = nodeTarget;
 	});
+	return graphDataLinks;
 }
 
 export function createGraphData(convertedData: ConvertedData): GraphData {
@@ -51,11 +59,23 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 
 	assignParentReference(graphDataNodes);
 
-	assignLinkReference(links, flattenNodes, graphDataFlattenNodes);
+	// add originalIncoming and outgoingLinks
+	graphDataFlattenNodes.forEach((node) => {
+		node.outgoingLinks = [];
+		node.originalOutgoingLinks = [];
+		node.incomingLinks = [];
+		node.originalIncomingLinks = [];
+	});
+
+	const graphDataLinks = assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+		links,
+		flattenNodes,
+		graphDataFlattenNodes
+	);
 
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
-		links: links as unknown as GraphDataEdge[],
+		links: graphDataLinks,
 		flattenNodes: graphDataFlattenNodes
 	};
 	return graphData;

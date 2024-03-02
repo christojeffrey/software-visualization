@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { extractAvailableEdgeType } from '$helper';
+	import { debuggingConsole, extractAvailableEdgeType } from '$helper';
 	import type {
 		ConfigInterface,
 		ConvertedData,
@@ -14,9 +14,6 @@
 
 	// scripts
 	import { cleanCanvas, draw, filter, converter, createGraphData } from '$scripts';
-
-	import { onNodeCollapseClick } from '$scripts/filter/collapse-nodes';
-	import { onDependencyLiftClick } from '$scripts/filter/lift-edges';
 
 	// components
 	import RawDataInputer from './components/raw-data-inputer.svelte';
@@ -37,11 +34,13 @@
 		buttonRadius: 5,
 		nodeCornerRadius: 5,
 		nodePadding: 5,
+		textSize: 10,
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
-		nodeColors: ['#32a875', '#d46868']
+		nodeColors: ['#32a875', '#d46868'],
+		disableAnimation: false
 	};
 	let svgElement: SVGElement | undefined = undefined;
 
@@ -52,16 +51,34 @@
 
 	let isMounted = false;
 
-	function handleNodeCollapseClick(datum: GraphDataNode) {
-		onNodeCollapseClick(datum, config, () => {
-			doRefilter = true;
-		});
+	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
+		debuggingConsole('clicked');
+		// push if not exist
+		if (!config.collapsedNodes.includes(clickedNode)) {
+			config.collapsedNodes.push(clickedNode);
+		} else {
+			config.collapsedNodes = config.collapsedNodes.filter((node) => node !== clickedNode);
+		}
+		// on finish
+		doRefilter = true;
 	}
 
-	function handleDependencyLiftClick(node: GraphDataNode): void {
-		onDependencyLiftClick(node, config, () => {
-			doRefilter = true;
-		});
+	function handleDependencyLiftClick(clickedNode: GraphDataNode): void {
+		debuggingConsole('clicked');
+
+		// push if not exist
+		if (!config.dependencyLifting.find((nodeConfig) => nodeConfig.node.id === clickedNode.id)) {
+			config.dependencyLifting.push({ node: clickedNode, sensitivity: config.dependencyTolerance });
+		} else {
+			// remove if exist
+			debuggingConsole('remove');
+			config.dependencyLifting = config.dependencyLifting.filter(
+				(nodeConfig) => nodeConfig.node.id !== clickedNode.id
+			);
+		}
+
+		// on finish
+		doRefilter = true;
 	}
 	$: {
 		if (isMounted) {

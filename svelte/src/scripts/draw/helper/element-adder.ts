@@ -36,7 +36,8 @@ export function addNodeContainerElements(
 }
 
 export function addNodeLabelElements(
-	nodeContainer: d3.Selection<SVGGElement, GraphDataNode, SVGGElement, unknown>
+	nodeContainer: d3.Selection<SVGGElement, GraphDataNode, SVGGElement, unknown>,
+	drawSettings: DrawSettingsInterface
 ) {
 	return nodeContainer
 		.append('text')
@@ -44,7 +45,7 @@ export function addNodeLabelElements(
 		.attr('text-anchor', 'middle')
 		.attr('dominant-baseline', 'middle')
 		.attr('fill', 'black')
-		.attr('font-size', '10px')
+		.attr('font-size', drawSettings.textSize + 'px')
 		.text((d) => d.id);
 }
 
