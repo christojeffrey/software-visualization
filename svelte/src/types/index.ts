@@ -3,7 +3,7 @@ export type { RawInputType } from './raw-data';
 export interface ConfigInterface {
 	dependencyLifting: {
 		node: GraphDataNode;
-		depth: number;
+		sensitivity: number;
 	}[];
 	dependencyTolerance: number;
 	collapsedNodes: GraphDataNode[];
@@ -14,11 +14,13 @@ export interface DrawSettingsInterface {
 	buttonRadius: number;
 	nodeCornerRadius: number;
 	nodePadding: number;
+	textSize: number;
 	shownEdgesType: Map<EdgeType, boolean>;
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
 	nodeColors: string[];
+	disableAnimation: boolean;
 	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
 }
 
@@ -84,27 +86,28 @@ export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
 	type: EdgeType;
 	weight: number;
 	originalWeight?: number;
-	originalSource?: GraphDataNode;
-	originalTarget?: GraphDataNode;
+	originalSource: GraphDataNode;
+	originalTarget: GraphDataNode;
 }
 export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	// initial data
 	id: string;
 	level: number;
 	// bellow is initial data but already a Reference.
-	members?: GraphDataNode[];
+	members: GraphDataNode[];
 	parent?: GraphDataNode;
 
-	outgoingLinks?: GraphDataEdge[];
-	incomingLinks?: GraphDataEdge[];
+	outgoingLinks: GraphDataEdge[];
+	incomingLinks: GraphDataEdge[];
+
+	originalOutgoingLinks: GraphDataEdge[];
+	originalIncomingLinks: GraphDataEdge[];
 
 	// created by draw steps
-	originalMembers?: GraphDataNode[];
+	originalMembers: GraphDataNode[];
 
 	width: number;
 	height: number;
-	cx: number;
-	cy: number;
 
 	// injected by d3
 	x: number;

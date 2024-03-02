@@ -57,20 +57,20 @@ function createInnerSimulation(
 
 	if (useRadialLayout) {
 		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
-		innerSimulation.force(
-			'radial',
-			radialClampForce(() => {
-				const res =
-					nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
-					(Math.PI * 2);
-				const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
-				return radius;
-			})
-		);
+		// innerSimulation.force(
+		// 	'radial',
+		// 	radialClampForce(() => {
+		// 		const res =
+		// 			nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
+		// 			(Math.PI * 2);
+		// 		const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
+		// 		return radius;
+		// 	})
+		// );
 	} else {
 		innerSimulation.force('x', d3.forceX());
 		innerSimulation.force('y', d3.forceY());
-		innerSimulation.force('tree', downForce());
+		// innerSimulation.force('tree', downForce());
 	}
 	// add on tick handler
 	innerSimulation.on('tick', () => {
@@ -93,7 +93,7 @@ function createInnerSimulation(
 	// handle show node labels
 	let memberLabelElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		memberLabelElements = addNodeLabelElements(membersContainerElement);
+		memberLabelElements = addNodeLabelElements(membersContainerElement, drawSettings);
 	}
 
 	const memberElements = addNodeElements(membersContainerElement, drawSettings, level);
@@ -136,6 +136,7 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	// create simulation
 	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
 
 	const svg = d3
@@ -172,7 +173,7 @@ export function draw(
 	// handle show node labels
 	let nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
 	if (drawSettings.showNodeLabels) {
-		nodeLabelsElements = addNodeLabelElements(containerElements);
+		nodeLabelsElements = addNodeLabelElements(containerElements, drawSettings);
 	}
 
 	// add node element
@@ -215,8 +216,8 @@ export function draw(
 		.on('tick', () => {
 			linkTicked(graphData.links, linkElements, linkLabelElements);
 		});
-	simulations.push(linkSimulation);
 
+	simulations.push(linkSimulation);
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		createInnerSimulation(
@@ -229,6 +230,13 @@ export function draw(
 			onCollapse,
 			onLift
 		);
+	}
+
+	// disable alpha
+	if (drawSettings.disableAnimation) {
+		simulations.forEach((s) => {
+			s.alpha(0.00001); // check slowAlpha for more detail.
+		});
 	}
 
 	// Add zoom handler
