@@ -151,19 +151,6 @@ export function draw(
 	simulation.force('x', d3.forceX(SVGSIZE / 2));
 	simulation.force('y', d3.forceY(SVGSIZE / 2));
 	simulation.force('collide', rectangleCollideForce());
-	// TODO: Just draw the links here, without any forces
-	simulation.on('tick', () => {
-		masterSimulationTicked(
-			graphData,
-			containerElements,
-			nodeElements,
-			drawSettings,
-			nodeLabelsElements,
-			collapseButtonElements,
-			liftButtonElements
-		);
-	});
-
 	simulations.push(simulation);
 
 	const canvas = svg.append('g').attr('id', 'node-canvas');
@@ -204,22 +191,21 @@ export function draw(
 		linkLabelElements = addLinkLabelElements(linkContainer);
 	}
 
-	const linkSimulation = d3
-		.forceSimulation(graphData.flattenNodes)
-		.force(
-			'link',
-			d3
-				.forceLink(graphData.links)
-				.id((node) => {
-					return (node as GraphDataNode).id;
-				})
-				.strength(0)
-		)
-		.on('tick', () => {
-			linkTicked(graphData.links, linkElements, linkLabelElements);
-		});
+	// Tick the master simulation and link here
 
-	simulations.push(linkSimulation);
+	simulation.on('tick', () => {
+		masterSimulationTicked(
+			graphData,
+			containerElements,
+			nodeElements,
+			drawSettings,
+			nodeLabelsElements,
+			collapseButtonElements,
+			liftButtonElements
+		);
+		linkTicked(graphData.links, linkElements, linkLabelElements);
+	});
+
 	// create inner simulation.
 	for (let i = 0; i < graphData.nodes.length; i++) {
 		createInnerSimulation(
