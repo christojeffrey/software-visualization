@@ -36,20 +36,18 @@ here is the type for convertedData
 
 ```typescript
 type ConvertedData = {
-  vertices: Vertex[];
+  vertices: Node[];
   edges: Edge[];
 };
-type Vertex = {
+type Node = {
   id: string;
   level: number;
-  children?: Vertex[];
+  children?: Node[];
 
   // below only used in graphData
   parent?: Vertex;
   height?: number;
   width?: number;
-  cx?: number;
-  cy?: number;
 };
 type Edge = {
   source: string;
