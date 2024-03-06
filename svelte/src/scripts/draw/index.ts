@@ -88,12 +88,14 @@ async function timeSimulations(allSimulation: AllSimulationData) {
 	const masterSimulations = allSimulation.filter(({isLeaf, level}) => !isLeaf && level === 0);
 
 	// First run leaf simulations
+	console.log("Stage 1")
 	leafSimulations.forEach(({simulation}) => {
 		simulation.restart();
 	});
 
 	// Then middle
 	await sleep(5000);
+	console.log("Stage 2")
 	leafSimulations.forEach(({simulation}) => { 
 		simulation.stop();
 	});
@@ -101,6 +103,7 @@ async function timeSimulations(allSimulation: AllSimulationData) {
 
 	// Last: Master
 	await sleep(5000);
+	console.log("Stage 3")
 	masterSimulations.forEach(({simulation}) => simulation.restart());
 }
 
@@ -238,6 +241,17 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {
+	// Initialize values
+	graphData.flattenNodes.forEach((n) => {
+		n.width = drawSettings.minimumNodeSize;
+		n.height = drawSettings.minimumNodeSize;
+		// (thb, no clue why x and y need to be initialized)
+		n.x = 0;
+		n.y = 0;
+		n.cx = 0;
+		n.cy = 0;
+	});
+
 	const simulations: AllSimulationData = [];
 
 	const svg = d3

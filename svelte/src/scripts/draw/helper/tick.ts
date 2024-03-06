@@ -48,13 +48,12 @@ export function linkTicked(
 		};
 	} = {};
 	edges.forEach((d) => {
-		// calculate once here change to global coordinates.
 		// calculate new source
 		const newLocation = {
-			x1: d.realSource.x || 0,
-			y1: d.realSource.y || 0,
-			x2: d.realTarget.x || 0,
-			y2: d.realTarget.y || 0,
+			x1: d.realSource.x,
+			y1: d.realSource.y,
+			x2: d.realTarget.x,
+			y2: d.realTarget.y,
 		};
 
 		let source = d.realSource;
@@ -139,6 +138,9 @@ export function masterSimulationTicked(
 }
 
 function updateNodePosition(nodes: GraphDataNode[], PADDING: number, minimumNodeSize: number) {
+	if (Number.isNaN(minimumNodeSize)) {
+		console.error('Invalid minimum node size');
+	}
 	for (let i = 0; i < nodes.length; i++) {
 		const hasMembers = (nodes[i].members ?? []).length > 0;
 		if (hasMembers) {
@@ -163,10 +165,7 @@ function updateNodePosition(nodes: GraphDataNode[], PADDING: number, minimumNode
 					maxY = members[j].y + members[j].cy + members[j].height;
 				}
 			}
-
-			if (Number.isNaN(maxX) || Number.isNaN(maxY) || Number.isNaN(minX) || Number.isNaN(minY) || Number.isNaN(minimumNodeSize)) {
-				console.error('Unexpected NaN');
-			}
+			
 			nodes[i].width = maxX - minX + PADDING * 2;
 			nodes[i].height = maxY - minY + PADDING * 2;
 			// stands for calculated x and y.

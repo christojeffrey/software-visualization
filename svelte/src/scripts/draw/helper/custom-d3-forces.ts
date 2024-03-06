@@ -2,6 +2,14 @@
 import type {Force} from "d3";
 import type { GraphDataNode, GraphDataEdgeD3 } from "$types";
 
+function notNaN(n: number): number {
+    if (Number.isNaN(n)) {
+        console.error('NaN');
+        return 0;
+    }
+    return n;
+}
+
 /**
  * Creates a rectangular collison force across all nodes
  * 
@@ -68,15 +76,15 @@ export function rectangleCollideForce(): Force<GraphDataNode, undefined>  {
                         if (snap) {
                             // Snap stuff into place
                             if (node2.middle.x < node1.middle.x) {
-                                nodes[i].x = nodes[j].x! + 0.5 * nodes[j].width + 0.5 * nodes[i].width;
+                                nodes[i].x = notNaN(nodes[j].x! + 0.5 * nodes[j].width + 0.5 * nodes[i].width);
                             } else {
-                                nodes[j].x = nodes[i].x! + 0.5 * nodes[i].width + 0.5 * nodes[j].width;
+                                nodes[j].x = notNaN(nodes[i].x! + 0.5 * nodes[i].width + 0.5 * nodes[j].width);
                             }
 
                             if (node2.middle.y < node1.middle.y) {
-                                nodes[i].y = nodes[j].y! + 0.5 * nodes[j].height + 0.5 * nodes[i].height;
+                                nodes[i].y = notNaN(nodes[j].y! + 0.5 * nodes[j].height + 0.5 * nodes[i].height);
                             } else {
-                                nodes[j].y = nodes[i].y! + 0.5 * nodes[i].height + 0.5 * nodes[j].height;
+                                nodes[j].y = notNaN(nodes[i].y! + 0.5 * nodes[i].height + 0.5 * nodes[j].height);
                             }
                         }
                         else {
@@ -117,15 +125,15 @@ export function rectangleCollideForce(): Force<GraphDataNode, undefined>  {
 
         // Set the values
         if (node1.middle.x > node2.middle.x) {
-            nodes[i].vx! += vx * n1ForceStrength;
-            nodes[i].vy! += vy * n1ForceStrength;
-            nodes[j].vx! -= vx * n2ForceStrength;
-            nodes[j].vy! -= vy * n2ForceStrength;
+            nodes[i].vx! += notNaN(vx * n1ForceStrength);
+            nodes[i].vy! += notNaN(vy * n1ForceStrength);
+            nodes[j].vx! -= notNaN(vx * n2ForceStrength);
+            nodes[j].vy! -= notNaN(vy * n2ForceStrength);
         } else {
-            nodes[i].vx! -= vx * n1ForceStrength;
-            nodes[i].vy! -= vy * n1ForceStrength;
-            nodes[j].vx! += vx * n2ForceStrength;
-            nodes[j].vy! += vy * n2ForceStrength;
+            nodes[i].vx! -= notNaN(vx * n1ForceStrength);
+            nodes[i].vy! -= notNaN(vy * n1ForceStrength);
+            nodes[j].vx! += notNaN(vx * n2ForceStrength);
+            nodes[j].vy! += notNaN(vy * n2ForceStrength);
         }
     }
 }
