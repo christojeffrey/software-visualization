@@ -43,8 +43,6 @@ export function linkTicked(
 
 	linkElements.attr('d', function (this: SVGPathElement, d: GraphDataEdge) {
 		// Apply gradient here since it is most efficient as it doesn't require recomputation
-		// TODO: Add stroke width based on weight (don't forget to recalculate on lift)
-		// Currently, lifting and collapse handle link differently, I think we need to pass the convertedData as a reference
 		if (allResult[d.id].x2 > allResult[d.id].x1) this.style.stroke = `url(#${d.type}Gradient)`;
 		else this.style.stroke = `url(#${d.type}GradientReversed)`;
 		this.style.strokeWidth = Math.round(Math.log(d.weight * 10)).toString();

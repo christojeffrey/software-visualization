@@ -40,6 +40,10 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 		nodeTarget.incomingLinks.push(graphDataLink);
 		nodeTarget.originalIncomingLinks.push(graphDataLink);
 
+		// Populate the source and target reference
+		graphDataLink.source = nodeSource;
+		graphDataLink.target = nodeTarget;
+		
 		// assign original source and target
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
