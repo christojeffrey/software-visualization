@@ -1,16 +1,16 @@
-import type {
-	ConvertedNode,
-	SimpleNodesDictionaryType,
-	ConfigInterface,
-	GraphDataEdge,
-	GraphData,
-	GraphDataNode
-} from '$types';
 import { combineWeights } from '$helper';
+import type { ConfigInterface, GraphData, GraphDataEdge, GraphDataNode, SimpleNodesDictionaryType } from '$types';
 
-export interface FilteredNode extends ConvertedNode {
-	parent?: FilteredNode;
-}
+// export function liftDependencies(config: ConfigInterface) {
+// 	config.dependencyLifting.forEach((nodeConfig) => {
+// 		const { node: redirectLocationNode, sensitivity } = nodeConfig;
+
+// 		redirectLocationNode.members?.forEach((member) => {
+// 			redirectAllEdgeToDestinationNode(redirectLocationNode, member, sensitivity);
+// 		});
+// 	});
+// }
+
 // HELPER FUNCTIONS
 // Find length of common prefix of 2 arrays
 function commonPrefix(a: GraphDataNode[], b: GraphDataNode[]) {
@@ -28,19 +28,27 @@ function getAncestors(node: GraphDataNode): GraphDataNode[] {
 	else return [node];
 }
 
-export function onDependencyLiftClick(
-	clickedNode: GraphDataNode,
-	config: ConfigInterface,
-	onFinish: () => void
+export function redirectAllEdgeToDestinationNode(
+	redirectDestination: GraphDataNode,
+	nodeToBeRedirected: GraphDataNode,
+	sensitivity: number = 0
 ) {
-	// push if not exist
-	if (!config.dependencyLifting.find((nodeConfig) => nodeConfig.node.id === clickedNode.id)) {
-		config.dependencyLifting.push({ node: clickedNode, depth: config.dependencyTolerance });
-	} else {
-		// remove if exist
-		config.dependencyLifting = config.dependencyLifting.filter(
-			(nodeConfig) => nodeConfig.node.id !== clickedNode.id
-		);
+	// will redirect every edge and every children to the destination node. starting from nodeToBeRedirected.
+	// will redirect of the difference in level is more than sensitivity
+
+	if (nodeToBeRedirected.level - redirectDestination.level > sensitivity) {
+		// do redirect
+		nodeToBeRedirected.outgoingLinks.forEach((link) => {
+			link.source = redirectDestination;
+		});
+		nodeToBeRedirected.incomingLinks.forEach((link) => {
+			link.target = redirectDestination;
+		});
+
+		redirectDestination.outgoingLinks.push(...nodeToBeRedirected.outgoingLinks);
+		redirectDestination.incomingLinks.push(...nodeToBeRedirected.incomingLinks);
+		nodeToBeRedirected.outgoingLinks = [];
+		nodeToBeRedirected.incomingLinks = [];
 	}
 	onFinish();
 }
