@@ -47,12 +47,13 @@
 
 	let doReconvert = true;
 	let doRecreateWholeGraphData = true;
-	let doRefilter = false; // nothing to filter at first
+	let doRefilter = true;
 	let doRedraw = true;
 
 	let isMounted = false;
 
 	function handleNodeCollapseClick(datum: GraphDataNode) {
+		console.log({ncClick: graphData.links.map(l => {return {a: l.source, b: l.target}})})
 		onNodeCollapseClick(datum, config, () => {
 			doRefilter = true;
 		});
@@ -83,6 +84,7 @@
 
 				// must redraw after recreate
 				doRedraw = true;
+				doRefilter = true;
 			}
 			if (doRefilter) {
 				filter(config, graphData);
@@ -93,17 +95,14 @@
 			}
 			if (doRedraw) {
 				// remove the old data
-				cleanCanvas(svgElement!, simulations);
-
-				let result = draw(
+				cleanCanvas(svgElement!);
+				draw(
 					svgElement!,
 					graphData,
-					config,
 					drawSettings,
 					handleNodeCollapseClick,
 					handleDependencyLiftClick
 				);
-				simulations = result.simulations;
 				doRedraw = false;
 			}
 		}

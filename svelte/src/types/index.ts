@@ -76,37 +76,50 @@ export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
 	flattenNodes: GraphDataNode[];
+	/** Dictionary containing references to all nodes, indexed by id */
+	nodesDict: {[id: string]: GraphDataNode};
 }
-export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
-	source: GraphDataNode;
-	target: GraphDataNode;
+export interface GraphDataEdge {
+	/** The source / target of the edge, after edge lifting and other filter-operation */
+ 	source: string | GraphDataNode; 
+	target: string | GraphDataNode;
+
+	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */ 
+	liftedSource?: GraphDataNode; 
+	liftedTarget?: GraphDataNode;
+
 	id: string;
 	type: EdgeType;
 	weight: number;
 	originalWeight?: number;
+
+	/** The original source / target of the edge, if filter operations are ignored */ 
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
+
+	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
+	gradientDirection? : boolean;
+	absoluteCoordinates?: {x: number; y: number} [];
 }
-export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
+export interface GraphDataNode extends SimpleNode {
 	// initial data
 	id: string;
 	level: number;
+
 	// bellow is initial data but already a Reference.
-	members?: GraphDataNode[];
+	members: GraphDataNode[];
+	originalMembers?: GraphDataNode[];
 	parent?: GraphDataNode;
 
-	outgoingLinks?: GraphDataEdge[];
-	incomingLinks?: GraphDataEdge[];
+	outgoingLinks: GraphDataEdge[];
+	incomingLinks: GraphDataEdge[];
 
-	// created by draw steps
-	originalMembers?: GraphDataNode[];
+	incomingLinksLifted: GraphDataEdge[];
+	outgoingLinksLifted: GraphDataEdge[];
 
-	width: number;
-	height: number;
-	cx: number;
-	cy: number;
-
-	// injected by d3
-	x: number;
-	y: number;
+	// Created by draw steps
+	width?: number;
+	height?: number;
+	x?: number;
+	y?: number;
 }

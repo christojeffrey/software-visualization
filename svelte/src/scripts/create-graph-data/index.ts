@@ -25,17 +25,19 @@ function assignLinkReference(
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
 ) {
+	flattenNodes.forEach(node => {
+		//@ts-expect-error Type of this variable will change later
+		node.incomingLinks = [];
+		//@ts-expect-error same
+		node.outgoingLinks = [];
+	})
 	links.forEach((link) => {
 		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
 		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
 
 		const graphDataLink = link as unknown as GraphDataEdge;
-		graphDataFlattenNodes[sourceIndex].outgoingLinks
-			? graphDataFlattenNodes[sourceIndex].outgoingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[sourceIndex].outgoingLinks = [graphDataLink]);
-		graphDataFlattenNodes[targetIndex].incomingLinks
-			? graphDataFlattenNodes[targetIndex].incomingLinks?.push(graphDataLink)
-			: (graphDataFlattenNodes[targetIndex].incomingLinks = [graphDataLink]);
+		graphDataFlattenNodes[sourceIndex].outgoingLinks?.push(graphDataLink);
+		graphDataFlattenNodes[targetIndex].incomingLinks?.push(graphDataLink);
 	});
 }
 

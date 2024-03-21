@@ -52,7 +52,7 @@ export function doCollapseNodes(config: ConfigInterface, graphData: GraphData) {
 		// A. add new attribute, which is 'originalMembers'
 		graphData.flattenNodes[collapsedNodeIndex].originalMembers =
 			graphData.flattenNodes[collapsedNodeIndex].members;
-		delete graphData.flattenNodes[collapsedNodeIndex].members;
+		graphData.flattenNodes[collapsedNodeIndex].members = [];
 
 		const duplicateLinks: Map<string, GraphDataEdge[]> = new Map<string, GraphDataEdge[]>();
 		// B. redirect link. save the original link as 'originalSource' and 'originalTarget'. Combine the weights

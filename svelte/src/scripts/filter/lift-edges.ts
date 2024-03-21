@@ -45,7 +45,7 @@ export function onDependencyLiftClick(
 	onFinish();
 }
 
-export function liftDependencies(config: ConfigInterface, graphData: GraphData) {
+export function liftDependencies(config: ConfigInterface, graphData: GraphData): [GraphDataEdge[], SimpleNodesDictionaryType] {
 	const links = graphData.links;
 
 	// create dictionary of nodes for easy access
@@ -62,39 +62,44 @@ export function liftDependencies(config: ConfigInterface, graphData: GraphData) 
 		// return to original link first before calculation
 		link.source = link.originalSource ?? link.source;
 		link.target = link.originalTarget ?? link.target;
+		const linkSource = typeof link.source == 'string' ? link.source : link.source.id;
+		const linkTarget = typeof link.target == 'string' ? link.target : link.target.id;
 
-		// Get array of ids of anscestors of source and target vertices
-		const sourceAncestors = getAncestors(nodesDictionary[link.source.id]);
-		const targetAncestors = getAncestors(nodesDictionary[link.target.id]);
+		// Get array of ids of ancestors of source and target vertices
+		const sourceAncestors = getAncestors(nodesDictionary[linkSource]);
+		const targetAncestors = getAncestors(nodesDictionary[linkTarget]);
 
-		// Calculate how many ansestors source and target have in common
+		// Calculate how many ancestors source and target have in common
 		const prefix = commonPrefix(sourceAncestors, targetAncestors);
 
 		// Calculate how deep the link should go (how many levels should remain unlifted)
 		// Infinity denotes lifting dependencies is not done.
 		const liftDistance = [...sourceAncestors, ...targetAncestors].reduce<number>(
-			(acculimator, node) => {
+			(accumulator, node) => {
 				const constraint = config.dependencyLifting.find((c) => {
 					return c.node === node;
 				});
-				return Math.min(acculimator, constraint?.depth ?? Infinity);
+				return Math.min(accumulator, constraint?.depth ?? Infinity);
 			},
 			Infinity as number
 		);
 		const newSource = sourceAncestors[prefix + liftDistance] ?? link.source;
 		const newTarget = targetAncestors[prefix + liftDistance] ?? link.target;
+		const zeroSource = sourceAncestors[prefix]!;
+		const zeroTarget = targetAncestors[prefix]!;
 		// Preparing data for combining weight
 		const key = `${newSource.id}-${newTarget.id}`;
 		duplicateLinks.set(key, [...(duplicateLinks.get(key) ?? []), link]);
 
-		link.originalSource = link.source;
-		link.originalTarget = link.target;
+		link.originalSource = nodesDictionary[linkSource];
+		link.originalTarget = nodesDictionary[linkTarget];
 		link.source = newSource;
 		link.target = newTarget;
+		link.liftedSource = zeroSource;
+		link.liftedTarget = zeroTarget;
 	});
-	console.log(duplicateLinks);
 	// Combine weight
 	combineWeights(duplicateLinks);
 
-	return links;
+	return [links, nodesDictionary];
 }
