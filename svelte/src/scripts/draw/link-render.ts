@@ -49,7 +49,8 @@ export function renderLinks(
 	// Update
 	(linkCanvas.selectAll('path') as d3.Selection<SVGPathElement, GraphDataEdge, SVGGElement, unknown>)
 		.attr('d', annotateLine)
-		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`);
+		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`)
+		.attr('display', l => drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none')
 
 	// No exit, since we don't get all edges when updating
 
@@ -69,6 +70,8 @@ export function renderLinks(
 		(linkCanvas.selectAll('text') as d3.Selection<d3.BaseType, GraphDataEdge, SVGGElement, unknown>)
 			.attr('x', l => (l.absoluteCoordinates![0].x + l.absoluteCoordinates![1].x)/2)
 			.attr('y', l => (l.absoluteCoordinates![0].y + l.absoluteCoordinates![1].y)/2)
+	} else if (!drawSettings.showEdgeLabels) {
+		linkCanvas.selectAll('text').remove();
 	}
 
 	// Cleanup, just to be sure:

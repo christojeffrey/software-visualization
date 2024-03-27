@@ -20,7 +20,7 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 
-	let simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
+	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
 	let config: ConfigInterface = {
@@ -40,7 +40,6 @@
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
 		nodeColors: ['#32a875', '#d46868'],
-		disableAnimation: false
 	};
 	let svgElement: SVGElement | undefined = undefined;
 
@@ -48,6 +47,7 @@
 	let doRecreateWholeGraphData = true;
 	let doRefilter = true;
 	let doRedraw = true;
+	let doRelayout = true;
 
 	let isMounted = false;
 
@@ -96,30 +96,32 @@
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
 				);
-				doRecreateWholeGraphData = false;
 
-				// must redraw after recreate
-				doRedraw = true;
+				doRecreateWholeGraphData = false;
 				doRefilter = true;
 			}
 			if (doRefilter) {
 				filter(config, graphData);
 				doRefilter = false;
-
-				// must redraw after refilter
-				doRedraw = true;
+				doRelayout = true;
 			}
-			if (doRedraw) {
+			
+			if (doRelayout) {
 				// remove the old data
 				cleanCanvas(svgElement!);
-				draw(
+				redrawFunction = draw(
 					svgElement!,
 					graphData,
 					drawSettings,
 					handleNodeCollapseClick,
 					handleDependencyLiftClick
 				);
-				doRedraw = false;
+				doRedraw = true;
+				doRelayout = false;
+			}
+
+			if (doRedraw) {
+				redrawFunction(drawSettings);
 			}
 		}
 	}
@@ -143,6 +145,6 @@
 		<div class="bg-neutral-300 h-[1px]" />
 		<ConfigChanger bind:config />
 		<div class="bg-neutral-300 h-[1px]" />
-		<DrawSettingsChanger bind:drawSettings bind:doRedraw />
+		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>
 </div>
