@@ -1,233 +1,48 @@
 import * as d3 from 'd3';
-import { toHTMLToken } from '$helper';
+import { notNaN } from '$helper';
 import type {
-	ConfigInterface,
 	DrawSettingsInterface,
 	GraphData,
-	GraphDataEdge,
-	GraphDataNode
-} from '$types';
+	GraphDataNode} from '$types';
 
-import { downForce, radialClampForce, rectangleCollideForce } from './helper/custom-d3-forces';
-import {
-	addCollapseNodeButtonElements,
-	addLiftEdgeButtonElements,
-	addLinkContainerElements,
-	addLinkElements,
-	addLinkLabelElements,
-	addNodeContainerElements,
-	addNodeElements,
-	addNodeLabelElements
-} from './helper/element-adder';
 import { setupGradient } from './helper/gradient-setup';
-import { innerTicked, linkTicked, masterSimulationTicked } from './helper/tick';
-
-const SVGSIZE = 800;
-const SVGMARGIN = 50;
-
-function createInnerSimulation(
-	level: number,
-	nodes: GraphDataNode[],
-	canvas: d3.Selection<SVGGElement, unknown, null, undefined>,
-	allSimulation: d3.Simulation<GraphDataNode, undefined>[],
-	parentNode: GraphDataNode,
-	drawSettings: DrawSettingsInterface,
-	onCollapse: (datum: GraphDataNode) => void,
-	onLift: (datum: GraphDataNode) => void
-) {
-	if (nodes.length < 1) return;
-
-	// use this instead of forEach so that it is passed by reference.
-
-	// bind for easy reference.
-	for (let i = 0; i < nodes.length; i++) {
-		nodes[i].parent = parentNode;
-	}
-
-	// create simulation and add forces
-	const innerSimulation = d3.forceSimulation(nodes);
-	innerSimulation.force('collide', rectangleCollideForce());
-
-	const useRadialLayout =
-		nodes.length > 2 &&
-		nodes.reduce(
-			(a: number, item) => (item?.members?.length ? (item?.members?.length > 0 ? a + 1 : a) : a),
-			0
-		) === 0;
-
-	if (useRadialLayout) {
-		innerSimulation.force('charge', d3.forceManyBody().strength(-3000));
-		// innerSimulation.force(
-		// 	'radial',
-		// 	radialClampForce(() => {
-		// 		const res =
-		// 			nodes.reduce((a: number, node) => a + Math.sqrt(node.width ** 2 + node.height ** 2), 0) /
-		// 			(Math.PI * 2);
-		// 		const radius = res + 2 * drawSettings.minimumNodeSize; // Offset for small circles (2 nodes)
-		// 		return radius;
-		// 	})
-		// );
-	} else {
-		innerSimulation.force('x', d3.forceX());
-		innerSimulation.force('y', d3.forceY());
-		// innerSimulation.force('tree', downForce());
-	}
-	// add on tick handler
-	innerSimulation.on('tick', () => {
-		innerTicked(
-			drawSettings,
-			membersContainerElement,
-			memberElements,
-			memberLabelElements,
-			collapseButtonElements,
-			liftButtonElements
-		);
-	});
-	allSimulation.push(innerSimulation);
-
-	// add elements
-	const parentElement = canvas.select(`#${toHTMLToken(parentNode.id)}`).append('g');
-	// add node container elements
-	const membersContainerElement = addNodeContainerElements(parentElement, nodes, allSimulation);
-
-	// handle show node labels
-	let memberLabelElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
-	if (drawSettings.showNodeLabels) {
-		memberLabelElements = addNodeLabelElements(membersContainerElement, drawSettings);
-	}
-
-	const memberElements = addNodeElements(membersContainerElement, drawSettings, level);
-
-	// filter only if has member
-	const collapseButtonElements = addCollapseNodeButtonElements(
-		membersContainerElement,
-		drawSettings,
-		onCollapse
-	);
-
-	const liftButtonElements = addLiftEdgeButtonElements(
-		membersContainerElement,
-		drawSettings,
-		onLift
-	);
-
-	// recursive inner simulation.
-	for (let i = 0; i < nodes.length; i++) {
-		if (nodes[i].members) {
-			createInnerSimulation(
-				level + 1,
-				nodes[i].members ?? [],
-				canvas,
-				allSimulation,
-				nodes[i],
-				drawSettings,
-				onCollapse,
-				onLift
-			);
-		}
-	}
-}
+import { forceBasedLayout, circularLayout, straightTree } from './layouts';
+import { renderLinks } from './link-render';
+import { addDragAndDrop } from './drag-and-drop';
+import { renderNodes, renderNodeLabels, addLiftCollapseButtons } from './nodes-render';
 
 export function draw(
 	svgElement: SVGElement,
 	graphData: GraphData,
-	config: ConfigInterface,
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
-) {
-	// create simulation
-	const simulations: d3.Simulation<GraphDataNode, undefined>[] = [];
+) {	
+	// CALCULATE LAYOUT
+	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
+	const {simpleNodes, innerNodes, intermediateNodes, rootNodes } = splitNodes(graphData.nodes);
 
-	const svg = d3
-		.select(svgElement)
-		.attr('width', SVGSIZE + SVGMARGIN * 2)
-		.attr('height', SVGSIZE + SVGMARGIN * 2);
-
-	setupGradient(svg);
-
-	const simulation = d3.forceSimulation(graphData.nodes);
-	simulation.force('x', d3.forceX(SVGSIZE / 2));
-	simulation.force('y', d3.forceY(SVGSIZE / 2));
-	simulation.force('collide', rectangleCollideForce());
-	simulations.push(simulation);
-
-	const canvas = svg.append('g').attr('id', 'node-canvas');
-
-	// NODE
-	// add node container and add ability to drag node
-	const containerElements = addNodeContainerElements(canvas, graphData.nodes, simulations);
-
-	// handle show node labels
-	let nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>;
-	if (drawSettings.showNodeLabels) {
-		nodeLabelsElements = addNodeLabelElements(containerElements, drawSettings);
-	}
-
-	// add node element
-	const nodeElements = addNodeElements(containerElements, drawSettings, 0);
-
-	// add node collapse button
-	const collapseButtonElements = addCollapseNodeButtonElements(
-		containerElements,
-		drawSettings,
-		onCollapse
-	);
-
-	// add node lift button
-	const liftButtonElements = addLiftEdgeButtonElements(containerElements, drawSettings, onLift);
-
-	// LINK
-	// add link container elements
-	const linkContainer = addLinkContainerElements(canvas, graphData.links, drawSettings);
-
-	// add link elements
-	const linkElements = addLinkElements(linkContainer);
-
-	// handle show edge labels
-	let linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdge, SVGGElement, unknown>;
-	if (drawSettings.showEdgeLabels) {
-		linkLabelElements = addLinkLabelElements(linkContainer);
-	}
-
-	// Tick the master simulation and link here
-
-	simulation.on('tick', () => {
-		masterSimulationTicked(
-			graphData,
-			containerElements,
-			nodeElements,
-			drawSettings,
-			nodeLabelsElements,
-			collapseButtonElements,
-			liftButtonElements
-		);
-		linkTicked(graphData.links, linkElements, linkLabelElements);
+	// Initialize width and height of simple nodes
+	simpleNodes.forEach(n => {
+		n.width = notNaN(drawSettings.minimumNodeSize);
+		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
 
-	// create inner simulation.
-	for (let i = 0; i < graphData.nodes.length; i++) {
-		createInnerSimulation(
-			1,
-			graphData.nodes[i].members ?? [], // handle when members is undefined (has no member)
-			canvas,
-			simulations,
-			graphData.nodes[i],
-			drawSettings,
-			onCollapse,
-			onLift
-		);
-	}
+	// Calculate layouts for non-simple nodes
+	innerNodes.forEach(n => circularLayout(drawSettings, n.members, n));
+	intermediateNodes.forEach(n => straightTree(drawSettings, n.members, n));
+	rootNodes.forEach(n => straightTree(drawSettings, n.members, n));
+	straightTree(drawSettings, rootNodes); // Todo this is weird
 
-	// disable alpha
-	if (drawSettings.disableAnimation) {
-		simulations.forEach((s) => {
-			s.alpha(0.00001); // check slowAlpha for more detail.
-		});
-	}
+
+	// ZOOM HANDLING
+	// Create canvas to contain all elements, so we can transform it for zooming etc.
+	const canvas = d3.select(svgElement).append('g')
+		.attr('id', 'canvas');
+	const canvasElement = document.getElementById('canvas')!;
 
 	// Add zoom handler
-	svg.call(
+	d3.select(svgElement).call(
 		d3.zoom<SVGElement, unknown>().on('zoom', ({ transform }) => {
 			canvas.attr('transform', transform);
 			drawSettings.transformation = transform;
@@ -242,10 +57,65 @@ export function draw(
 		);
 	}
 
-	return {
-		simulations,
-		svgElement
-	};
+
+	// RENDERING
+	// Render nodes
+	renderNodes(rootNodes, canvasElement, drawSettings);
+	renderNodeLabels(canvasElement, drawSettings)
+	addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
+
+	// Render links
+	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas').lower();
+	setupGradient(linkCanvas)
+	renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
+
+
+	// DRAG AND DROP
+	addDragAndDrop(rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
+
+	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
+	 * TODO actually use this somewhere
+	 */
+	return function rerender(drawSettings: DrawSettingsInterface) {
+		renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
+		renderNodes(rootNodes, canvasElement, drawSettings);
+		renderNodeLabels(canvasElement, drawSettings)
+	}
+}
+
+/**
+ * Splits node per layout-algorithm
+ * TODO Maybe move to parser?
+ */
+function splitNodes(nodes: GraphDataNode[]) {
+	const simpleNodes: GraphDataNode[] = [];
+	const intermediateNodes: GraphDataNode[] = [];
+	const innerNodes: GraphDataNode[] = [];
+	const rootNodes: GraphDataNode[] = [];
+
+	function recurse(node: GraphDataNode) {
+		node.members.forEach(node => recurse(node));
+		if (node.level === 0) {
+			if (node.members.length === 0) {
+				simpleNodes.push(node);
+				// TODO, also weird, rethink the split
+			}
+			rootNodes.push(node);
+		} else if (node.members.length === 0) {
+			simpleNodes.push(node);
+		} else if (node.members.reduce(
+			(a: number, item) => (item.members.length ? (item.members.length > 0 ? a + 1 : a) : a),
+			0
+		) === 0) {
+			innerNodes.push(node);
+		} else {
+			intermediateNodes.push(node);
+		}
+	}
+
+	nodes.forEach(node => recurse(node));
+
+	return { simpleNodes, innerNodes, rootNodes, intermediateNodes };	
 }
 
 export default draw;

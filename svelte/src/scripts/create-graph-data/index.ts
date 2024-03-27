@@ -26,6 +26,12 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
 ) {
+	flattenNodes.forEach(node => {
+		//@ts-expect-error Type of this variable will change later
+		node.incomingLinks = [];
+		//@ts-expect-error same
+		node.outgoingLinks = [];
+	})
 	const graphDataLinks = links as unknown as GraphDataEdge[];
 	links.forEach((link) => {
 		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);

@@ -6,6 +6,7 @@
 	import Button from '$ui/button.svelte';
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
+	export let doRelayout;
 </script>
 
 <div class="overflow-auto">
@@ -63,20 +64,6 @@
 			{drawSettings.showNodeLabels ? 'Hide' : 'Show'}
 		</Toggle>
 	</div>
-	<!-- Enable/disable Animation -->
-	<div>
-		<Heading headingNumber={5}>Enable Animation</Heading>
-		<Toggle
-			class="ml-4"
-			onToggle={() => {
-				drawSettings.disableAnimation = !drawSettings.disableAnimation;
-				doRedraw = true;
-			}}
-			state={!drawSettings.disableAnimation}
-		>
-			{drawSettings.disableAnimation ? 'Disable' : 'Enable'}
-		</Toggle>
-	</div>
 
 	<!-- seperator -->
 	<div class="h-8" />
@@ -101,7 +88,7 @@
 			value={drawSettings.minimumNodeSize}
 			onChange={(e) => {
 				drawSettings.minimumNodeSize = Number(e.currentTarget.value);
-				doRedraw = true;
+				doRelayout = true;
 			}}
 		/>
 	</div>
@@ -125,7 +112,7 @@
 			value={drawSettings.nodePadding}
 			onChange={(e) => {
 				drawSettings.nodePadding = Number(e.currentTarget.value);
-				doRedraw = true;
+				doRelayout = true;
 			}}
 		/>
 	</div>
