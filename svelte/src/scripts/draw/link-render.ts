@@ -1,4 +1,4 @@
-import { toHTMLToken } from "$helper";
+import { notNaN, toHTMLToken } from "$helper";
 import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode, SimpleNodesDictionaryType } from "$types";
 
 /**
@@ -17,8 +17,8 @@ export function renderLinks(
 		if (node) {
 			const {x, y} = getAbsCoordinates(node.parent)
 			return {
-				x: node.x! + x,
-				y: node.y! + y,
+				x: notNaN(node.x! + x),
+				y: notNaN(node.y! + y),
 			}
 		} else {
 			return {x: 0, y: 0}

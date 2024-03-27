@@ -44,22 +44,26 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
 	}
 }
 
+/**
+ * Makes a string HTML-safe, meaning its characters don't clash with jquery-selectors.
+ * Intended to use for node-id's
+ */
 export function toHTMLToken(string: string) {
 	return string.replace(/[^A-Za-z0-9]/g, '--');
 }
 
 /**
- * Throws an error if the given number is NaN, or any non-number value
+ * Throws an error if the given number is NaN, Infinity or any non-number value
  */
 export function notNaN(n: number): number {
-	if (Number.isNaN(n) || typeof n !== 'number') {
+	if (!Number.isFinite(n)) {
 		throw new Error(`Unexpected value: ${n}`);
 	}
 	return n;
 }
 
 /** 
- * Clamps num to a range [min, max] (inclusive bounds)
+ * Clamps num to a range [min, max] (inclusive bounds).
  * Returns an error if the bounds are nto valid
  */
 export function clamp(num: number, min: number, max: number) {

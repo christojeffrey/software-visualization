@@ -6,7 +6,7 @@ import type {
 	GraphDataNode} from '$types';
 
 import { setupGradient } from './helper/gradient-setup';
-import { forceBasedLayout, circularLayout } from './layouts';
+import { forceBasedLayout, circularLayout, straightTree } from './layouts';
 import { renderLinks } from './link-render';
 import { addDragAndDrop } from './drag-and-drop';
 import { renderNodes, renderNodeLabels, addLiftCollapseButtons } from './nodes-render';
@@ -30,9 +30,9 @@ export function draw(
 
 	// Calculate layouts for non-simple nodes
 	innerNodes.forEach(n => circularLayout(drawSettings, n.members, n));
-	intermediateNodes.forEach(n => forceBasedLayout(drawSettings, n.members, n));
-	rootNodes.forEach(n => forceBasedLayout(drawSettings, n.members, n));
-	forceBasedLayout(drawSettings, rootNodes); // Todo this is weird
+	intermediateNodes.forEach(n => straightTree(drawSettings, n.members, n));
+	rootNodes.forEach(n => straightTree(drawSettings, n.members, n));
+	straightTree(drawSettings, rootNodes); // Todo this is weird
 
 
 	// ZOOM HANDLING
@@ -96,6 +96,10 @@ function splitNodes(nodes: GraphDataNode[]) {
 	function recurse(node: GraphDataNode) {
 		node.members.forEach(node => recurse(node));
 		if (node.level === 0) {
+			if (node.members.length === 0) {
+				simpleNodes.push(node);
+				// TODO, also weird, rethink the split
+			}
 			rootNodes.push(node);
 		} else if (node.members.length === 0) {
 			simpleNodes.push(node);
