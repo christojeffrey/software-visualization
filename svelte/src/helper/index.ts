@@ -64,7 +64,7 @@ export function notNaN(n: number): number {
 
 /** 
  * Clamps num to a range [min, max] (inclusive bounds).
- * Returns an error if the bounds are nto valid
+ * Returns an error if the bounds are invalid
  */
 export function clamp(num: number, min: number, max: number) {
 	if (min > max) throw new Error(`Invalid clamping: ${min} > ${max}`)

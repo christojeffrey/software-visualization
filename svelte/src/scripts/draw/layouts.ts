@@ -3,6 +3,8 @@ import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode } from "$types
 import { notNaN } from "$helper";
 
 type GraphDataNodeExt = (GraphDataNode & {width: number; height: number});
+type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
+type NodeLayout = (drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) => void;
 
 /**
  * Helper function
@@ -31,7 +33,7 @@ function checkWidthHeight(nodes: GraphDataNode[]) : GraphDataNodeExt[] {
  * Assumes all nodes already have a width and height assigned
  * Only works on leaf nodes!
  */
-export function circularLayout(drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) {
+export const circularLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
 	const nodes = checkWidthHeight(childNodes)
 
 	const circumference = nodes.reduce((acc, n) => {
@@ -64,7 +66,7 @@ export function circularLayout(drawSettings: DrawSettingsInterface, childNodes: 
 	}
 }
 
-export function forceBasedLayout(drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) {
+export const forceBasedLayout: NodeLayout = function(drawSettings, childNodes, parentNode) {
 	checkWidthHeight(childNodes);
 
 	// collect relevant edges
@@ -99,28 +101,15 @@ export function forceBasedLayout(drawSettings: DrawSettingsInterface, childNodes
 	}
 }
 
-/**
- * Planar, straight line orthogonal tree drawing 
- * ([Crescenzi Di Battista Piperno 92] [Shiloach 76])
- * 
- * Designed for binary trees, but there is no reason at all this should not generalize if we accept edge crossings 
- * (which is unavoidable anyway)
- */
-
-export function straightTree(drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) {
-	// TODO: Once again, rethink split
-	if (childNodes.length === 0) {return}
-
+function discoverTree(graphNodes: GraphDataNode[]) {
 	// Initialize the nodes, and augment their datatype
 	// The next property holds the next nodes in tree-structure
-	type STNode = GraphDataNodeExt & {next: STNode[]};
-	const nodes = checkWidthHeight(childNodes) as STNode[];
+	const nodes = checkWidthHeight(graphNodes) as TreeNode[];
 	nodes.forEach(n => n.next = []);
 
-
 	// Function (and type) to find the next root node (via reduce)
-	type NextRootNodeAccType = {node: STNode, score: number} | undefined;
-	const nextRootNode = (acc: NextRootNodeAccType, node: STNode) => {
+	type NextRootNodeAccType = {node: TreeNode, score: number} | undefined;
+	const nextRootNode = (acc: NextRootNodeAccType, node: TreeNode) => {
 		const score = node.incomingLinksLifted.length - node.outgoingLinksLifted.length;
 		if (score < (acc?.score ?? Infinity)) {
 			return {node: node, score: score};
@@ -130,16 +119,15 @@ export function straightTree(drawSettings: DrawSettingsInterface, childNodes: Gr
 	};
 
 	// Pick root at random (preferably the least amount of incoming nodes)
-	const rootNode: STNode = nodes.reduce(nextRootNode, undefined as NextRootNodeAccType)!.node;
-	console.log({rootNode});
+	const rootNode: TreeNode = nodes.reduce(nextRootNode, undefined as NextRootNodeAccType)!.node;
 
 	// Discover tree structure by breadth-first-search
 	// https://en.wikipedia.org/wiki/Edmonds%27_algorithm
 	const toExplore = [rootNode];
-	while (toExplore.length != childNodes.length) {
+	while (toExplore.length != nodes.length) {
 		for(let i = 0; i < toExplore.length; i++) {
 			toExplore[i].outgoingLinksLifted.forEach(edge => {
-				const target = edge.liftedTarget! as STNode;
+				const target = edge.liftedTarget! as TreeNode;
 				if (!toExplore.includes(target)) {
 					toExplore.push(target);
 					toExplore[i].next.push(target);
@@ -147,21 +135,43 @@ export function straightTree(drawSettings: DrawSettingsInterface, childNodes: Gr
 			});
 		}
 
-		if (toExplore.length != childNodes.length) {
+		if (toExplore.length != nodes.length) {
 			// Lets just say the disjointed part is a random leaf.
 			const randomNode = nodes.filter(n => !toExplore.includes(n)).reduce(nextRootNode, undefined as NextRootNodeAccType)!.node
 			const lastNode = toExplore[toExplore.length-1]!;
 			lastNode.next.push(randomNode);
 			toExplore.push(randomNode);
-
-			// console.warn(`Straight tree layout is not built for disjoint graphs. \r\n
-			// 	Continuing by treating ${randomNode.id} as a child of ${lastNode.id}`);
 		}
 	}
 
 	if (toExplore.length !== nodes.length) {
 		throw new Error("Unexplored nodes", {cause: nodes.filter(n => !toExplore.includes(n))});
 	}
+
+	return {nodes, rootNode};
+}
+
+function cleanupTree(nodes: TreeNode[]) {
+	//Finally, cleanup and remove excess property
+	nodes.forEach(n => {
+		//@ts-expect-error Cleanup
+		delete n.next;
+	})
+}
+
+/**
+ * Planar, straight line orthogonal tree drawing 
+ * ([Crescenzi Di Battista Piperno 92] [Shiloach 76])
+ * 
+ * Designed for binary trees, but there is no reason at all this should not generalize if we accept edge crossings 
+ * (which is unavoidable anyway)
+ */
+
+export const straightTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
+	// TODO: Once again, rethink split
+	if (childNodes.length === 0) {return}
+
+	const {nodes, rootNode} = discoverTree(childNodes);
 
 	// Make sure all nodes have their top left coordinate at the same spot, namely the center of the parentnode 
 	nodes.forEach(n => {
@@ -170,10 +180,10 @@ export function straightTree(drawSettings: DrawSettingsInterface, childNodes: Gr
 	});
 
 	/** Actually layout the nodes, recursively */ 
-	function layoutRec(node: STNode): {
+	function layoutRec(node: TreeNode): {
 		width: number,
 		height: number,
-		nodes: STNode[],
+		nodes: TreeNode[],
 	} {
 		// Base case: we have a singular node.
 		if(node.next.length === 0) {
@@ -231,9 +241,78 @@ export function straightTree(drawSettings: DrawSettingsInterface, childNodes: Gr
 		})
 	}
 
-	//Finally, cleanup and remove excess property
+	cleanupTree(nodes);
+}
+
+
+export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
+	if (childNodes.length === 0) {return}
+	const {nodes, rootNode} = discoverTree(childNodes);
+
+	function layoutRec(node: TreeNode): {
+		width: number,
+		height: number,
+		nodes: TreeNode[],
+	} {
+		if(node.next.length === 0) {
+			console.log({baseCase: node});
+			return {
+				width: node.width,
+				height: node.height,
+				nodes: [node],
+			}
+		}
+
+		const layouts = node.next.map(n => layoutRec(n)!)
+		const totalWidth = notNaN(Math.max(
+			layouts.reduce((acc, l) => acc + l.width + drawSettings.nodePadding, 0),
+			node.width,
+		));
+		const totalHeight = node.height + drawSettings.nodePadding +
+			notNaN(layouts.reduce((acc, l) => Math.max(acc, l.height), -Infinity));
+
+		let currentX = -.5*totalWidth + 0.5*drawSettings.nodePadding;
+		layouts.forEach(l => {
+			l.nodes.forEach(n => {
+				n.x = notNaN(n.x ?? 0) + currentX;
+				n.y = notNaN((n.y ?? 0) + node.height + drawSettings.nodePadding);
+			})
+			currentX += l.width + drawSettings.nodePadding;
+		});
+		
+		return {
+			width: totalWidth,
+			height: totalHeight,
+			nodes: [node, ...layouts.flatMap(l => l.nodes)],
+		};
+	}
+
+	const finalLayout = layoutRec(rootNode);
+	rootNode.x = 0;
+	rootNode.y = 0;
+
+	console.log({id: parentNode?.id, rootNode, finalLayout})
+
+	if (parentNode) {
+		parentNode.width = notNaN(finalLayout.width + 2*drawSettings.nodePadding);
+		parentNode.height = notNaN(finalLayout.height  + 2*drawSettings.nodePadding);
+	}
+
+	centerize(nodes);
+	cleanupTree(nodes);
+}
+
+function centerize(nodes: GraphDataNode[]): void {
+	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x!), Infinity);
+	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y!), Infinity);
+	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x!), -Infinity);
+	const maxY = nodes.reduce((acc,n) => Math.max(acc, n.y!), -Infinity);
+	
+	const centerX = (maxX - minX) / 2;
+	const centerY = (maxY - minY) / 2;
+
 	nodes.forEach(n => {
-		//@ts-expect-error Cleanup
-		delete n.next;
-	})
+		n.x! += centerX;
+		n.y! -= centerY;
+	});
 }

@@ -15,7 +15,7 @@ export function renderLinks(
 	/** Returns the absolute x and y coordinates of a GraphDataNode */
 	function getAbsCoordinates(node?: GraphDataNode) : {x: number, y: number} {
 		if (node) {
-			const {x, y} = getAbsCoordinates(node.parent)
+			const {x, y} = getAbsCoordinates(node.parent);
 			return {
 				x: notNaN(node.x! + x),
 				y: notNaN(node.y! + y),
