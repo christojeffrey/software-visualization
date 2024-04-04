@@ -6,7 +6,7 @@ import type {
 	GraphDataNode} from '$types';
 
 import { setupGradient } from './helper/gradient-setup';
-import { forceBasedLayout, circularLayout, straightTree } from './layouts';
+import { forceBasedLayout, circularLayout, straightTreeLayout, layerTreeLayout } from './layouts';
 import { renderLinks } from './link-render';
 import { addDragAndDrop } from './drag-and-drop';
 import { renderNodes, renderNodeLabels, addLiftCollapseButtons } from './nodes-render';
@@ -18,9 +18,11 @@ export function draw(
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
 ) {	
+	const nodes = graphData.nodes;
+
 	// CALCULATE LAYOUT
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
-	const {simpleNodes, innerNodes, intermediateNodes, rootNodes } = splitNodes(graphData.nodes);
+	const {simpleNodes, innerNodes, intermediateNodes, rootNodes } = splitNodes(nodes);
 
 	// Initialize width and height of simple nodes
 	simpleNodes.forEach(n => {
@@ -30,9 +32,9 @@ export function draw(
 
 	// Calculate layouts for non-simple nodes
 	innerNodes.forEach(n => circularLayout(drawSettings, n.members, n));
-	intermediateNodes.forEach(n => straightTree(drawSettings, n.members, n));
-	rootNodes.forEach(n => straightTree(drawSettings, n.members, n));
-	straightTree(drawSettings, rootNodes); // Todo this is weird
+	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
+	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
+	layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
 
 
 	// ZOOM HANDLING
