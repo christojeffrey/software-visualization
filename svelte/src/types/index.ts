@@ -20,8 +20,8 @@ export interface DrawSettingsInterface {
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
 	nodeColors: string[];
-	disableAnimation: boolean;
-	transformation?: { k: number; x: number; y: number }; // Used to remember the last transformation in-between redraws.
+	/** Remembers the last transformation in-between redraws. */
+	transformation?: { k: number; x: number; y: number }; 
 }
 
 export interface SimpleNode {
@@ -78,21 +78,36 @@ export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
 	flattenNodes: GraphDataNode[];
+	/** Dictionary containing references to all nodes, indexed by id */
+	nodesDict: {[id: string]: GraphDataNode};
 }
-export interface GraphDataEdge extends d3.SimulationLinkDatum<GraphDataNode> {
-	source: GraphDataNode;
-	target: GraphDataNode;
+export interface GraphDataEdge {
+	/** The source / target of the edge, after edge lifting and other filter-operation */
+ 	source: string | GraphDataNode; 
+	target: string | GraphDataNode;
+
+	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */ 
+	liftedSource?: GraphDataNode; 
+	liftedTarget?: GraphDataNode;
+
 	id: string;
 	type: EdgeType;
 	weight: number;
 	originalWeight?: number;
-	originalSource: GraphDataNode;
-	originalTarget: GraphDataNode;
+
+	/** The original source / target of the edge, if filter operations are ignored */ 
+	originalSource?: GraphDataNode;
+	originalTarget?: GraphDataNode;
+
+	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
+	gradientDirection? : boolean;
+	absoluteCoordinates?: {x: number; y: number} [];
 }
-export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
+export interface GraphDataNode extends SimpleNode {
 	// initial data
 	id: string;
 	level: number;
+
 	// bellow is initial data but already a Reference.
 	members: GraphDataNode[];
 	parent?: GraphDataNode;
@@ -100,16 +115,18 @@ export interface GraphDataNode extends d3.SimulationNodeDatum, SimpleNode {
 	outgoingLinks: GraphDataEdge[];
 	incomingLinks: GraphDataEdge[];
 
+	incomingLinksLifted: GraphDataEdge[];
+	outgoingLinksLifted: GraphDataEdge[];
+
 	originalOutgoingLinks: GraphDataEdge[];
 	originalIncomingLinks: GraphDataEdge[];
 
 	// created by draw steps
 	originalMembers: GraphDataNode[];
 
-	width: number;
-	height: number;
-
-	// injected by d3
-	x: number;
-	y: number;
+	// Created by draw steps
+	width?: number;
+	height?: number;
+	x?: number;
+	y?: number;
 }
