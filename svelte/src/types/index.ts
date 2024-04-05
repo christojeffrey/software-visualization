@@ -101,6 +101,7 @@ export interface GraphDataEdge {
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
 	gradientDirection? : boolean;
+	isGradientVertical?: boolean;
 	absoluteCoordinates?: {x: number; y: number} [];
 }
 export interface GraphDataNode extends SimpleNode {
