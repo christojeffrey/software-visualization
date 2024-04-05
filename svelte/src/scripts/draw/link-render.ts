@@ -48,7 +48,7 @@ export function renderLinks(
 		l.isGradientVertical = isVertical(s.x, t.x, s.y, t.y);
 		l.gradientDirection = l.isGradientVertical ? s.y < t.y : s.x > t.x;
 		l.absoluteCoordinates = [s, t];
-		return `M${s.x} ${s.y} L${t.x} ${t.y}`;
+		return `M${s.x} ${Math.abs(s.y - 35) < 0.3 ? 35.5 : s.y} L${t.x} ${t.y}`;
 	}
 
 	// Enter
