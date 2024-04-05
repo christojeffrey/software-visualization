@@ -35,7 +35,7 @@ export function renderLinks(
 		const radial = Math.atan2(y2 - y1, x2 - x1);
 		return (
 			(radial > (Math.PI * -3) / 4 && radial < Math.PI / -4) ||
-			(radial > Math.PI / 4 && radial > (3 * Math.PI) / 4)
+			(radial > Math.PI / 4 && radial < (3 * Math.PI) / 4)
 		);
 	}
 
@@ -48,7 +48,7 @@ export function renderLinks(
 		l.isGradientVertical = isVertical(s.x, t.x, s.y, t.y);
 		l.gradientDirection = l.isGradientVertical ? s.y < t.y : s.x > t.x;
 		l.absoluteCoordinates = [s, t];
-		return `M${s.x} ${Math.abs(s.y - 35) < 0.3 ? 35.5 : s.y} L${t.x} ${t.y}`;
+		return `M${s.x} ${Math.abs(s.y - t.y) < 0.3 ? s.y + 0.5 : s.y} L${t.x} ${t.y}`;
 	}
 
 	// Enter
