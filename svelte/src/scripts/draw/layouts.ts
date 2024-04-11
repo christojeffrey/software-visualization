@@ -243,72 +243,14 @@ export const straightTreeLayout: NodeLayout = function(drawSettings, childNodes,
 	cleanupTree(nodes);
 }
 
-
-export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
-	if (childNodes.length === 0) {return}
-	const {nodes, rootNode} = discoverTree(childNodes);
-
-	function layoutRec(node: TreeNode): {
-		width: number,
-		height: number,
-		nodes: TreeNode[],
-	} {
-		if(node.next.length === 0) {
-			return {
-				width: node.width,
-				height: node.height,
-				nodes: [node],
-			}
-		}
-
-		const layouts = node.next.map(n => layoutRec(n)!)
-		const totalWidth = notNaN(Math.max(
-			layouts.reduce((acc, l) => acc + l.width + drawSettings.nodePadding, 0),
-			node.width,
-		));
-		const totalHeight = node.height + drawSettings.nodePadding +
-			notNaN(layouts.reduce((acc, l) => Math.max(acc, l.height), -Infinity));
-
-		let currentX = -.5*totalWidth + 0.5*drawSettings.nodePadding;
-		layouts.forEach(l => {
-			l.nodes.forEach(n => {
-				n.x = notNaN(n.x ?? 0) + currentX;
-				n.y = notNaN((n.y ?? 0) + node.height + drawSettings.nodePadding);
-			})
-			currentX += l.width + drawSettings.nodePadding;
-		});
-		
-		return {
-			width: totalWidth,
-			height: totalHeight,
-			nodes: [node, ...layouts.flatMap(l => l.nodes)],
-		};
-	}
-
-	const finalLayout = layoutRec(rootNode);
-	rootNode.x = 0;
-	rootNode.y = 0;
-
-	if (parentNode) {
-		parentNode.width = notNaN(finalLayout.width + 2*drawSettings.nodePadding);
-		parentNode.height = notNaN(finalLayout.height  + 2*drawSettings.nodePadding);
-	}
-
-	centerize(nodes);
-	cleanupTree(nodes);
-}
-
 function centerize(nodes: GraphDataNode[]): void {
 	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x! - 0.5*n.width!), Infinity);
 	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y! - 0.5*n.height!), Infinity);
 	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x! + 0.5*n.width!), -Infinity);
 	const maxY = nodes.reduce((acc,n) => Math.max(acc, n.y! + 0.5*n.height!), -Infinity);
-	console.log({maxX, minX})
 	
 	const centerX = (maxX - minX) / 2;
 	const centerY = (maxY - minY) / 2;
-
-	console.log({centerX, centerY})
 
 	nodes.forEach(n => {
 		n.x! -= centerX;
@@ -316,36 +258,43 @@ function centerize(nodes: GraphDataNode[]): void {
 	});
 }
 
+/**
+ * A layered tree using the Sugiyama method
+ */
 export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
 	if (childNodes.length === 0) return;
 
-	const nodes = checkWidthHeight(childNodes);
-	const treeEdges: GraphDataEdge[] = [];
+	/**
+	 * Apply the Sugiyama method:
+	 * 1. Discard edges until the graph is a DAG (implemented as finding a spanning DAG instead)
+	 * 2. Assign layers
+	 * 3. Vertex ordering
+	 * 4. Coordinate assignment
+	 */
 
-	// Removing cycles
-	// Differs from discoverTree in that is generates a DAG instead	
-	const startNodes = nodes.filter(node => node.incomingLinksLifted.length === 0);
+	/** GraphDataNode extended with a property assigning a layer to the node
+	 * The layer indicates at which layer the node will be rendered (top to bottom) */
+	type LayerTreeNode = GraphDataNodeExt & {
+		layer?: number;
+	}
+	const nodes = checkWidthHeight(childNodes) as LayerTreeNode[];
+	
+	/** Edges from the spanning DAG used to generate the layered tree */
+	const DAGedges: GraphDataEdge[] = discoverDAG(nodes);
 
-	function depthFirstSearch(node: GraphDataNodeExt, markedNodes: GraphDataNodeExt[]) {
-		node.outgoingLinksLifted.forEach((edge) => {
-			if (typeof edge.target === 'string') {
-				throw new TypeError('help');
-			}
-			if (!markedNodes.includes(edge.target as GraphDataNodeExt)) {
-				markedNodes.push(edge.target as GraphDataNodeExt);
-				treeEdges.push(edge);
-				depthFirstSearch(edge.target as GraphDataNodeExt, [...markedNodes]);
-			}
-		});
+	/** DummyType for vertex ordering step */
+	type DummyNode = {
+		layer: number
+		height: number,
+		width: number,
+		x?: number,
+		y?: number,
 	}
 
-	startNodes.forEach(node => depthFirstSearch(node, []));
-
-
 	// Layer assignment (Simple topological sort)
-	const layerNodes: GraphDataNodeExt[][] = [];
+	const layerNodes: (LayerTreeNode | DummyNode)[][] = [];
 	{
-		let edgeSort = [...treeEdges];
+		let edgeSort = [...DAGedges];
 		let nodeSort = [...nodes];
 
 		let i = 0;
@@ -360,8 +309,8 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 
 			// And remove the edges going to the nodes we just filtered out
 			edgeSort = edgeSort.filter(e => !(
-				layerNodes[i].includes(e.liftedTarget as GraphDataNodeExt) ||
-				layerNodes[i].includes(e.liftedSource as GraphDataNodeExt)
+				layerNodes[i].includes(e.liftedTarget as LayerTreeNode) ||
+				layerNodes[i].includes(e.liftedSource as LayerTreeNode)
 			));
 
 			// On to the next layer
@@ -369,32 +318,32 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		}
 	}
 
-	// Vertex ordering
+	// Step 3: Put nodes in the layer in a clean order.
 
-	// Step 1: Insert dummy vertices for edges spanning multiple layers
+	// Part 1: Insert dummy nodes for edges spanning multiple layers
 	type SugEdge = {
-		source: GraphDataNodeExt;
-		target: GraphDataNodeExt;
+		source: LayerTreeNode | DummyNode;
+		target: LayerTreeNode | DummyNode;
 		original: GraphDataEdge;
 	};
-	const edges: SugEdge[] = [];
 
-	const sugEdges = treeEdges.map((e): SugEdge => {return {
-		source: e.liftedSource as GraphDataNodeExt,
-		target: e.liftedTarget as GraphDataNodeExt,
+	const sugEdges = DAGedges.map((e): SugEdge => {return {
+		source: e.liftedSource as LayerTreeNode,
+		target: e.liftedTarget as LayerTreeNode,
 		original: e,
 	}});
 
 	for(let i = 0; i < sugEdges.length; i++) {
 		const e = sugEdges[i];
-		const distance = e.target.layer - e.source.layer;
+		const distance = e.target.layer! - e.source.layer!;
 		if (distance > 1) {
 			// make dummy node
-			const dummyNode = {
-				id: "Dummy",
-				layer: e.source.layer+1,
+			const dummyNode: DummyNode = {
+				layer: e.source.layer! + 1,
+				height: 0,
+				width: 0,
 			};
-			layerNodes[e.source.layer+1].push(dummyNode);
+			layerNodes[e.source.layer! + 1].push(dummyNode);
 			
 			// Add new edge
 			sugEdges.push({
@@ -408,7 +357,7 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		}
 	}
 
-	// Vertex ordering
+	// Part 2: Sort the vertices
 	for(let j = 0; j < 40; j++) {
 		layerNodes.forEach((layer, i) => {
 			const newLayer = layer.map(node => {
@@ -423,9 +372,9 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		});
 	};
 
-	// Coordinate assignment
+	// Step 4: Coordinate assignment
 
-	// To make it easier, make sure eveything has the same width and height
+	// First, make sure eveything has the same width and height
 	const numColums = Math.max(...layerNodes.map(l => l.length));
 
 	layerNodes.forEach(layer => {
@@ -434,13 +383,14 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 	})
 
 	for (let i = 0; i < numColums; i++) {
-		const maxWidth = Math.max(...layerNodes.map(l => l[i]?.width ?? 0));
-		layerNodes.forEach(layer => layer[i] ? layer[i].width = maxWidth : undefined);
+		const columnWidth = Math.max(...layerNodes.map(l => l[i]?.width ?? 0));
+		layerNodes.forEach(layer => layer[i] ? layer[i].width = columnWidth : undefined);
 	}
 
 	// Assign coordinates
 	let currentHeight = 0;
 	let maxWidth = 0;
+
 	layerNodes.forEach(layer => {
 		let currentWidth = 0;
 		layer.forEach(node => {
@@ -458,4 +408,31 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		parentNode.width = maxWidth + drawSettings.nodePadding;
 		parentNode.height = currentHeight + drawSettings.nodePadding;
 	}
+}
+
+/**
+ * Searches for a spanning DAG in the given nodes. Returns the edges of said DAG
+ */
+function discoverDAG(nodes: (GraphDataNode)[]) {
+	const DAGedges: GraphDataEdge[] = [];
+
+	// Removing cycles
+	// Differs from discoverTree in that is generates a DAG instead	
+	const startNodes = nodes.filter(node => node.incomingLinksLifted.length === 0);
+
+	function depthFirstSearch(node: GraphDataNode, markedNodes: GraphDataNodeExt[]) {
+		node.outgoingLinksLifted.forEach((edge) => {
+			if (typeof edge.target === 'string') {
+				throw new TypeError('help');
+			}
+			if (!markedNodes.includes(edge.target as GraphDataNodeExt)) {
+				markedNodes.push(edge.target as GraphDataNodeExt);
+				DAGedges.push(edge);
+				depthFirstSearch(edge.target as GraphDataNodeExt, [...markedNodes]);
+			}
+		});
+	}
+
+	startNodes.forEach(node => depthFirstSearch(node, []));
+	return DAGedges;
 }

@@ -6,7 +6,7 @@ import type {
 	GraphDataNode} from '$types';
 
 import { setupGradient } from './helper/gradient-setup';
-import { forceBasedLayout, circularLayout, straightTreeLayout, layerTreeLayout, sugiyamaLayout } from './layouts';
+import { forceBasedLayout, circularLayout, straightTreeLayout, sugiyamaLayout } from './layouts';
 import { renderLinks } from './link-render';
 import { addDragAndDrop } from './drag-and-drop';
 import { renderNodes, renderNodeLabels, addLiftCollapseButtons } from './nodes-render';
