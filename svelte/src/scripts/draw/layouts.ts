@@ -168,7 +168,6 @@ function cleanupTree(nodes: TreeNode[]) {
  */
 
 export const straightTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
-	// TODO: Once again, rethink split
 	if (childNodes.length === 0) {return}
 
 	const {nodes, rootNode} = discoverTree(childNodes);
@@ -255,7 +254,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		nodes: TreeNode[],
 	} {
 		if(node.next.length === 0) {
-			console.log({baseCase: node});
 			return {
 				width: node.width,
 				height: node.height,
@@ -291,8 +289,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	rootNode.x = 0;
 	rootNode.y = 0;
 
-	console.log({id: parentNode?.id, rootNode, finalLayout})
-
 	if (parentNode) {
 		parentNode.width = notNaN(finalLayout.width + 2*drawSettings.nodePadding);
 		parentNode.height = notNaN(finalLayout.height  + 2*drawSettings.nodePadding);
@@ -303,16 +299,163 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 }
 
 function centerize(nodes: GraphDataNode[]): void {
-	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x!), Infinity);
-	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y!), Infinity);
-	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x!), -Infinity);
-	const maxY = nodes.reduce((acc,n) => Math.max(acc, n.y!), -Infinity);
+	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x! - 0.5*n.width!), Infinity);
+	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y! - 0.5*n.height!), Infinity);
+	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x! + 0.5*n.width!), -Infinity);
+	const maxY = nodes.reduce((acc,n) => Math.max(acc, n.y! + 0.5*n.height!), -Infinity);
+	console.log({maxX, minX})
 	
 	const centerX = (maxX - minX) / 2;
 	const centerY = (maxY - minY) / 2;
 
+	console.log({centerX, centerY})
+
 	nodes.forEach(n => {
-		n.x! += centerX;
+		n.x! -= centerX;
 		n.y! -= centerY;
 	});
+}
+
+export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
+	if (childNodes.length === 0) return;
+
+	const nodes = checkWidthHeight(childNodes);
+	const treeEdges: GraphDataEdge[] = [];
+
+	// Removing cycles
+	// Differs from discoverTree in that is generates a DAG instead	
+	const startNodes = nodes.filter(node => node.incomingLinksLifted.length === 0);
+
+	function depthFirstSearch(node: GraphDataNodeExt, markedNodes: GraphDataNodeExt[]) {
+		node.outgoingLinksLifted.forEach((edge) => {
+			if (typeof edge.target === 'string') {
+				throw new TypeError('help');
+			}
+			if (!markedNodes.includes(edge.target as GraphDataNodeExt)) {
+				markedNodes.push(edge.target as GraphDataNodeExt);
+				treeEdges.push(edge);
+				depthFirstSearch(edge.target as GraphDataNodeExt, [...markedNodes]);
+			}
+		});
+	}
+
+	startNodes.forEach(node => depthFirstSearch(node, []));
+
+
+	// Layer assignment (Simple topological sort)
+	const layerNodes: GraphDataNodeExt[][] = [];
+	{
+		let edgeSort = [...treeEdges];
+		let nodeSort = [...nodes];
+
+		let i = 0;
+
+		while (nodeSort.length > 0) {
+			// All nodes with no incoming edges are in layer i
+			layerNodes[i] = nodeSort.filter(node => edgeSort.filter(e => e.liftedTarget === node).length === 0);
+			layerNodes[i].forEach(n => {n.layer = i;})
+
+			// Remove these nodes from the graph
+			nodeSort = nodeSort.filter(n => !layerNodes[i].includes(n))
+
+			// And remove the edges going to the nodes we just filtered out
+			edgeSort = edgeSort.filter(e => !(
+				layerNodes[i].includes(e.liftedTarget as GraphDataNodeExt) ||
+				layerNodes[i].includes(e.liftedSource as GraphDataNodeExt)
+			));
+
+			// On to the next layer
+			i++;
+		}
+	}
+
+	// Vertex ordering
+
+	// Step 1: Insert dummy vertices for edges spanning multiple layers
+	type SugEdge = {
+		source: GraphDataNodeExt;
+		target: GraphDataNodeExt;
+		original: GraphDataEdge;
+	};
+	const edges: SugEdge[] = [];
+
+	const sugEdges = treeEdges.map((e): SugEdge => {return {
+		source: e.liftedSource as GraphDataNodeExt,
+		target: e.liftedTarget as GraphDataNodeExt,
+		original: e,
+	}});
+
+	for(let i = 0; i < sugEdges.length; i++) {
+		const e = sugEdges[i];
+		const distance = e.target.layer - e.source.layer;
+		if (distance > 1) {
+			// make dummy node
+			const dummyNode = {
+				id: "Dummy",
+				layer: e.source.layer+1,
+			};
+			layerNodes[e.source.layer+1].push(dummyNode);
+			
+			// Add new edge
+			sugEdges.push({
+				source: dummyNode,
+				target: e.target,
+				original: e.original,
+			})
+
+			// Change current edge
+			e.target = dummyNode
+		}
+	}
+
+	// Vertex ordering
+	for(let j = 0; j < 40; j++) {
+		layerNodes.forEach((layer, i) => {
+			const newLayer = layer.map(node => {
+				const predecessorsRanks = sugEdges.filter(e => e.target === node)
+					.map(e => layerNodes[i-1]?.findIndex(x => x === e.source));
+				const median = predecessorsRanks.sort((a, b) => a - b)[Math.floor(predecessorsRanks.length/2)]
+				return {median, node}
+			}).sort((a, b) => a.median - b.median)
+			.map(({node}) => node);
+			
+			layerNodes[i] = newLayer;
+		});
+	};
+
+	// Coordinate assignment
+
+	// To make it easier, make sure eveything has the same width and height
+	const numColums = Math.max(...layerNodes.map(l => l.length));
+
+	layerNodes.forEach(layer => {
+		const maxHeight = Math.max(...layer.map(l => l.height));
+		layer.forEach(node => node.height = maxHeight);
+	})
+
+	for (let i = 0; i < numColums; i++) {
+		const maxWidth = Math.max(...layerNodes.map(l => l[i]?.width ?? 0));
+		layerNodes.forEach(layer => layer[i] ? layer[i].width = maxWidth : undefined);
+	}
+
+	// Assign coordinates
+	let currentHeight = 0;
+	let maxWidth = 0;
+	layerNodes.forEach(layer => {
+		let currentWidth = 0;
+		layer.forEach(node => {
+			node.y = currentHeight + 0.5*node.height;
+			node.x = currentWidth + 0.5*node.width;
+			currentWidth += node.width + drawSettings.nodePadding;
+		});
+		currentHeight += layer[0]?.height + drawSettings.nodePadding;
+		maxWidth = Math.max(maxWidth, currentWidth)
+	})
+
+	centerize(nodes);
+
+	if (parentNode) {
+		parentNode.width = maxWidth + drawSettings.nodePadding;
+		parentNode.height = currentHeight + drawSettings.nodePadding;
+	}
 }
