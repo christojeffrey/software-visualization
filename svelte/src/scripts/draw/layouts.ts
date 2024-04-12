@@ -7,9 +7,10 @@ type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
 type NodeLayout = (drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) => void;
 
 /**
- * Helper function
- * Throws an error if any nodes in the given array is not yet drawn
- * Returns the same object but with different type
+ * Helper function for layouts
+ * 
+ * Throws an error if any nodes in the given array is not yet drawn.
+ * Returns the same object but with different type.
  */
 function checkWidthHeight(nodes: GraphDataNode[]) : GraphDataNodeExt[] {
 	nodes.forEach(n => {
@@ -243,7 +244,12 @@ export const straightTreeLayout: NodeLayout = function(drawSettings, childNodes,
 	cleanupTree(nodes);
 }
 
-function centerize(nodes: GraphDataNode[]): void {
+/** Helper function for layout algorithms
+ * Given a list of nodes, reposition them such that the nodes are centered around the point 0,0.
+ * 
+ * Necessary to make sure the node "fits" its parent. Returns the required height and width
+ */
+function centerize(nodes: GraphDataNode[]) {
 	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x! - 0.5*n.width!), Infinity);
 	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y! - 0.5*n.height!), Infinity);
 	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x! + 0.5*n.width!), -Infinity);
@@ -256,12 +262,17 @@ function centerize(nodes: GraphDataNode[]): void {
 		n.x! -= centerX;
 		n.y! -= centerY;
 	});
+
+	return {
+		width: 2*centerX,
+		height: 2*centerY,
+	}
 }
 
 /**
  * A layered tree using the Sugiyama method
  */
-export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
+export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
 	if (childNodes.length === 0) return;
 
 	/**
@@ -277,10 +288,8 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 	type LayerTreeNode = GraphDataNodeExt & {
 		layer?: number;
 	}
+	/** Same as childNodes, but cast to the right type */
 	const nodes = checkWidthHeight(childNodes) as LayerTreeNode[];
-	
-	/** Edges from the spanning DAG used to generate the layered tree */
-	const DAGedges: GraphDataEdge[] = discoverDAG(nodes);
 
 	/** DummyType for vertex ordering step */
 	type DummyNode = {
@@ -291,8 +300,18 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		y?: number,
 	}
 
-	// Layer assignment (Simple topological sort)
+	/** Array containing all layers, where layers themselves are stored. 
+	 * Layers themselves are modelled as arrays of nodes, where the position in the array indicated the position the node is rendered in.
+	 * 
+	 * Dummynodes may be inserted in the vertex ordering step.
+	 */
 	const layerNodes: (LayerTreeNode | DummyNode)[][] = [];
+
+	// Step 1: building DAG.
+	/** Edges from the spanning DAG used to generate the layered tree */
+	const DAGedges: GraphDataEdge[] = discoverDAG(nodes);
+
+	// Step 2: Layer assignment via simple topological sort
 	{
 		let edgeSort = [...DAGedges];
 		let nodeSort = [...nodes];
@@ -319,8 +338,7 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 	}
 
 	// Step 3: Put nodes in the layer in a clean order.
-
-	// Part 1: Insert dummy nodes for edges spanning multiple layers
+	// First, give us a copy of the edgedata we can easily edit and extend. For this we only need the source and target.
 	type SugEdge = {
 		source: LayerTreeNode | DummyNode;
 		target: LayerTreeNode | DummyNode;
@@ -333,6 +351,7 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 		original: e,
 	}});
 
+	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
 	for(let i = 0; i < sugEdges.length; i++) {
 		const e = sugEdges[i];
 		const distance = e.target.layer! - e.source.layer!;
@@ -345,20 +364,22 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 			};
 			layerNodes[e.source.layer! + 1].push(dummyNode);
 			
-			// Add new edge
+			// Add new edge from dummy to target
 			sugEdges.push({
 				source: dummyNode,
 				target: e.target,
 				original: e.original,
 			})
 
-			// Change current edge
+			// Change current edge to go to the dummy node
 			e.target = dummyNode
 		}
 	}
 
-	// Part 2: Sort the vertices
-	for(let j = 0; j < 40; j++) {
+	// Step3 part 2: Sort the vertices using a heuristic.
+	// The heuristic puts the nodes in each layer in the median position of their predecessor
+	const amountOfIterations = 40;
+	for(let j = 0; j < amountOfIterations; j++) {
 		layerNodes.forEach((layer, i) => {
 			const newLayer = layer.map(node => {
 				const predecessorsRanks = sugEdges.filter(e => e.target === node)
@@ -374,22 +395,21 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 
 	// Step 4: Coordinate assignment
 
-	// First, make sure eveything has the same width and height
-	const numColums = Math.max(...layerNodes.map(l => l.length));
+	// First, make sure everything has the same width and height
+	const numColumns = Math.max(...layerNodes.map(l => l.length));
 
 	layerNodes.forEach(layer => {
 		const maxHeight = Math.max(...layer.map(l => l.height));
 		layer.forEach(node => node.height = maxHeight);
 	})
 
-	for (let i = 0; i < numColums; i++) {
+	for (let i = 0; i < numColumns; i++) {
 		const columnWidth = Math.max(...layerNodes.map(l => l[i]?.width ?? 0));
 		layerNodes.forEach(layer => layer[i] ? layer[i].width = columnWidth : undefined);
 	}
 
 	// Assign coordinates
 	let currentHeight = 0;
-	let maxWidth = 0;
 
 	layerNodes.forEach(layer => {
 		let currentWidth = 0;
@@ -399,14 +419,13 @@ export const sugiyamaLayout: NodeLayout = function(drawSettings, childNodes, par
 			currentWidth += node.width + drawSettings.nodePadding;
 		});
 		currentHeight += layer[0]?.height + drawSettings.nodePadding;
-		maxWidth = Math.max(maxWidth, currentWidth)
-	})
-
-	centerize(nodes);
+	});
 
 	if (parentNode) {
-		parentNode.width = maxWidth + drawSettings.nodePadding;
-		parentNode.height = currentHeight + drawSettings.nodePadding;
+		const {width, height} = centerize(nodes);
+
+		parentNode.width = width + 2*drawSettings.nodePadding;
+		parentNode.height = height + 2*drawSettings.nodePadding;
 	}
 }
 
