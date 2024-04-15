@@ -43,22 +43,29 @@ export function renderLinks(
 			}
 		}), t];
 
-		let result = `M${s.x} ${s.y} `;
+		let result = `M ${s.x} ${s.y} ${coordinates.length > 0 ? 'L ' : ''}`;
 		let thisPoint = {
 			x: s.x,
 			y: s.y,
 		}
+		
+		// TODO improve curve rendering.
 		for (let i = 0; i < coordinates.length; i++) {
 			const nextPoint = coordinates[i];
 
-			const x = .1*thisPoint.x + 0.9*nextPoint.x;
-			const y = .1*thisPoint.y + 0.9*nextPoint.y;
+			const beta = .5;
+			const x = (1-beta)*thisPoint.x + beta*nextPoint.x;
+			const y = (1-beta)*thisPoint.y + beta*nextPoint.y;
+
+			const alpha = 0.3;
+			const bendX = (1-alpha)*nextPoint.x + alpha*thisPoint.x;
+			const bendY = (1-alpha)*nextPoint.y + alpha*thisPoint.y;
+
+			result += `${x} ${y} Q ${bendX} ${bendY}, `;
 
 			thisPoint = nextPoint;
-
-			result += `L ${x} ${y} `;
 		}
-		result += `L ${t.x} ${t.y}`
+		result += `${t.x} ${t.y}`
 
 		return result;
 	}

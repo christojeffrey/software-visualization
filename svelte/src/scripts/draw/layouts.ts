@@ -5,7 +5,8 @@ import { notNaN } from "$helper";
 
 type GraphDataNodeExt = (GraphDataNode & {width: number; height: number});
 type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
-type NodeLayout = (drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type NodeLayout = (drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode, options?: any) => void;
 
 /**
  * Helper function for layouts
@@ -282,7 +283,7 @@ function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
 /**
  * A layered tree using the Sugiyama method
  */
-export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?) {
+export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?, options?) {
 	if (childNodes.length === 0) return;
 
 	/**
@@ -458,16 +459,18 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 
 	// Finally: edge routing
 	// We want to rout edges through their dummy nodes.
-	sugEdges.forEach(e => {
-		if ('isDummy' in e.target) {
-			const target = e.target.realDummy ?? e.target;
-			e.original.routing.push({
-				x: notNaN(target.x),
-				y: notNaN(target.y),
-				origin: parentNode,
-			});
-		}
-	});
+	if (options?.edgeRouting) {
+		sugEdges.forEach(e => {
+			if ('isDummy' in e.target) {
+				const target = e.target.realDummy ?? e.target;
+				e.original.routing.push({
+					x: notNaN(target.x),
+					y: notNaN(target.y),
+					origin: parentNode,
+				});
+			}
+		});
+	}
 
 	if (parentNode) {
 		const {width, height} = centerize(nodes, [...DAGedges]);
