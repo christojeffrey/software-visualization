@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as d3 from 'd3';
 import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode } from "$types";
 import { notNaN } from "$helper";
@@ -298,6 +299,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		width: number,
 		x?: number,
 		y?: number,
+		isDummy: true,
 	}
 
 	/** Array containing all layers, where layers themselves are stored. 
@@ -306,10 +308,12 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	 * Dummynodes may be inserted in the vertex ordering step.
 	 */
 	const layerNodes: (LayerTreeNode | DummyNode)[][] = [];
+	console.log("step0")
 
 	// Step 1: building DAG.
 	/** Edges from the spanning DAG used to generate the layered tree */
-	const DAGedges: GraphDataEdge[] = discoverDAG(nodes);
+	const DAGedges = discoverDAG2(nodes);
+	console.log("step1", DAGedges)
 
 	// Step 2: Layer assignment via simple topological sort
 	{
@@ -323,6 +327,12 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			layerNodes[i] = nodeSort.filter(node => edgeSort.filter(e => e.liftedTarget === node).length === 0);
 			layerNodes[i].forEach(n => {n.layer = i;})
 
+			// If we filtered no nodes, we're going to get stuck.
+			if (layerNodes[i].length === 0) {
+				console.error({nodes, layerNodes, i, nodeSort, edgeSort});
+				throw new Error('Invalid data in layering algorithm');
+			}
+
 			// Remove these nodes from the graph
 			nodeSort = nodeSort.filter(n => !layerNodes[i].includes(n))
 
@@ -335,6 +345,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			// On to the next layer
 			i++;
 		}
+		console.log("step2", nodeSort, edgeSort)
 	}
 
 	// Step 3: Put nodes in the layer in a clean order.
@@ -345,11 +356,12 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		original: GraphDataEdge;
 	};
 
-	const sugEdges = DAGedges.map((e): SugEdge => {return {
+	const sugEdges = [...DAGedges].map((e): SugEdge => {return {
 		source: e.liftedSource as LayerTreeNode,
 		target: e.liftedTarget as LayerTreeNode,
 		original: e,
 	}});
+	console.log("step30")
 
 	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
 	for(let i = 0; i < sugEdges.length; i++) {
@@ -361,6 +373,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				layer: e.source.layer! + 1,
 				height: 0,
 				width: 0,
+				isDummy: true,
 			};
 			layerNodes[e.source.layer! + 1].push(dummyNode);
 			
@@ -375,6 +388,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			e.target = dummyNode
 		}
 	}
+	console.log("step31")
 
 	// Step3 part 2: Sort the vertices using a heuristic.
 	// The heuristic puts the nodes in each layer in the median position of their predecessor
@@ -392,6 +406,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			layerNodes[i] = newLayer;
 		});
 	};
+	console.log("step32")
 
 	// Step 4: Coordinate assignment
 
@@ -420,6 +435,17 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		});
 		currentHeight += layer[0]?.height + drawSettings.nodePadding;
 	});
+	console.log("step4")
+
+	// Finally: edge routing
+	// Let's route edges through the dummy node
+	sugEdges.forEach(e => {
+		//@ts-ignore typescript is not very clever
+		if (e.target.isDummy === true) {
+			// TODO
+		}
+	})
+
 
 	if (parentNode) {
 		const {width, height} = centerize(nodes);
@@ -432,26 +458,35 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 /**
  * Searches for a spanning DAG in the given nodes. Returns the edges of said DAG
  */
-function discoverDAG(nodes: (GraphDataNode)[]) {
+function discoverDAG2(nodes: (GraphDataNode)[]) {
 	const DAGedges: GraphDataEdge[] = [];
 
-	// Removing cycles
-	// Differs from discoverTree in that is generates a DAG instead	
-	const startNodes = nodes.filter(node => node.incomingLinksLifted.length === 0);
+	// Start with all edges
+	nodes.forEach(node => {
+		node.outgoingLinksLifted.forEach(e => {
+			if (!DAGedges.includes(e)) {
+				DAGedges.push(e)
+			};
+		})
+	})
 
-	function depthFirstSearch(node: GraphDataNode, markedNodes: GraphDataNodeExt[]) {
-		node.outgoingLinksLifted.forEach((edge) => {
-			if (typeof edge.target === 'string') {
-				throw new TypeError('help');
+	// Depth first search: remove node if we run into a cycle
+	function dfs(node: GraphDataNode, markedNodes: GraphDataNode[]) {
+		DAGedges.filter(e => e.liftedSource === node).forEach(edge => {
+			const target = edge.liftedTarget!;
+			if (markedNodes.includes(target)) {
+				const index = DAGedges.findIndex(e => e === edge);
+				if (index === -1) throw new Error('')
+				DAGedges.splice(index, 1);
+			} else {
+				dfs(target, [...markedNodes, target]);
 			}
-			if (!markedNodes.includes(edge.target as GraphDataNodeExt)) {
-				markedNodes.push(edge.target as GraphDataNodeExt);
-				DAGedges.push(edge);
-				depthFirstSearch(edge.target as GraphDataNodeExt, [...markedNodes]);
-			}
-		});
+		})
 	}
 
-	startNodes.forEach(node => depthFirstSearch(node, []));
-	return DAGedges;
+	nodes.forEach(node => {
+		dfs(node, [node]);
+	})
+
+	return new Set(DAGedges);
 }

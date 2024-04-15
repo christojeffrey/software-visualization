@@ -31,7 +31,7 @@ export function draw(
 	});
 
 	// Calculate layouts for non-simple nodes
-	innerNodes.forEach(n => circularLayout(drawSettings, n.members, n));
+	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
 	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
 	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
 	layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
