@@ -115,6 +115,8 @@ export interface GraphDataNode extends SimpleNode {
 	outgoingLinks: GraphDataEdge[];
 	incomingLinks: GraphDataEdge[];
 
+	/** The incoming/outgoing source/target of the edges, when lifting would be applied at level 0 (used for lay-outing)
+	 *  Unrelated to whether it is actually being lifted */
 	incomingLinksLifted: GraphDataEdge[];
 	outgoingLinksLifted: GraphDataEdge[];
 
