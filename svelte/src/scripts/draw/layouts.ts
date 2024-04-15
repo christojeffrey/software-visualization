@@ -416,11 +416,12 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	};
 
 	// In between: let's remove consecutive dummy edges, otherwise the result will look ugly
-	//@ts-ignore Assume everything is a dummy (we check by checking isDummy)
-	layerNodes.forEach((layer: DummyNode[]) => {
+	layerNodes.forEach((layer) => {
 		for (let i = 0; i < layer.length;) {
-			if (layer[i]?.isDummy && layer[i+1]?.isDummy) {
-				layer[i+1].realDummy = layer[i];
+			const thisItem = layer[i];
+			const nextItem = layer[i+1];
+			if ('isDummy' in thisItem && 'isDummy' in nextItem) {
+				nextItem.realDummy = thisItem;
 				layer.splice(i+1, 1);
 			} else {
 				i++;
@@ -458,11 +459,8 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	// Finally: edge routing
 	// We want to rout edges through their dummy nodes.
 	sugEdges.forEach(e => {
-		//@ts-ignore typescript is not very clever
-		if (e.target.isDummy === true) {
-			// Dummynode might have been deleted, in that case the property realDummy will point us to the 
-			// correct dummy.
-			const target = (e.target as DummyNode).realDummy ?? e.target as DummyNode;
+		if ('isDummy' in e.target) {
+			const target = e.target.realDummy ?? e.target;
 			e.original.routing.push({
 				x: notNaN(target.x),
 				y: notNaN(target.y),
