@@ -33,7 +33,23 @@ export function renderLinks(
 		const t = getAbsCoordinates(target);
 		l.gradientDirection = s.x > t.x;
 		l.absoluteCoordinates = [s,t];
-		return `M${s.x} ${s.y} L${t.x} ${t.y}`;
+
+		/** List of all coordinates the path will need to go through */
+		const coordinates = [...l.routing.map(point => {
+			const {x, y} = getAbsCoordinates(point.origin);
+			return {
+				x: x + point.x,
+				y: y + point.y,
+			}
+		}), t];
+
+		let result = `M${s.x} ${s.y} `;
+		coordinates.forEach(({x, y}) => {
+			result += `L${x} ${y} `;
+		});
+		
+		return result;
+		//return `M${s.x} ${s.y} L${t.x} ${t.y}`;
 	}
 
 	// Enter

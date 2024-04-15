@@ -250,7 +250,7 @@ export const straightTreeLayout: NodeLayout = function(drawSettings, childNodes,
  * 
  * Necessary to make sure the node "fits" its parent. Returns the required height and width
  */
-function centerize(nodes: GraphDataNode[]) {
+function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
 	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x! - 0.5*n.width!), Infinity);
 	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y! - 0.5*n.height!), Infinity);
 	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x! + 0.5*n.width!), -Infinity);
@@ -263,6 +263,15 @@ function centerize(nodes: GraphDataNode[]) {
 		n.x! -= centerX;
 		n.y! -= centerY;
 	});
+
+	if (edges) {
+		edges.forEach(e => {
+			e.routing.forEach((point) => {
+				point.x -= centerX;
+				point.y -= centerY;
+			})
+		})
+	}
 
 	return {
 		width: 2*centerX,
@@ -299,7 +308,11 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		width: number,
 		x?: number,
 		y?: number,
+		/** The existence of this property is used to mark this node as a DummyNode */
 		isDummy: true,
+		/** In between steps 3 and 4, dummynodes are merged and deleted. 
+		 * If this node has been deleted, this property points to the merged node */
+		realDummy?: DummyNode,
 	}
 
 	/** Array containing all layers, where layers themselves are stored. 
@@ -402,6 +415,19 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		});
 	};
 
+	// In between: let's remove consecutive dummy edges, otherwise the result will look ugly
+	//@ts-ignore Assume everything is a dummy (we check by checking isDummy)
+	layerNodes.forEach((layer: DummyNode[]) => {
+		for (let i = 0; i < layer.length;) {
+			if (layer[i]?.isDummy && layer[i+1]?.isDummy) {
+				layer[i+1].realDummy = layer[i];
+				layer.splice(i+1, 1);
+			} else {
+				i++;
+			}
+		}
+	})
+
 	// Step 4: Coordinate assignment
 	// First, make sure everything has the same width and height
 	const numColumns = Math.max(...layerNodes.map(l => l.length));
@@ -430,17 +456,23 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	});
 
 	// Finally: edge routing
-	// Let's route edges through the dummy node
+	// We want to rout edges through their dummy nodes.
 	sugEdges.forEach(e => {
 		//@ts-ignore typescript is not very clever
 		if (e.target.isDummy === true) {
-			// TODO
+			// Dummynode might have been deleted, in that case the property realDummy will point us to the 
+			// correct dummy.
+			const target = (e.target as DummyNode).realDummy ?? e.target as DummyNode;
+			e.original.routing.push({
+				x: notNaN(target.x),
+				y: notNaN(target.y),
+				origin: parentNode,
+			});
 		}
-	})
-
+	});
 
 	if (parentNode) {
-		const {width, height} = centerize(nodes);
+		const {width, height} = centerize(nodes, [...DAGedges]);
 
 		parentNode.width = width + 2*drawSettings.nodePadding;
 		parentNode.height = height + 2*drawSettings.nodePadding;
@@ -452,7 +484,9 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
  * 
  * Should be optimized at some point.
  */
-function discoverDAG(nodes: (GraphDataNode)[]) {
+function discoverDAG(graphNodes: (GraphDataNode)[]) {
+	type MarkedNode = GraphDataNode & {mark?: boolean};
+	const nodes = graphNodes as  MarkedNode[];
 	const DAGedges: GraphDataEdge[] = [];
 
 	// Start with all edges
@@ -465,21 +499,28 @@ function discoverDAG(nodes: (GraphDataNode)[]) {
 	})
 
 	/** Depth first search: remove node if we run into a cycle*/ 
-	function dfs(node: GraphDataNode, markedNodes: GraphDataNode[]) {
+	function dfs(node: MarkedNode, markedNodes: GraphDataNode[]) {
 		DAGedges.filter(e => e.liftedSource === node).forEach(edge => {
 			const target = edge.liftedTarget!;
 			if (markedNodes.includes(target)) {
 				const index = DAGedges.findIndex(e => e === edge);
 				DAGedges.splice(index, 1);
 			} else {
-				dfs(target, [...markedNodes, target]);
+				if (!node.mark) dfs(target, [...markedNodes, target]);
 			}
 		})
+		node.mark = true;
 	}
 
 	nodes.forEach(node => {
-		dfs(node, [node]);
+		if (!node.mark) {
+			dfs(node, [node]);
+		}
 	})
+
+	nodes.forEach(node => {
+		delete node.mark;
+	});
 
 	return new Set(DAGedges);
 }

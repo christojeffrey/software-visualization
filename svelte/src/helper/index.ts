@@ -55,11 +55,11 @@ export function toHTMLToken(string: string) {
 /**
  * Throws an error if the given number is NaN, Infinity or any non-number value
  */
-export function notNaN(n: number): number {
+export function notNaN(n?: number): number {
 	if (!Number.isFinite(n)) {
 		throw new Error(`Unexpected value: ${n}`);
 	}
-	return n;
+	return n!;
 }
 
 /** 
