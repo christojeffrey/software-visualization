@@ -85,7 +85,8 @@ export function renderLinks(
 					l.gradientDirection ? 'Reversed' : ''
 				})`
 		)
-		.attr('display', (l) => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
+		.attr('display', (l) => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'))
+		.attr('stroke-width', l => Math.round(Math.log(l.weight * 10)).toString());
 
 	// No exit, since we don't get all edges when updating
 
