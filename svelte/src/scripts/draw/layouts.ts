@@ -308,12 +308,10 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	 * Dummynodes may be inserted in the vertex ordering step.
 	 */
 	const layerNodes: (LayerTreeNode | DummyNode)[][] = [];
-	console.log("step0")
 
 	// Step 1: building DAG.
 	/** Edges from the spanning DAG used to generate the layered tree */
-	const DAGedges = discoverDAG2(nodes);
-	console.log("step1", DAGedges)
+	const DAGedges = discoverDAG(nodes);
 
 	// Step 2: Layer assignment via simple topological sort
 	{
@@ -345,7 +343,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			// On to the next layer
 			i++;
 		}
-		console.log("step2", nodeSort, edgeSort)
 	}
 
 	// Step 3: Put nodes in the layer in a clean order.
@@ -361,7 +358,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		target: e.liftedTarget as LayerTreeNode,
 		original: e,
 	}});
-	console.log("step30")
 
 	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
 	for(let i = 0; i < sugEdges.length; i++) {
@@ -388,7 +384,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			e.target = dummyNode
 		}
 	}
-	console.log("step31")
 
 	// Step3 part 2: Sort the vertices using a heuristic.
 	// The heuristic puts the nodes in each layer in the median position of their predecessor
@@ -406,10 +401,8 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 			layerNodes[i] = newLayer;
 		});
 	};
-	console.log("step32")
 
 	// Step 4: Coordinate assignment
-
 	// First, make sure everything has the same width and height
 	const numColumns = Math.max(...layerNodes.map(l => l.length));
 
@@ -435,7 +428,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		});
 		currentHeight += layer[0]?.height + drawSettings.nodePadding;
 	});
-	console.log("step4")
 
 	// Finally: edge routing
 	// Let's route edges through the dummy node
@@ -456,9 +448,11 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 }
 
 /**
- * Searches for a spanning DAG in the given nodes. Returns the edges of said DAG
+ * Searches for a spanning DAG in the given nodes. Returns the edges of said DAG.
+ * 
+ * Should be optimized at some point.
  */
-function discoverDAG2(nodes: (GraphDataNode)[]) {
+function discoverDAG(nodes: (GraphDataNode)[]) {
 	const DAGedges: GraphDataEdge[] = [];
 
 	// Start with all edges
@@ -470,13 +464,12 @@ function discoverDAG2(nodes: (GraphDataNode)[]) {
 		})
 	})
 
-	// Depth first search: remove node if we run into a cycle
+	/** Depth first search: remove node if we run into a cycle*/ 
 	function dfs(node: GraphDataNode, markedNodes: GraphDataNode[]) {
 		DAGedges.filter(e => e.liftedSource === node).forEach(edge => {
 			const target = edge.liftedTarget!;
 			if (markedNodes.includes(target)) {
 				const index = DAGedges.findIndex(e => e === edge);
-				if (index === -1) throw new Error('')
 				DAGedges.splice(index, 1);
 			} else {
 				dfs(target, [...markedNodes, target]);
