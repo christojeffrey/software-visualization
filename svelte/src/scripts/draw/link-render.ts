@@ -44,12 +44,23 @@ export function renderLinks(
 		}), t];
 
 		let result = `M${s.x} ${s.y} `;
-		coordinates.forEach(({x, y}) => {
-			result += `L${x} ${y} `;
-		});
-		
+		let thisPoint = {
+			x: s.x,
+			y: s.y,
+		}
+		for (let i = 0; i < coordinates.length; i++) {
+			const nextPoint = coordinates[i];
+
+			const x = .1*thisPoint.x + 0.9*nextPoint.x;
+			const y = .1*thisPoint.y + 0.9*nextPoint.y;
+
+			thisPoint = nextPoint;
+
+			result += `L ${x} ${y} `;
+		}
+		result += `L ${t.x} ${t.y}`
+
 		return result;
-		//return `M${s.x} ${s.y} L${t.x} ${t.y}`;
 	}
 
 	// Enter

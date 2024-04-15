@@ -419,7 +419,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	layerNodes.forEach((layer) => {
 		for (let i = 0; i < layer.length;) {
 			const thisItem = layer[i];
-			const nextItem = layer[i+1];
+			const nextItem = layer[i+1] ?? {};
 			if ('isDummy' in thisItem && 'isDummy' in nextItem) {
 				nextItem.realDummy = thisItem;
 				layer.splice(i+1, 1);
