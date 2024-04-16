@@ -21,17 +21,17 @@ function assignParentReference(nodes: GraphDataNode[]) {
 	});
 }
 
-function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 	links: ConvertedEdge[],
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
 ) {
-	flattenNodes.forEach(node => {
+	flattenNodes.forEach((node) => {
 		//@ts-expect-error Type of this variable will change later
 		node.incomingLinks = [];
 		//@ts-expect-error same
 		node.outgoingLinks = [];
-	})
+	});
 	const graphDataLinks = links as unknown as GraphDataEdge[];
 	links.forEach((link) => {
 		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
@@ -49,16 +49,31 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 		// Populate the source and target reference
 		graphDataLink.source = nodeSource;
 		graphDataLink.target = nodeTarget;
-		
+
 		// assign original source and target
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
+
+		const oldestSource = findOldestNode(nodeSource);
+		const oldestTarget = findOldestNode(nodeTarget);
+
+		graphDataLink.liftedSource = oldestSource;
+		graphDataLink.liftedTarget = oldestTarget;
+
+		oldestSource.outgoingLinksLifted.push(graphDataLink);
+		oldestTarget.incomingLinksLifted.push(graphDataLink);
 	});
 	return graphDataLinks;
 }
 
+function findOldestNode(node: GraphDataNode): GraphDataNode {
+	if (node.parent) {
+		return findOldestNode(node.parent);
+	}
+	return node;
+}
 export function createGraphData(convertedData: ConvertedData): GraphData {
-	// do deep copy
+	// do deep copy. TODO: now that we don't need to preserve previous graphData, we don't need to copy it.
 	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
@@ -69,25 +84,36 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 
 	assignParentReference(graphDataNodes);
 
-	// add originalIncoming and outgoingLinks
+	// setup to be assigned
 	graphDataFlattenNodes.forEach((node) => {
+		// all are reference reference
 		node.outgoingLinks = [];
 		node.originalOutgoingLinks = [];
 		node.incomingLinks = [];
 		node.originalIncomingLinks = [];
+		node.outgoingLinksLifted = [];
+		node.incomingLinksLifted = [];
 	});
 
-	const graphDataLinks = assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		links,
 		flattenNodes,
 		graphDataFlattenNodes
 	);
 
+	// create nodesDict
+	const nodesDict: { [id: string]: GraphDataNode } = {};
+	graphDataFlattenNodes.forEach((node) => {
+		nodesDict[node.id] = node;
+	});
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
 		links: graphDataLinks,
-		flattenNodes: graphDataFlattenNodes
+		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
+		nodesDict // nodesDict can be derived from nodes
+		// both put here to reduce calculation time
 	};
+
 	return graphData;
 }
 
