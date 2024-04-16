@@ -1,4 +1,4 @@
-import { notNaN, toHTMLToken } from "$helper";
+import { distance, geometricMean, notNaN, toHTMLToken } from "$helper";
 import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode, SimpleNodesDictionaryType } from "$types";
 
 /**
@@ -32,10 +32,10 @@ export function renderLinks(
 		const s = getAbsCoordinates(source);
 		const t = getAbsCoordinates(target);
 		l.gradientDirection = s.x > t.x;
-		l.absoluteCoordinates = [s,t];
+		l.labelCoordinates = [s,t];
 
 		/** List of all coordinates the path will need to go through */
-		const coordinates = [...l.routing.map(point => {
+		const coordinates = [s, ...l.routing.map(point => {
 			const {x, y} = getAbsCoordinates(point.origin);
 			return {
 				x: x + point.x,
@@ -43,29 +43,27 @@ export function renderLinks(
 			}
 		}), t];
 
-		let result = `M ${s.x} ${s.y} ${coordinates.length > 0 ? 'L ' : ''}`;
-		let thisPoint = {
-			x: s.x,
-			y: s.y,
-		}
+		let result = `M ${s.x} ${s.y} `;
 		
-		// TODO improve curve rendering.
-		for (let i = 0; i < coordinates.length; i++) {
-			const nextPoint = coordinates[i];
+		let maxDistance = -Infinity
+		for (let i = 0; i < coordinates.length - 2; i++) {
+			const p1 = coordinates[i];
+			const p2 = coordinates[i+1];
+			const p3 = coordinates[i+2];
 
-			const beta = .5;
-			const x = (1-beta)*thisPoint.x + beta*nextPoint.x;
-			const y = (1-beta)*thisPoint.y + beta*nextPoint.y;
+			const sigma = .25;
+			const turnPoint1 = geometricMean(p1, p2, 1-sigma);
+			const turnPoint2 = geometricMean(p2, p3, sigma);
 
-			const alpha = 0.3;
-			const bendX = (1-alpha)*nextPoint.x + alpha*thisPoint.x;
-			const bendY = (1-alpha)*nextPoint.y + alpha*thisPoint.y;
+			const labelDistance = distance(p1, p2);
+			if (labelDistance > maxDistance) {
+				maxDistance = labelDistance;
+				l.labelCoordinates = [p1, p2];
+			}
 
-			result += `${x} ${y} Q ${bendX} ${bendY}, `;
-
-			thisPoint = nextPoint;
+			result += `L ${turnPoint1.x} ${turnPoint1.y} Q ${p2.x} ${p2.y}, ${turnPoint2.x} ${turnPoint2.y} `;
 		}
-		result += `${t.x} ${t.y}`
+		result += `L ${t.x} ${t.y}`;
 
 		return result;
 	}
@@ -78,7 +76,10 @@ export function renderLinks(
 		.attr('id', l => `line-${toHTMLToken(l.id)}`)
 		.attr('d', annotateLine)
 		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`)
-		.attr('fill', 'transparent');
+		.attr('fill', 'transparent')
+		.on('mouseover', (e, d) => {
+			console.log({d})
+		});
 
 	// Update
 	(linkCanvas.selectAll('path') as d3.Selection<SVGPathElement, GraphDataEdge, SVGGElement, unknown>)
@@ -102,12 +103,12 @@ export function renderLinks(
 			.text((l) => l.id);
 
 		(linkCanvas.selectAll('text') as d3.Selection<d3.BaseType, GraphDataEdge, SVGGElement, unknown>)
-			.attr('x', l => (l.absoluteCoordinates![0].x + l.absoluteCoordinates![1].x)/2)
-			.attr('y', l => (l.absoluteCoordinates![0].y + l.absoluteCoordinates![1].y)/2)
+			.attr('x', l => (l.labelCoordinates![0].x + l.labelCoordinates![1].x)/2)
+			.attr('y', l => (l.labelCoordinates![0].y + l.labelCoordinates![1].y)/2)
 	} else if (!drawSettings.showEdgeLabels) {
 		linkCanvas.selectAll('text').remove();
 	}
 
 	// Cleanup, just to be sure:
-	links.forEach(l => {l.absoluteCoordinates = undefined; l.gradientDirection = undefined});
+	links.forEach(l => {l.labelCoordinates = undefined; l.gradientDirection = undefined});
 }

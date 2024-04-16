@@ -105,7 +105,7 @@ export interface GraphDataEdge {
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
 	gradientDirection? : boolean;
-	absoluteCoordinates?: {x: number; y: number} [];
+	labelCoordinates?: {x: number; y: number} [];
 }
 
 /** Routing information for edges.

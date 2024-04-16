@@ -67,7 +67,7 @@ export function draw(
 	addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
 
 	// Render links
-	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas').lower();
+	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas)
 	renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
 
