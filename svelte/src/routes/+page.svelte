@@ -39,7 +39,7 @@
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
-		nodeColors: ['#32a875', '#d46868'],
+		nodeColors: ['#32a875', '#d46868']
 	};
 	let svgElement: SVGElement | undefined = undefined;
 
@@ -84,20 +84,16 @@
 		if (isMounted) {
 			// handle config changes
 			if (doReconvert) {
+				// will setup graphData. Will also setup shownEdgesType
 				convertedData = converter(rawData);
-				doReconvert = false;
-
-				// must recreate graph data after reconvert
-				doRecreateWholeGraphData = true;
-			}
-			if (doRecreateWholeGraphData) {
 				graphData = createGraphData(convertedData);
+				
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
 				);
 
-				doRecreateWholeGraphData = false;
+				doReconvert = false;
 				doRefilter = true;
 			}
 			if (doRefilter) {
@@ -105,7 +101,7 @@
 				doRefilter = false;
 				doRelayout = true;
 			}
-			
+
 			if (doRelayout) {
 				// remove the old data
 				cleanCanvas(svgElement!);
