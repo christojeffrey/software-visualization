@@ -63,7 +63,12 @@ export function renderNodeLabels(svgElement: Element, drawSettings: DrawSettings
 export function updateNodePosition(node: GraphDataNode, svgElement: Element) {
 	(d3.select(svgElement)
 		.selectAll(`#group-${toHTMLToken(node.id)}`) as d3.Selection<d3.BaseType, GraphDataNode, Element, unknown>)
-		.attr('transform', n => `translate(${n.x} ${n.y})`);
+		.attr('transform', n => `translate(${n.x} ${n.y})`)
+		.select('rect')
+		.attr('x', n => -0.5 * n.width!)
+		.attr('y', n => -0.5 * n.height!)
+		.attr('width', n => n.width!)
+		.attr('height', n => n.height!);
 }
 /**
  * Render given nodes onto given svgElement.

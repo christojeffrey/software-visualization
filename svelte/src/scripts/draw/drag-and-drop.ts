@@ -30,29 +30,41 @@ export function addDragAndDrop(
 				const node = e.subject as GraphDataNode;
 
 				// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
-				const xt = node.x! + source.movementX * (1 / (drawSettings.transformation?.k ?? 1));
-				const yt = node.y! + source.movementY * (1 / (drawSettings.transformation?.k ?? 1));
-
-				// For now, we are not going to resize or move the parent node
-				// Hence, the coordinates should be clamped to a range
+				const dx = source.movementX * (1 / (drawSettings.transformation?.k ?? 1));
+				const dy = source.movementY * (1 / (drawSettings.transformation?.k ?? 1))
+				const newX = node.x! + dx;
+				const newY = node.y! + dy
+				
 				if (node.parent) {
-					node.x = clamp(
-						xt,
-						-0.5 * node.parent.width! + 0.5 * node.width!,
-						+0.5 * node.parent.width! - 0.5 * node.width!
-					);
+					if (newX > -0.5 * node.parent.width! + 0.5 * node.width!) {
+						if (newX < 0.5 * node.parent.width! - 0.5 * node.width!) {
+							node.x = newX;
+							updateNodePosition(node, svgElement);
+						} else {
+							//node.x = newX;
+							node.parent.width! += 2*dx;
+							node.parent.x! += 2*dx;
+							updateNodePosition(node.parent, svgElement.parentElement!);
+							node.parent.members.forEach(n => {
+								n.x! -= dx;
+								updateNodePosition(n, svgElement.parentElement!);
+							})
+						}
+					}
+
 					node.y = clamp(
-						yt,
+						newY,
 						-0.5 * node.parent.height! + 0.5 * node.height!,
 						+0.5 * node.parent.height! - 0.5 * node.height!
 					);
 				} else {
-					node.x = notNaN(xt);
-					node.y = notNaN(yt);
+					node.x = notNaN(newX);
+					node.y = notNaN(newY);
+					updateNodePosition(node, svgElement);
 				}
 
 				// Rerender nodes
-				updateNodePosition(node, svgElement);
+				//updateNodePosition(node, svgElement);
 
 				// Need to find all relevant links to rerender them.
 				// TODO it might be faster to just rerender every link globally.
