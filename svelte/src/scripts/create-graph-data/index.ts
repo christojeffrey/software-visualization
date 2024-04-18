@@ -54,8 +54,7 @@ function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
 
-		const oldestSource = findOldestNode(nodeSource);
-		const oldestTarget = findOldestNode(nodeTarget);
+		const {oldestSource, oldestTarget} = leastCommonAncestor(nodeSource, nodeTarget);
 
 		graphDataLink.liftedSource = oldestSource;
 		graphDataLink.liftedTarget = oldestTarget;
@@ -66,12 +65,25 @@ function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 	return graphDataLinks;
 }
 
-function findOldestNode(node: GraphDataNode): GraphDataNode {
-	if (node.parent) {
-		return findOldestNode(node.parent);
+function leastCommonAncestor(source: GraphDataNode, target: GraphDataNode) {
+	function findAncestors(node: GraphDataNode): GraphDataNode[] {
+		return node.parent ? [...findAncestors(node.parent), node] : [node];
 	}
-	return node;
+
+	const a1 = findAncestors(source);
+	const a2 = findAncestors(target);
+
+	let i = a1.findIndex((n, i) => a2[i] !== n);
+	if (i === -1) {
+		i = Math.min(a1.length, a2.length)-1;
+	}
+
+	return {
+		oldestSource: a1[i]!,
+		oldestTarget: a2[i]!,
+	}
 }
+
 export function createGraphData(convertedData: ConvertedData): GraphData {
 	// do deep copy. TODO: now that we don't need to preserve previous graphData, we don't need to copy it.
 	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
