@@ -62,7 +62,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
-	const links: ConvertedEdge[] = JSON.parse(JSON.stringify(convertedData.links));
+	const links: GraphDataEdge[] = JSON.parse(JSON.stringify(convertedData.links));
 
 	const graphDataNodes = nodes as GraphDataNode[];
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
@@ -77,7 +77,13 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		node.originalIncomingLinks = [];
 	});
 
+	// Initialize links
+	links.forEach(link => {
+		link.routing = [];
+	})
+
 	const graphDataLinks = assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+		//@ts-expect-error GraphDataEdge is still a ConvertedEdge
 		links,
 		flattenNodes,
 		graphDataFlattenNodes
