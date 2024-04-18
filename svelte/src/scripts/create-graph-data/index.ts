@@ -26,12 +26,12 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
 ) {
-	flattenNodes.forEach(node => {
+	flattenNodes.forEach((node) => {
 		//@ts-expect-error Type of this variable will change later
 		node.incomingLinks = [];
 		//@ts-expect-error same
 		node.outgoingLinks = [];
-	})
+	});
 	const graphDataLinks = links as unknown as GraphDataEdge[];
 	links.forEach((link) => {
 		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
@@ -49,7 +49,7 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 		// Populate the source and target reference
 		graphDataLink.source = nodeSource;
 		graphDataLink.target = nodeTarget;
-		
+
 		// assign original source and target
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
@@ -59,10 +59,10 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 
 export function createGraphData(convertedData: ConvertedData): GraphData {
 	// do deep copy
-	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
+	const nodes: ConvertedNode[] = convertedData.nodes;
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
-	const links: ConvertedEdge[] = JSON.parse(JSON.stringify(convertedData.links));
+	const links: ConvertedEdge[] = convertedData.links;
 
 	const graphDataNodes = nodes as GraphDataNode[];
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
