@@ -399,7 +399,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				width: 0,
 				isDummy: true,
 			};
-
 			layerNodes[e.source.layer! + 1].push(dummyNode);
 			
 			// Add new edge from dummy to target
