@@ -302,6 +302,10 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	/** Same as childNodes, but cast to the right type */
 	const nodes = checkWidthHeight(childNodes) as LayerTreeNode[];
 
+	/** Set containing all lifted edges between elements of childNodes */
+	const allEdges: Set<GraphDataEdge> = new Set();
+	childNodes.forEach(n => n.incomingLinksLifted.forEach(l => allEdges.add(l)));
+
 	/** DummyType for vertex ordering step */
 	type DummyNode = {
 		layer: number
@@ -359,19 +363,29 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		}
 	}
 
-	// Step 3: Put nodes in the layer in a clean order.
-	// First, give us a copy of the edgedata we can easily edit and extend. For this we only need the source and target.
+	// Step 3: Put nodes in the layer in a clear order.
+	// First, give us a copy of the edgeData we can easily edit and extend. For this we only need the source and target.
 	type SugEdge = {
 		source: LayerTreeNode | DummyNode;
 		target: LayerTreeNode | DummyNode;
 		original: GraphDataEdge;
+		inverted: boolean;
 	};
 
-	const sugEdges = [...DAGedges].map((e): SugEdge => {return {
-		source: e.liftedSource as LayerTreeNode,
-		target: e.liftedTarget as LayerTreeNode,
-		original: e,
-	}});
+	const sugEdges = [...allEdges].map((e): SugEdge => {
+		const source = e.liftedSource as LayerTreeNode;
+		const target = e.liftedTarget as LayerTreeNode;
+		if (source.layer! < target.layer!) {
+			return {source, target, original: e, inverted: false,}
+		} else {
+			return {
+				source: target,
+				target: source,
+				original: e,
+				inverted: true,
+			}
+		}
+	});
 
 	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
 	for(let i = 0; i < sugEdges.length; i++) {
@@ -385,6 +399,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				width: 0,
 				isDummy: true,
 			};
+
 			layerNodes[e.source.layer! + 1].push(dummyNode);
 			
 			// Add new edge from dummy to target
@@ -392,6 +407,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				source: dummyNode,
 				target: e.target,
 				original: e.original,
+				inverted: e.inverted,
 			})
 
 			// Change current edge to go to the dummy node
@@ -400,7 +416,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	}
 
 	// Step3 part 2: Sort the vertices using a heuristic.
-	// The heuristic puts the nodes in each layer in the median position of their predecessor
+	// The heuristic puts the nodes in each layer in the median position of their predecessors
 	const amountOfIterations = 40;
 	for(let j = 0; j < amountOfIterations; j++) {
 		layerNodes.forEach((layer, i) => {
@@ -416,7 +432,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		});
 	};
 
-	// In between: let's remove consecutive dummy edges, otherwise the result will look ugly
+	// In between: let's remove consecutive dummy nodes, otherwise the result will look ugly
 	layerNodes.forEach((layer) => {
 		for (let i = 0; i < layer.length;) {
 			const thisItem = layer[i];
@@ -428,7 +444,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				i++;
 			}
 		}
-	})
+	});
 
 	// Step 4: Coordinate assignment
 	// First, make sure everything has the same width and height
@@ -458,12 +474,12 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	});
 
 	// Finally: edge routing
-	// We want to rout edges through their dummy nodes.
+	// We want to route edges through their dummy nodes.
 	if (options?.edgeRouting) {
 		sugEdges.forEach(e => {
 			if ('isDummy' in e.target) {
 				const target = e.target.realDummy ?? e.target;
-				e.original.routing.push({
+				e.original.routing[e.inverted ? 'push' : 'unshift']({
 					x: notNaN(target.x),
 					y: notNaN(target.y),
 					origin: parentNode,

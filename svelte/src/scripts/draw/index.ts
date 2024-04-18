@@ -31,10 +31,10 @@ export function draw(
 	});
 
 	// Calculate layouts for non-simple nodes
-	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
+	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	layerTreeLayout(drawSettings, rootNodes, undefined, {edgeRouting: true}); // Todo this is weird
 
 
 	// ZOOM HANDLING
