@@ -1,4 +1,6 @@
+
 import type { ConfigInterface, GraphData, GraphDataEdge, GraphDataNode } from '../../types';
+
 import { doCollapseNodes } from './collapse-nodes';
 import { liftDependencies } from './lift-edges';
 
