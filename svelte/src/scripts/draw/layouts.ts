@@ -489,7 +489,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	}
 
 	if (parentNode) {
-		const {width, height} = centerize(nodes, [...DAGedges]);
+		const {width, height} = centerize(nodes, [...allEdges]);
 
 		parentNode.width = width + 2*drawSettings.nodePadding;
 		parentNode.height = height + 2*drawSettings.nodePadding;

@@ -77,9 +77,7 @@ export function renderLinks(
 		.attr('d', annotateLine)
 		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`)
 		.attr('fill', 'transparent')
-		.on('mouseover', (e, d) => {
-			console.log({d})
-		});
+		.on('mouseover', (e, d) => {});
 
 	// Update
 	(linkCanvas.selectAll('path') as d3.Selection<SVGPathElement, GraphDataEdge, SVGGElement, unknown>)
