@@ -7,6 +7,9 @@
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
 	export let doRelayout;
+
+	// layout options
+	let options = ['layerTree', 'straightTree', 'circular'];
 </script>
 
 <div class="overflow-auto">
@@ -165,5 +168,38 @@
 		>
 			Add new level
 		</Button>
+	</div>
+	<!-- layout settings -->
+	<div>
+		<Heading headingNumber={5}>Inner Layout</Heading>
+
+		<select
+			bind:value={drawSettings.innerLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
+		<Heading headingNumber={5}>Intermediate Layout</Heading>
+
+		<select
+			bind:value={drawSettings.intermediateLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
+		<Heading headingNumber={5}>Root Layout</Heading>
+
+		<select
+			bind:value={drawSettings.rootLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
 	</div>
 </div>

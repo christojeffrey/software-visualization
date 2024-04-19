@@ -29,13 +29,22 @@ export function draw(
 		n.width = notNaN(drawSettings.minimumNodeSize);
 		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
-
+	const layoutOptionToFunction = {
+		circular: circularLayout,
+		straightTree: straightTreeLayout,
+		layerTree: layerTreeLayout
+	};
 	// Calculate layouts for non-simple nodes
-	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
-
+innerNodes.forEach((n) =>
+	layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n)
+);
+intermediateNodes.forEach((n) =>
+	layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n)
+);
+rootNodes.forEach((n) =>
+	layoutOptionToFunction[drawSettings.rootLayout](drawSettings, n.members, n)
+);
+layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.

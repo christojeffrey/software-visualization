@@ -39,8 +39,12 @@
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
-		nodeColors: ['#32a875', '#d46868']
+		nodeColors: ['#32a875', '#d46868'],
+		innerLayout: 'layerTree',
+		intermediateLayout: 'layerTree',
+		rootLayout: 'layerTree'
 	};
+
 	let svgElement: SVGElement | undefined = undefined;
 
 	let doReconvert = true;
@@ -87,7 +91,7 @@
 				// will setup graphData. Will also setup shownEdgesType
 				convertedData = converter(rawData);
 				graphData = createGraphData(convertedData);
-				
+
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
 					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
