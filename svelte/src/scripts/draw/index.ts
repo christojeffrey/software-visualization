@@ -27,10 +27,10 @@ export function draw(
 
 	// Calculate layouts for non-simple nodes
 
-	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n));
-	layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
+	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
+	layerTreeLayout(drawSettings, rootNodes, undefined, {edgeRouting: true}); // Todo this is weird
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
@@ -54,7 +54,8 @@ export function draw(
 	}
 
 	// Render links
-	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas').lower();
+
+	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
 
 	// DRAG AND DROP

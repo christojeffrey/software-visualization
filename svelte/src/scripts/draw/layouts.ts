@@ -5,10 +5,12 @@ import {notNaN} from '$helper';
 
 type GraphDataNodeExt = GraphDataNode & {width: number; height: number};
 type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NodeLayout = (
 	drawSettings: DrawSettingsInterface,
 	childNodes: GraphDataNode[],
 	parentNode?: GraphDataNode,
+	options?: any,
 ) => void;
 
 /**
@@ -289,7 +291,8 @@ export const straightTreeLayout: NodeLayout = function (drawSettings, childNodes
  *
  * Necessary to make sure the node "fits" its parent. Returns the required height and width
  */
-function centerize(nodes: GraphDataNode[]) {
+
+function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
 	const minX = nodes.reduce((acc, n) => Math.min(acc, n.x! - 0.5 * n.width!), Infinity);
 	const minY = nodes.reduce((acc, n) => Math.min(acc, n.y! - 0.5 * n.height!), Infinity);
 	const maxX = nodes.reduce((acc, n) => Math.max(acc, n.x! + 0.5 * n.width!), -Infinity);
@@ -303,6 +306,15 @@ function centerize(nodes: GraphDataNode[]) {
 		n.y! -= centerY;
 	});
 
+	if (edges) {
+		edges.forEach(e => {
+			e.routing.forEach(point => {
+				point.x -= centerX;
+				point.y -= centerY;
+			});
+		});
+	}
+
 	return {
 		width: 2 * centerX,
 		height: 2 * centerY,
@@ -312,7 +324,12 @@ function centerize(nodes: GraphDataNode[]) {
 /**
  * A layered tree using the Sugiyama method
  */
-export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, parentNode?) {
+export const layerTreeLayout: NodeLayout = function (
+	drawSettings,
+	childNodes,
+	parentNode?,
+	options?,
+) {
 	if (childNodes.length === 0) return;
 
 	/**
@@ -331,6 +348,10 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 	/** Same as childNodes, but cast to the right type */
 	const nodes = checkWidthHeight(childNodes) as LayerTreeNode[];
 
+	/** Set containing all lifted edges between elements of childNodes */
+	const allEdges: Set<GraphDataEdge> = new Set();
+	childNodes.forEach(n => n.incomingLinksLifted.forEach(l => allEdges.add(l)));
+
 	/** DummyType for vertex ordering step */
 	type DummyNode = {
 		layer: number;
@@ -338,7 +359,11 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 		width: number;
 		x?: number;
 		y?: number;
+		/** The existence of this property is used to mark this node as a DummyNode */
 		isDummy: true;
+		/** In between steps 3 and 4, dummynodes are merged and deleted.
+		 * If this node has been deleted, this property points to the merged node */
+		realDummy?: DummyNode;
 	};
 
 	/** Array containing all layers, where layers themselves are stored.
@@ -391,20 +416,28 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 		}
 	}
 
-	// Step 3: Put nodes in the layer in a clean order.
-	// First, give us a copy of the edgedata we can easily edit and extend. For this we only need the source and target.
+	// Step 3: Put nodes in the layer in a clear order.
+	// First, give us a copy of the edgeData we can easily edit and extend. For this we only need the source and target.
 	type SugEdge = {
 		source: LayerTreeNode | DummyNode;
 		target: LayerTreeNode | DummyNode;
 		original: GraphDataEdge;
+		inverted: boolean;
 	};
 
-	const sugEdges = [...DAGedges].map((e): SugEdge => {
-		return {
-			source: e.liftedSource as LayerTreeNode,
-			target: e.liftedTarget as LayerTreeNode,
-			original: e,
-		};
+	const sugEdges = [...allEdges].map((e): SugEdge => {
+		const source = e.liftedSource as LayerTreeNode;
+		const target = e.liftedTarget as LayerTreeNode;
+		if (source.layer! < target.layer!) {
+			return {source, target, original: e, inverted: false};
+		} else {
+			return {
+				source: target,
+				target: source,
+				original: e,
+				inverted: true,
+			};
+		}
 	});
 
 	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
@@ -426,6 +459,7 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 				source: dummyNode,
 				target: e.target,
 				original: e.original,
+				inverted: e.inverted,
 			});
 
 			// Change current edge to go to the dummy node
@@ -434,7 +468,7 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 	}
 
 	// Step3 part 2: Sort the vertices using a heuristic.
-	// The heuristic puts the nodes in each layer in the median position of their predecessor
+	// The heuristic puts the nodes in each layer in the median position of their predecessors
 	const amountOfIterations = 40;
 	for (let j = 0; j < amountOfIterations; j++) {
 		layerNodes.forEach((layer, i) => {
@@ -454,6 +488,20 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 			layerNodes[i] = newLayer;
 		});
 	}
+
+	// In between: let's remove consecutive dummy nodes, otherwise the result will look ugly
+	layerNodes.forEach(layer => {
+		for (let i = 0; i < layer.length; ) {
+			const thisItem = layer[i];
+			const nextItem = layer[i + 1] ?? {};
+			if ('isDummy' in thisItem && 'isDummy' in nextItem) {
+				nextItem.realDummy = thisItem;
+				layer.splice(i + 1, 1);
+			} else {
+				i++;
+			}
+		}
+	});
 
 	// Step 4: Coordinate assignment
 	// First, make sure everything has the same width and height
@@ -483,16 +531,23 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
 	});
 
 	// Finally: edge routing
-	// Let's route edges through the dummy node
-	sugEdges.forEach(e => {
-		//@ts-ignore typescript is not very clever
-		if (e.target.isDummy === true) {
-			// TODO
-		}
-	});
+
+	// We want to route edges through their dummy nodes.
+	if (options?.edgeRouting) {
+		sugEdges.forEach(e => {
+			if ('isDummy' in e.target) {
+				const target = e.target.realDummy ?? e.target;
+				e.original.routing[e.inverted ? 'push' : 'unshift']({
+					x: notNaN(target.x),
+					y: notNaN(target.y),
+					origin: parentNode,
+				});
+			}
+		});
+	}
 
 	if (parentNode) {
-		const {width, height} = centerize(nodes);
+		const {width, height} = centerize(nodes, [...allEdges]);
 
 		parentNode.width = width + 2 * drawSettings.nodePadding;
 		parentNode.height = height + 2 * drawSettings.nodePadding;
@@ -504,7 +559,9 @@ export const layerTreeLayout: NodeLayout = function (drawSettings, childNodes, p
  *
  * Should be optimized at some point.
  */
-function discoverDAG(nodes: GraphDataNode[]) {
+function discoverDAG(graphNodes: GraphDataNode[]) {
+	type MarkedNode = GraphDataNode & {mark?: boolean};
+	const nodes = graphNodes as MarkedNode[];
 	const DAGedges: GraphDataEdge[] = [];
 
 	// Start with all edges
@@ -517,20 +574,27 @@ function discoverDAG(nodes: GraphDataNode[]) {
 	});
 
 	/** Depth first search: remove node if we run into a cycle*/
-	function dfs(node: GraphDataNode, markedNodes: GraphDataNode[]) {
+	function dfs(node: MarkedNode, markedNodes: GraphDataNode[]) {
 		DAGedges.filter(e => e.liftedSource === node).forEach(edge => {
 			const target = edge.liftedTarget!;
 			if (markedNodes.includes(target)) {
 				const index = DAGedges.findIndex(e => e === edge);
 				DAGedges.splice(index, 1);
 			} else {
-				dfs(target, [...markedNodes, target]);
+				if (!node.mark) dfs(target, [...markedNodes, target]);
 			}
 		});
+		node.mark = true;
 	}
 
 	nodes.forEach(node => {
-		dfs(node, [node]);
+		if (!node.mark) {
+			dfs(node, [node]);
+		}
+	});
+
+	nodes.forEach(node => {
+		delete node.mark;
 	});
 
 	return new Set(DAGedges);

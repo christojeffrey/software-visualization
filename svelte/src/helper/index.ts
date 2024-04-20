@@ -55,11 +55,11 @@ export function toHTMLToken(string: string) {
 /**
  * Throws an error if the given number is NaN, Infinity or any non-number value
  */
-export function notNaN(n: number): number {
+export function notNaN(n?: number): number {
 	if (!Number.isFinite(n)) {
 		throw new Error(`Unexpected value: ${n}`);
 	}
-	return n;
+	return n!;
 }
 
 /**
@@ -69,4 +69,19 @@ export function notNaN(n: number): number {
 export function clamp(num: number, min: number, max: number) {
 	if (min > max) throw new Error(`Invalid clamping: ${min} > ${max}`);
 	return notNaN(Math.min(Math.max(num, min), max));
+}
+
+/** Computes the euclidean distance between 2 points */
+export function distance(p1: {x: number; y: number}, p2: {x: number; y: number}) {
+	return notNaN(Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2)));
+}
+
+/**
+ * Returns the geometric mean of 2 points, where the first point is weighed by value alpha (defaults to 0.5; so an unweighted geometric mean)
+ */
+export function geometricMean(p1: {x: number; y: number}, p2: {x: number; y: number}, alpha = 0.5) {
+	return {
+		x: alpha * p1.x + (1 - alpha) * p2.x,
+		y: alpha * p1.y + (1 - alpha) * p2.y,
+	};
 }
