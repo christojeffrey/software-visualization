@@ -21,7 +21,7 @@ function assignParentReference(nodes: GraphDataNode[]) {
 	});
 }
 
-function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 	links: ConvertedEdge[],
 	flattenNodes: ConvertedNode[],
 	graphDataFlattenNodes: GraphDataNode[]
@@ -53,12 +53,38 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 		// assign original source and target
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
+
+		const {oldestSource, oldestTarget} = leastCommonAncestor(nodeSource, nodeTarget);
+
+		graphDataLink.liftedSource = oldestSource;
+		graphDataLink.liftedTarget = oldestTarget;
+
+		oldestSource.outgoingLinksLifted.push(graphDataLink);
+		oldestTarget.incomingLinksLifted.push(graphDataLink);
 	});
 	return graphDataLinks;
 }
 
+function leastCommonAncestor(source: GraphDataNode, target: GraphDataNode) {
+	function findAncestors(node: GraphDataNode): GraphDataNode[] {
+		return node.parent ? [...findAncestors(node.parent), node] : [node];
+	}
+
+	const a1 = findAncestors(source);
+	const a2 = findAncestors(target);
+
+	let i = a1.findIndex((n, i) => a2[i] !== n);
+	if (i === -1) {
+		i = Math.min(a1.length, a2.length)-1;
+	}
+
+	return {
+		oldestSource: a1[i]!,
+		oldestTarget: a2[i]!,
+	}
+}
+
 export function createGraphData(convertedData: ConvertedData): GraphData {
-	// do deep copy
 	const nodes: ConvertedNode[] = convertedData.nodes;
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
@@ -69,25 +95,36 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 
 	assignParentReference(graphDataNodes);
 
-	// add originalIncoming and outgoingLinks
+	// setup to be assigned
 	graphDataFlattenNodes.forEach((node) => {
+		// all are reference reference
 		node.outgoingLinks = [];
 		node.originalOutgoingLinks = [];
 		node.incomingLinks = [];
 		node.originalIncomingLinks = [];
+		node.outgoingLinksLifted = [];
+		node.incomingLinksLifted = [];
 	});
 
-	const graphDataLinks = assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		links,
 		flattenNodes,
 		graphDataFlattenNodes
 	);
 
+	// create nodesDict
+	const nodesDict: { [id: string]: GraphDataNode } = {};
+	graphDataFlattenNodes.forEach((node) => {
+		nodesDict[node.id] = node;
+	});
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
 		links: graphDataLinks,
-		flattenNodes: graphDataFlattenNodes
+		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
+		nodesDict // nodesDict can be derived from nodes
+		// both put here to reduce calculation time
 	};
+
 	return graphData;
 }
 
