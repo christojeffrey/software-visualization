@@ -89,7 +89,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
 
-	const links: ConvertedEdge[] = convertedData.links;
+	const links: GraphDataEdge[] = convertedData.links;
 
 	const graphDataNodes = nodes as GraphDataNode[];
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
@@ -112,7 +112,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		link.routing = [];
 	})
 
-	const graphDataLinks = assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		//@ts-expect-error GraphDataEdge is still a ConvertedEdge
 		links,
 		flattenNodes,

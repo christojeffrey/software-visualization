@@ -1,6 +1,4 @@
-
-import { distance, geometricMean, notNaN, toHTMLToken } from "$helper";
-import {notNaN, toHTMLToken} from '$helper';
+import {distance, geometricMean, notNaN, toHTMLToken} from '$helper';
 import type {
 	DrawSettingsInterface,
 	GraphDataEdge,
@@ -39,27 +37,31 @@ export function renderLinks(
 		const s = getAbsCoordinates(source);
 		const t = getAbsCoordinates(target);
 		l.gradientDirection = s.x > t.x;
-		l.labelCoordinates = [s,t];
+		l.labelCoordinates = [s, t];
 
 		/** List of all coordinates the path will need to go through */
-		const coordinates = [s, ...l.routing.map(point => {
-			const {x, y} = getAbsCoordinates(point.origin);
-			return {
-				x: x + point.x,
-				y: y + point.y,
-			}
-		}), t];
+		const coordinates = [
+			s,
+			...l.routing.map(point => {
+				const {x, y} = getAbsCoordinates(point.origin);
+				return {
+					x: x + point.x,
+					y: y + point.y,
+				};
+			}),
+			t,
+		];
 
 		let result = `M ${s.x} ${s.y} `;
-		
-		let maxDistance = -Infinity
+
+		let maxDistance = -Infinity;
 		for (let i = 0; i < coordinates.length - 2; i++) {
 			const p1 = coordinates[i];
-			const p2 = coordinates[i+1];
-			const p3 = coordinates[i+2];
+			const p2 = coordinates[i + 1];
+			const p3 = coordinates[i + 2];
 
-			const sigma = .25;
-			const turnPoint1 = geometricMean(p1, p2, 1-sigma);
+			const sigma = 0.25;
+			const turnPoint1 = geometricMean(p1, p2, 1 - sigma);
 			const turnPoint2 = geometricMean(p2, p3, sigma);
 
 			const labelDistance = distance(p1, p2);
@@ -83,7 +85,10 @@ export function renderLinks(
 		.append('path')
 		.attr('id', l => `line-${toHTMLToken(l.id)}`)
 		.attr('d', annotateLine)
-		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`)
+		.attr(
+			'stroke',
+			l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`,
+		)
 		.attr('fill', 'transparent')
 		.on('mouseover', (e, d) => {});
 
@@ -120,15 +125,15 @@ export function renderLinks(
 			.text(l => l.id);
 
 		(linkCanvas.selectAll('text') as d3.Selection<d3.BaseType, GraphDataEdge, SVGGElement, unknown>)
-			.attr('x', l => (l.labelCoordinates![0].x + l.labelCoordinates![1].x)/2)
-			.attr('y', l => (l.labelCoordinates![0].y + l.labelCoordinates![1].y)/2)
+			.attr('x', l => (l.labelCoordinates![0].x + l.labelCoordinates![1].x) / 2)
+			.attr('y', l => (l.labelCoordinates![0].y + l.labelCoordinates![1].y) / 2);
 	} else if (!drawSettings.showEdgeLabels) {
 		linkCanvas.selectAll('text').remove();
 	}
 
 	// Cleanup, just to be sure:
 	links.forEach(l => {
-		l.absoluteCoordinates = undefined;
+		l.labelCoordinates = undefined;
 		l.gradientDirection = undefined;
 	});
 }

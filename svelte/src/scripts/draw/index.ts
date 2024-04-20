@@ -19,8 +19,6 @@ export function draw(
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
 	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(graphData.nodes);
 
-	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
-	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(nodes);
 
 	// Initialize width and height of simple nodes
 	simpleNodes.forEach(n => {
