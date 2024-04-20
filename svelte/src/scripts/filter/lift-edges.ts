@@ -31,5 +31,9 @@ export function redirectAllEdgeToDestinationNode(
 		redirectDestination.incomingLinks.push(...nodeToBeRedirected.incomingLinks);
 		nodeToBeRedirected.outgoingLinks = [];
 		nodeToBeRedirected.incomingLinks = [];
+
+		nodeToBeRedirected.members?.forEach(member => {
+			redirectAllEdgeToDestinationNode(redirectDestination, member, sensitivity);
+		});
 	}
 }
