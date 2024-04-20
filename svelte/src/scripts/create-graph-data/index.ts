@@ -4,9 +4,9 @@ import type {
 	ConvertedNode,
 	GraphData,
 	GraphDataEdge,
-	GraphDataNode
+	GraphDataNode,
 } from '../../types';
-import { flattenNode } from '$helper';
+import {flattenNode} from '$helper';
 
 // HELPER FUNCTIONS
 function assignParentReference(nodes: GraphDataNode[]) {
@@ -24,18 +24,18 @@ function assignParentReference(nodes: GraphDataNode[]) {
 function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 	links: ConvertedEdge[],
 	flattenNodes: ConvertedNode[],
-	graphDataFlattenNodes: GraphDataNode[]
+	graphDataFlattenNodes: GraphDataNode[],
 ) {
-	flattenNodes.forEach((node) => {
+	flattenNodes.forEach(node => {
 		//@ts-expect-error Type of this variable will change later
 		node.incomingLinks = [];
 		//@ts-expect-error same
 		node.outgoingLinks = [];
 	});
 	const graphDataLinks = links as unknown as GraphDataEdge[];
-	links.forEach((link) => {
-		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
-		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
+	links.forEach(link => {
+		const sourceIndex = flattenNodes.findIndex(node => node.id === link.source);
+		const targetIndex = flattenNodes.findIndex(node => node.id === link.target);
 
 		const graphDataLink = link as unknown as GraphDataEdge;
 		const nodeSource = graphDataFlattenNodes[sourceIndex];
@@ -75,13 +75,13 @@ function leastCommonAncestor(source: GraphDataNode, target: GraphDataNode) {
 
 	let i = a1.findIndex((n, i) => a2[i] !== n);
 	if (i === -1) {
-		i = Math.min(a1.length, a2.length)-1;
+		i = Math.min(a1.length, a2.length) - 1;
 	}
 
 	return {
 		oldestSource: a1[i]!,
 		oldestTarget: a2[i]!,
-	}
+	};
 }
 
 export function createGraphData(convertedData: ConvertedData): GraphData {
@@ -96,7 +96,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	assignParentReference(graphDataNodes);
 
 	// setup to be assigned
-	graphDataFlattenNodes.forEach((node) => {
+	graphDataFlattenNodes.forEach(node => {
 		// all are reference reference
 		node.outgoingLinks = [];
 		node.originalOutgoingLinks = [];
@@ -109,19 +109,19 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		links,
 		flattenNodes,
-		graphDataFlattenNodes
+		graphDataFlattenNodes,
 	);
 
 	// create nodesDict
-	const nodesDict: { [id: string]: GraphDataNode } = {};
-	graphDataFlattenNodes.forEach((node) => {
+	const nodesDict: {[id: string]: GraphDataNode} = {};
+	graphDataFlattenNodes.forEach(node => {
 		nodesDict[node.id] = node;
 	});
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
 		links: graphDataLinks,
 		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
-		nodesDict // nodesDict can be derived from nodes
+		nodesDict, // nodesDict can be derived from nodes
 		// both put here to reduce calculation time
 	};
 

@@ -1,15 +1,15 @@
-import type { ConfigInterface } from '$types';
-import { redirectAllEdgeToDestinationNode } from './lift-edges';
+import type {ConfigInterface} from '$types';
+import {redirectAllEdgeToDestinationNode} from './lift-edges';
 
 export function doCollapseNodes(config: ConfigInterface) {
-	config.collapsedNodes.forEach((collapsedNode) => {
+	config.collapsedNodes.forEach(collapsedNode => {
 		// redirect link
 		const redirectDestination = collapsedNode;
-		
-		redirectDestination.members?.forEach((member) => {
+
+		redirectDestination.members?.forEach(member => {
 			redirectAllEdgeToDestinationNode(redirectDestination, member);
 		});
-		
+
 		// remove the members
 		collapsedNode.members = [];
 	});

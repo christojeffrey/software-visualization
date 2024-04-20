@@ -1,5 +1,5 @@
-import type { Force } from 'd3';
-import type { GraphDataNode, GraphDataEdge } from '$types';
+import type {Force} from 'd3';
+import type {GraphDataNode, GraphDataEdge} from '$types';
 
 /**
  * Fixes all nodes on the circumference a circle defined by parameters.
@@ -24,7 +24,7 @@ export function radialClampForce(r: () => number): Force<GraphDataNode, undefine
 		const cy = r();
 		const radius = r();
 		if (!Number.isNaN(cx) && !Number.isNaN(cy) && !Number.isNaN(radius)) {
-			nodes.forEach((node) => {
+			nodes.forEach(node => {
 				if (node.x && node.y) {
 					const dx = node.x - cx;
 					const dy = node.y - cy;
