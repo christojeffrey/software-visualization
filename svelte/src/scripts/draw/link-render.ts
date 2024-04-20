@@ -30,12 +30,63 @@ export function renderLinks(
 		}
 	}
 
+	function calculateIntersection(
+		source: {x: number; y: number; width: number; height: number},
+		target: {x: number; y: number; width: number; height: number},
+	) {
+		const dx = target.x - source.x;
+		const dy = target.y - source.y;
+		const angle = Math.atan2(dy, dx);
+
+		// Determine intersection with source rectangle
+		let x, y;
+		if (Math.abs(dx) * source.height > Math.abs(dy) * source.width) {
+			// Intersection is with left or right edge of the rectangle
+			x = dx > 0 ? source.width / 2 : -source.width / 2;
+			y = x * Math.tan(angle);
+		} else {
+			// Intersection is with top or bottom edge of the rectangle
+			y = dy > 0 ? source.height / 2 : -source.height / 2;
+			x = y / Math.tan(angle);
+		}
+		const intersectionSource = {x: source.x + x, y: source.y + y};
+
+		// Determine intersection with target rectangle
+		if (Math.abs(dx) * target.height > Math.abs(dy) * target.width) {
+			// Intersection is with left or right edge of the rectangle
+			x = dx > 0 ? -target.width / 2 : target.width / 2;
+			y = x * Math.tan(angle);
+		} else {
+			// Intersection is with top or bottom edge of the rectangle
+			y = dy > 0 ? -target.height / 2 : target.height / 2;
+			x = y / Math.tan(angle);
+		}
+		const intersectionTarget = {x: target.x + x, y: target.y + y};
+
+		return {intersectionSource, intersectionTarget};
+	}
 	/** Returns path coordinates, and annotates the line-data with extra info */
 	function annotateLine(l: GraphDataEdge) {
 		const source = typeof l.source === 'string' ? nodesDictionary[l.source] : l.source;
 		const target = typeof l.target === 'string' ? nodesDictionary[l.target] : l.target;
-		const s = getAbsCoordinates(source);
-		const t = getAbsCoordinates(target);
+		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
+		const targetAbsoluteCoordinate = getAbsCoordinates(target);
+
+		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
+			{
+				x: sourceAbsoluteCoordinate.x,
+				y: sourceAbsoluteCoordinate.y,
+				width: source.width!,
+				height: source.height!,
+			},
+			{
+				x: targetAbsoluteCoordinate.x,
+				y: targetAbsoluteCoordinate.y,
+				width: target.width!,
+				height: target.height!,
+			},
+		);
+
 		l.gradientDirection = s.x > t.x;
 		l.labelCoordinates = [s, t];
 
