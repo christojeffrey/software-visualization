@@ -1,8 +1,7 @@
+import type {ConfigInterface, GraphData, GraphDataEdge, GraphDataNode} from '../../types';
 
-import type { ConfigInterface, GraphData, GraphDataEdge, GraphDataNode } from '../../types';
-
-import { doCollapseNodes } from './collapse-nodes';
-import { liftDependencies } from './lift-edges';
+import {doCollapseNodes} from './collapse-nodes';
+import {liftDependencies} from './lift-edges';
 
 export function filter(config: ConfigInterface, graphData: GraphData) {
 	// reset all
@@ -22,14 +21,14 @@ function doCombineEdgesWeight(config: ConfigInterface, graphData: GraphData) {
 }
 
 function resetNodeMemberToOriginal(nodes: GraphDataNode[]) {
-	nodes.forEach((node) => {
+	nodes.forEach(node => {
 		node.members = node.originalMembers;
 		node.incomingLinks = node.originalIncomingLinks;
 		node.outgoingLinks = node.originalOutgoingLinks;
 	});
 }
 function resetLinksSourceAndTargetToOriginal(edges: GraphDataEdge[]) {
-	edges.forEach((edge) => {
+	edges.forEach(edge => {
 		if (edge.originalSource) {
 			edge.source = edge.originalSource;
 		}

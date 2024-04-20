@@ -1,4 +1,4 @@
-import type { RawInputType } from '$types/raw-data';
+import type {RawInputType} from '$types/raw-data';
 
 export const simpleData: RawInputType = {
 	elements: {
@@ -8,91 +8,91 @@ export const simpleData: RawInputType = {
 					id: 'main',
 					properties: {
 						simpleName: 'main',
-						kind: 'class'
+						kind: 'class',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'a',
 					properties: {
 						simpleName: 'a',
-						kind: 'class'
+						kind: 'class',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'b',
 					properties: {
 						simpleName: 'b',
-						kind: 'class'
+						kind: 'class',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'c',
 					properties: {
 						simpleName: 'c',
-						kind: 'class'
+						kind: 'class',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'd',
 					properties: {
 						simpleName: 'd',
-						kind: 'class'
+						kind: 'class',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'appl',
 					properties: {
 						simpleName: 'appl',
-						kind: 'packages'
+						kind: 'packages',
 					},
-					labels: ['Container']
-				}
+					labels: ['Container'],
+				},
 			},
 			{
 				data: {
 					id: 'db',
 					properties: {
 						simpleName: 'db',
-						kind: 'packages'
+						kind: 'packages',
 					},
-					labels: ['Container']
-				}
+					labels: ['Container'],
+				},
 			},
 			{
 				data: {
 					id: 'subMain',
 					properties: {
 						simpleName: 'subMain',
-						kind: 'packages'
+						kind: 'packages',
 					},
-					labels: ['Structure']
-				}
+					labels: ['Structure'],
+				},
 			},
 			{
 				data: {
 					id: 'lib',
 					properties: {
 						simpleName: 'lib',
-						kind: 'packages'
+						kind: 'packages',
 					},
-					labels: ['Container']
-				}
-			}
+					labels: ['Container'],
+				},
+			},
 		],
 		edges: [
 			{
@@ -102,9 +102,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'a',
 					properties: {
-						weight: 100
-					}
-				}
+						weight: 100,
+					},
+				},
 			},
 			{
 				data: {
@@ -113,9 +113,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 50
-					}
-				}
+						weight: 50,
+					},
+				},
 			},
 			{
 				data: {
@@ -124,9 +124,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'b',
 					properties: {
-						weight: 50
-					}
-				}
+						weight: 50,
+					},
+				},
 			},
 			{
 				data: {
@@ -135,9 +135,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'c',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -146,9 +146,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'd',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -157,9 +157,9 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'd',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -168,9 +168,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'main',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -179,9 +179,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'a',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -190,9 +190,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'b',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -201,9 +201,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'c',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -212,9 +212,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'd',
 					properties: {
-						weight: 1
-					}
-				}
+						weight: 1,
+					},
+				},
 			},
 			{
 				data: {
@@ -223,9 +223,9 @@ export const simpleData: RawInputType = {
 					label: 'contains',
 					target: 'subMain',
 					properties: {
-						weight: 20
-					}
-				}
+						weight: 20,
+					},
+				},
 			},
 			{
 				data: {
@@ -234,10 +234,10 @@ export const simpleData: RawInputType = {
 					label: 'calls',
 					target: 'db',
 					properties: {
-						weight: 200
-					}
-				}
-			}
-		]
-	}
+						weight: 200,
+					},
+				},
+			},
+		],
+	},
 };
