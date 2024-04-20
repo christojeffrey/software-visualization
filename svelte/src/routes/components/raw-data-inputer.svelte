@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Toggle from '$ui/toggle.svelte';
 	import Heading from '$ui/heading.svelte';
-	import type { RawInputType } from '$types/raw-data';
+	import type {RawInputType} from '$types/raw-data';
 
 	export let rawData: RawInputType | undefined;
 	export let doReconvert: boolean;

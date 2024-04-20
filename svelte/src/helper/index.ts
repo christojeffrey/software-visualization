@@ -1,4 +1,4 @@
-import type { EdgeType, GraphDataEdge, SimpleNode } from '$types';
+import type {EdgeType, GraphDataEdge, SimpleNode} from '$types';
 
 // debugging purpose
 export function debuggingConsole(...args: unknown[]) {
@@ -11,7 +11,7 @@ export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNo
 	// Recursively flatten the nodes (lift the children to the top level array),
 	// reserse the order so that the parent is always at the end.
 	const result: SimpleNode[] = [];
-	nodes.forEach((node) => {
+	nodes.forEach(node => {
 		// order matter.
 		if (node.members) {
 			result.push(...flattenNode(node.members));
@@ -23,7 +23,7 @@ export function flattenNode<AnyNode extends SimpleNode>(nodes: AnyNode[]): AnyNo
 
 export function extractAvailableEdgeType(links: GraphDataEdge[]) {
 	const availableEdgeType: EdgeType[] = [];
-	links.forEach((link) => {
+	links.forEach(link => {
 		if (!availableEdgeType.includes(link.type)) availableEdgeType.push(link.type);
 	});
 	return availableEdgeType;
@@ -33,12 +33,12 @@ export function extractAvailableEdgeType(links: GraphDataEdge[]) {
 export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
 	for (const [_, edges] of duplicateLinks) {
 		let totalWeight = 0;
-		edges.forEach((edge) => {
+		edges.forEach(edge => {
 			if (!edge.originalWeight) edge.originalWeight = edge.weight;
 			totalWeight += edge.originalWeight;
 		});
 		// Reassign the weight
-		edges.forEach((edge) => {
+		edges.forEach(edge => {
 			edge.weight = totalWeight;
 		});
 	}
@@ -62,12 +62,12 @@ export function notNaN(n?: number): number {
 	return n!;
 }
 
-/** 
+/**
  * Clamps num to a range [min, max] (inclusive bounds).
  * Returns an error if the bounds are invalid
  */
 export function clamp(num: number, min: number, max: number) {
-	if (min > max) throw new Error(`Invalid clamping: ${min} > ${max}`)
+	if (min > max) throw new Error(`Invalid clamping: ${min} > ${max}`);
 	return notNaN(Math.min(Math.max(num, min), max));
 }
 
@@ -85,3 +85,4 @@ export function geometricMean(p1: {x: number, y:number}, p2: {x: number, y:numbe
 		y: alpha*p1.y + (1-alpha)*p2.y,
 	};
 }
+

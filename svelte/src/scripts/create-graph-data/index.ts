@@ -4,9 +4,9 @@ import type {
 	ConvertedNode,
 	GraphData,
 	GraphDataEdge,
-	GraphDataNode
+	GraphDataNode,
 } from '../../types';
-import { flattenNode } from '$helper';
+import {flattenNode} from '$helper';
 
 // HELPER FUNCTIONS
 function assignParentReference(nodes: GraphDataNode[]) {
@@ -21,21 +21,21 @@ function assignParentReference(nodes: GraphDataNode[]) {
 	});
 }
 
-function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
+function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 	links: ConvertedEdge[],
 	flattenNodes: ConvertedNode[],
-	graphDataFlattenNodes: GraphDataNode[]
+	graphDataFlattenNodes: GraphDataNode[],
 ) {
 	flattenNodes.forEach(node => {
 		//@ts-expect-error Type of this variable will change later
 		node.incomingLinks = [];
 		//@ts-expect-error same
 		node.outgoingLinks = [];
-	})
+	});
 	const graphDataLinks = links as unknown as GraphDataEdge[];
-	links.forEach((link) => {
-		const sourceIndex = flattenNodes.findIndex((node) => node.id === link.source);
-		const targetIndex = flattenNodes.findIndex((node) => node.id === link.target);
+	links.forEach(link => {
+		const sourceIndex = flattenNodes.findIndex(node => node.id === link.source);
+		const targetIndex = flattenNodes.findIndex(node => node.id === link.target);
 
 		const graphDataLink = link as unknown as GraphDataEdge;
 		const nodeSource = graphDataFlattenNodes[sourceIndex];
@@ -49,32 +49,62 @@ function assignOutgoingAndIncomingLinksAndOriginalSourceAndTargetReference(
 		// Populate the source and target reference
 		graphDataLink.source = nodeSource;
 		graphDataLink.target = nodeTarget;
-		
+
 		// assign original source and target
 		graphDataLink.originalSource = nodeSource;
 		graphDataLink.originalTarget = nodeTarget;
+
+		const {oldestSource, oldestTarget} = leastCommonAncestor(nodeSource, nodeTarget);
+
+		graphDataLink.liftedSource = oldestSource;
+		graphDataLink.liftedTarget = oldestTarget;
+
+		oldestSource.outgoingLinksLifted.push(graphDataLink);
+		oldestTarget.incomingLinksLifted.push(graphDataLink);
 	});
 	return graphDataLinks;
 }
 
+function leastCommonAncestor(source: GraphDataNode, target: GraphDataNode) {
+	function findAncestors(node: GraphDataNode): GraphDataNode[] {
+		return node.parent ? [...findAncestors(node.parent), node] : [node];
+	}
+
+	const a1 = findAncestors(source);
+	const a2 = findAncestors(target);
+
+	let i = a1.findIndex((n, i) => a2[i] !== n);
+	if (i === -1) {
+		i = Math.min(a1.length, a2.length) - 1;
+	}
+
+	return {
+		oldestSource: a1[i]!,
+		oldestTarget: a2[i]!,
+	};
+}
+
 export function createGraphData(convertedData: ConvertedData): GraphData {
-	// do deep copy
-	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
+	const nodes: ConvertedNode[] = convertedData.nodes;
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
-	const links: GraphDataEdge[] = JSON.parse(JSON.stringify(convertedData.links));
+
+	const links: ConvertedEdge[] = convertedData.links;
 
 	const graphDataNodes = nodes as GraphDataNode[];
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
 
 	assignParentReference(graphDataNodes);
 
-	// add originalIncoming and outgoingLinks
-	graphDataFlattenNodes.forEach((node) => {
+	// setup to be assigned
+	graphDataFlattenNodes.forEach(node => {
+		// all are reference reference
 		node.outgoingLinks = [];
 		node.originalOutgoingLinks = [];
 		node.incomingLinks = [];
 		node.originalIncomingLinks = [];
+		node.outgoingLinksLifted = [];
+		node.incomingLinksLifted = [];
 	});
 
 	// Initialize links
@@ -86,14 +116,22 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		//@ts-expect-error GraphDataEdge is still a ConvertedEdge
 		links,
 		flattenNodes,
-		graphDataFlattenNodes
+		graphDataFlattenNodes,
 	);
 
+	// create nodesDict
+	const nodesDict: {[id: string]: GraphDataNode} = {};
+	graphDataFlattenNodes.forEach(node => {
+		nodesDict[node.id] = node;
+	});
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
 		links: graphDataLinks,
-		flattenNodes: graphDataFlattenNodes
+		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
+		nodesDict, // nodesDict can be derived from nodes
+		// both put here to reduce calculation time
 	};
+
 	return graphData;
 }
 

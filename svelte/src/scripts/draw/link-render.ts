@@ -1,5 +1,12 @@
+
 import { distance, geometricMean, notNaN, toHTMLToken } from "$helper";
-import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode, SimpleNodesDictionaryType } from "$types";
+import {notNaN, toHTMLToken} from '$helper';
+import type {
+	DrawSettingsInterface,
+	GraphDataEdge,
+	GraphDataNode,
+	SimpleNodesDictionaryType,
+} from '$types';
 
 /**
  * Render and or update all given links
@@ -7,21 +14,21 @@ import type { DrawSettingsInterface, GraphDataEdge, GraphDataNode, SimpleNodesDi
  * Binds the data
  */
 export function renderLinks(
-	links: GraphDataEdge[], 
-	nodesDictionary: SimpleNodesDictionaryType, 
-	linkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>, 
-	drawSettings: DrawSettingsInterface) 
-{
+	links: GraphDataEdge[],
+	nodesDictionary: SimpleNodesDictionaryType,
+	linkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>,
+	drawSettings: DrawSettingsInterface,
+) {
 	/** Returns the absolute x and y coordinates of a GraphDataNode */
-	function getAbsCoordinates(node?: GraphDataNode) : {x: number, y: number} {
+	function getAbsCoordinates(node?: GraphDataNode): {x: number; y: number} {
 		if (node) {
 			const {x, y} = getAbsCoordinates(node.parent);
 			return {
 				x: notNaN(node.x! + x),
 				y: notNaN(node.y! + y),
-			}
+			};
 		} else {
-			return {x: 0, y: 0}
+			return {x: 0, y: 0};
 		}
 	}
 
@@ -69,7 +76,8 @@ export function renderLinks(
 	}
 
 	// Enter
-	linkCanvas.selectAll('path')
+	linkCanvas
+		.selectAll('path')
 		.data(links, l => (l as GraphDataEdge).id)
 		.enter()
 		.append('path')
@@ -80,25 +88,36 @@ export function renderLinks(
 		.on('mouseover', (e, d) => {});
 
 	// Update
-	(linkCanvas.selectAll('path') as d3.Selection<SVGPathElement, GraphDataEdge, SVGGElement, unknown>)
+	(
+		linkCanvas.selectAll('path') as d3.Selection<
+			SVGPathElement,
+			GraphDataEdge,
+			SVGGElement,
+			unknown
+		>
+	)
 		.attr('d', annotateLine)
-		.attr('stroke', l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`)
-		.attr('display', l => drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none')
+		.attr(
+			'stroke',
+			l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`,
+		)
+		.attr('display', l => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
 
 	// No exit, since we don't get all edges when updating
 
 	// Labels
 	if (drawSettings.showEdgeLabels) {
-		linkCanvas.selectAll('text')
+		linkCanvas
+			.selectAll('text')
 			.data(links, l => (l as GraphDataEdge).id)
-		 	.enter()
+			.enter()
 			.append('text')
 			.attr('class', 'link-label')
 			.attr('text-anchor', 'middle')
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', 'black')
 			.attr('font-size', '10px')
-			.text((l) => l.id);
+			.text(l => l.id);
 
 		(linkCanvas.selectAll('text') as d3.Selection<d3.BaseType, GraphDataEdge, SVGGElement, unknown>)
 			.attr('x', l => (l.labelCoordinates![0].x + l.labelCoordinates![1].x)/2)
@@ -108,5 +127,8 @@ export function renderLinks(
 	}
 
 	// Cleanup, just to be sure:
-	links.forEach(l => {l.labelCoordinates = undefined; l.gradientDirection = undefined});
+	links.forEach(l => {
+		l.absoluteCoordinates = undefined;
+		l.gradientDirection = undefined;
+	});
 }

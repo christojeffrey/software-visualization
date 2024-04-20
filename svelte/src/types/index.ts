@@ -1,4 +1,4 @@
-export type { RawInputType } from './raw-data';
+export type {RawInputType} from './raw-data';
 
 export interface ConfigInterface {
 	dependencyLifting: {
@@ -21,7 +21,7 @@ export interface DrawSettingsInterface {
 	nodeDefaultColor: string;
 	nodeColors: string[];
 	/** Remembers the last transformation in-between redraws. */
-	transformation?: { k: number; x: number; y: number }; 
+	transformation?: {k: number; x: number; y: number};
 }
 
 export interface SimpleNode {
@@ -71,7 +71,7 @@ export enum EdgeType {
 	returnType = 'returnType',
 	instantiates = 'instantiates',
 	// Temp fix, some of our input data does not have the edge type.
-	unknown = 'UNKNOWN'
+	unknown = 'UNKNOWN',
 }
 
 export interface GraphData {
@@ -84,11 +84,11 @@ export interface GraphData {
 
 export interface GraphDataEdge {
 	/** The source / target of the edge, after edge lifting and other filter-operation */
- 	source: string | GraphDataNode; 
+	source: string | GraphDataNode;
 	target: string | GraphDataNode;
 
-	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */ 
-	liftedSource?: GraphDataNode; 
+	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */
+	liftedSource?: GraphDataNode;
 	liftedTarget?: GraphDataNode;
 
 	id: string;
@@ -96,7 +96,7 @@ export interface GraphDataEdge {
 	weight: number;
 	originalWeight?: number;
 
-	/** The original source / target of the edge, if filter operations are ignored */ 
+	/** The original source / target of the edge, if filter operations are ignored */
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
 

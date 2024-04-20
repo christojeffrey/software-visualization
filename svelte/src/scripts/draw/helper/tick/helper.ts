@@ -1,22 +1,22 @@
-import type { DrawSettingsInterface, GraphData, GraphDataEdge, GraphDataNode } from '$types';
+import type {DrawSettingsInterface, GraphData, GraphDataEdge, GraphDataNode} from '$types';
 
 export function updateLocationNode(
 	containerElement: d3.Selection<SVGGElement, GraphDataNode, SVGGElement, unknown>,
-	nodeElements: d3.Selection<SVGRectElement, GraphDataNode, SVGGElement, unknown>
+	nodeElements: d3.Selection<SVGRectElement, GraphDataNode, SVGGElement, unknown>,
 ) {
-	containerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
-	nodeElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
+	containerElement.attr('transform', d => `translate(${d.x},${d.y})`);
+	nodeElements.attr('width', d => d.width).attr('height', d => d.height);
 }
 
 export function updateLocationNodeButtonsAndLabels(
 	drawSettings: DrawSettingsInterface,
 	collapseButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
 	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
-	nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>
+	nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>,
 ) {
 	if (nodeLabelsElements) {
 		// put it in the top middle
-		nodeLabelsElements.attr('x', (d) => d.width / 2).attr('y', (d) => drawSettings.textSize);
+		nodeLabelsElements.attr('x', d => d.width / 2).attr('y', d => drawSettings.textSize);
 	}
 
 	const buttonPadding = drawSettings.nodePadding / 2;
@@ -24,22 +24,22 @@ export function updateLocationNodeButtonsAndLabels(
 	// collapse button on the left
 	if (collapseButtonElements) {
 		collapseButtonElements
-			.attr('cx', (d) => d.width - 3 * drawSettings.buttonRadius - 2 * buttonPadding) // I think cx here stands for circle x
-			.attr('cy', (_d) => drawSettings.buttonRadius + buttonPadding);
+			.attr('cx', d => d.width - 3 * drawSettings.buttonRadius - 2 * buttonPadding) // I think cx here stands for circle x
+			.attr('cy', _d => drawSettings.buttonRadius + buttonPadding);
 	}
 
 	// lift button on the right
 	if (liftButtonElements) {
 		liftButtonElements
-			.attr('cx', (d) => d.width - 1 * drawSettings.buttonRadius - buttonPadding)
-			.attr('cy', (_d) => drawSettings.buttonRadius + buttonPadding);
+			.attr('cx', d => d.width - 1 * drawSettings.buttonRadius - buttonPadding)
+			.attr('cy', _d => drawSettings.buttonRadius + buttonPadding);
 	}
 }
 
 export function upcateMembersPosistion(
 	nodes: GraphDataNode[] | undefined,
 	shifterX: number,
-	shifterY: number
+	shifterY: number,
 ) {
 	if (nodes && nodes.length > 0) {
 		for (let i = 0; i < nodes.length; i++) {
@@ -70,11 +70,11 @@ export function calculateMembersBarier(members: GraphDataNode[]) {
 		}
 	}
 
-	return { minX, maxX, minY, maxY };
+	return {minX, maxX, minY, maxY};
 }
 export function calculateWidthHeighXandYBasedOnChildrenRecursive(
 	topMostNodes: GraphDataNode[],
-	drawSettings: DrawSettingsInterface
+	drawSettings: DrawSettingsInterface,
 ) {
 	const padding = drawSettings.nodePadding + 2 * drawSettings.buttonRadius;
 
@@ -85,7 +85,7 @@ export function calculateWidthHeighXandYBasedOnChildrenRecursive(
 
 			// calculate children position based on its children. its recursive.
 			calculateWidthHeighXandYBasedOnChildrenRecursive(members, drawSettings);
-			const { minX, maxX, minY, maxY } = calculateMembersBarier(members);
+			const {minX, maxX, minY, maxY} = calculateMembersBarier(members);
 			topMostNodes[i].width = maxX - minX + 2 * padding;
 			topMostNodes[i].height = maxY - minY + 2 * padding;
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import {onMount} from 'svelte';
 
-	import { debuggingConsole, extractAvailableEdgeType } from '$helper';
+	import {debuggingConsole, extractAvailableEdgeType} from '$helper';
 	import type {
 		ConfigInterface,
 		ConvertedData,
@@ -9,11 +9,11 @@
 		EdgeType,
 		GraphDataNode,
 		GraphData,
-		RawInputType
+		RawInputType,
 	} from '$types';
 
 	// scripts
-	import { cleanCanvas, draw, filter, converter, createGraphData } from '$scripts';
+	import {cleanCanvas, draw, filter, converter, createGraphData} from '$scripts';
 
 	// components
 	import RawDataInputer from './components/raw-data-inputer.svelte';
@@ -26,7 +26,7 @@
 	let config: ConfigInterface = {
 		collapsedNodes: [],
 		dependencyLifting: [],
-		dependencyTolerance: 0
+		dependencyTolerance: 0,
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
@@ -57,7 +57,7 @@
 		if (!config.collapsedNodes.includes(clickedNode)) {
 			config.collapsedNodes.push(clickedNode);
 		} else {
-			config.collapsedNodes = config.collapsedNodes.filter((node) => node !== clickedNode);
+			config.collapsedNodes = config.collapsedNodes.filter(node => node !== clickedNode);
 		}
 		// on finish
 		doRefilter = true;
@@ -67,13 +67,13 @@
 		debuggingConsole('clicked');
 
 		// push if not exist
-		if (!config.dependencyLifting.find((nodeConfig) => nodeConfig.node.id === clickedNode.id)) {
-			config.dependencyLifting.push({ node: clickedNode, sensitivity: config.dependencyTolerance });
+		if (!config.dependencyLifting.find(nodeConfig => nodeConfig.node.id === clickedNode.id)) {
+			config.dependencyLifting.push({node: clickedNode, sensitivity: config.dependencyTolerance});
 		} else {
 			// remove if exist
 			debuggingConsole('remove');
 			config.dependencyLifting = config.dependencyLifting.filter(
-				(nodeConfig) => nodeConfig.node.id !== clickedNode.id
+				nodeConfig => nodeConfig.node.id !== clickedNode.id,
 			);
 		}
 
@@ -84,20 +84,16 @@
 		if (isMounted) {
 			// handle config changes
 			if (doReconvert) {
+				// will setup graphData. Will also setup shownEdgesType
 				convertedData = converter(rawData);
-				doReconvert = false;
-
-				// must recreate graph data after reconvert
-				doRecreateWholeGraphData = true;
-			}
-			if (doRecreateWholeGraphData) {
 				graphData = createGraphData(convertedData);
+
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
-					drawSettings.shownEdgesType.set(e, index == 0 ? true : false)
+					drawSettings.shownEdgesType.set(e, index == 0 ? true : false),
 				);
 
-				doRecreateWholeGraphData = false;
+				doReconvert = false;
 				doRefilter = true;
 			}
 			if (doRefilter) {
@@ -105,7 +101,7 @@
 				doRefilter = false;
 				doRelayout = true;
 			}
-			
+
 			if (doRelayout) {
 				// remove the old data
 				cleanCanvas(svgElement!);
@@ -114,7 +110,7 @@
 					graphData,
 					drawSettings,
 					handleNodeCollapseClick,
-					handleDependencyLiftClick
+					handleDependencyLiftClick,
 				);
 				doRedraw = true;
 				doRelayout = false;
