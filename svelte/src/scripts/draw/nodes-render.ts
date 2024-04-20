@@ -123,7 +123,29 @@ export function renderNodes(
 		.attr('height', n => n.height!)
 		.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
 		.attr('fill-opacity', '0.1')
-		.attr('rx', drawSettings.nodeCornerRadius);
+		.attr('rx', drawSettings.nodeCornerRadius)
+		.on('mouseover', function (event, data) {
+			d3.select(this).attr('fill-opacity', '0.2');
+			data.outgoingLinks.forEach(link => {
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
+			});
+			data.incomingLinks.forEach(link => {
+				// hightlight
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
+			});
+
+		})
+		.on('mouseout', function (event, data) {
+			d3.select(this).attr('fill-opacity', '0.1');
+			data.outgoingLinks.forEach(link => {
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '1');
+			});
+			data.incomingLinks.forEach(link => {
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '1');
+			});
+		})
+	
+		
 
 	nodes.forEach(node => {
 		const element = document.getElementById(`group-${toHTMLToken(node.id)}`)!;
