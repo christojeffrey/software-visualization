@@ -106,10 +106,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		node.incomingLinksLifted = [];
 	});
 
-	// Initialize links
-	links.forEach(link => {
-		link.routing = [];
-	});
+	
 
 	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		//@ts-expect-error GraphDataEdge is still a ConvertedEdge
