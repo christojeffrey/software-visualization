@@ -19,7 +19,6 @@ export function draw(
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
 	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(graphData.nodes);
 
-
 	// Initialize width and height of simple nodes
 	simpleNodes.forEach(n => {
 		n.width = notNaN(drawSettings.minimumNodeSize);
@@ -32,7 +31,6 @@ export function draw(
 	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
 	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
 	layerTreeLayout(drawSettings, rootNodes, undefined, {edgeRouting: true}); // Todo this is weird
-
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
@@ -58,8 +56,7 @@ export function draw(
 	// Render links
 
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
-	setupGradient(linkCanvas)
-
+	setupGradient(linkCanvas);
 
 	// DRAG AND DROP
 

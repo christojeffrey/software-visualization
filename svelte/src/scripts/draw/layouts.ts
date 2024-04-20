@@ -6,7 +6,12 @@ import {notNaN} from '$helper';
 type GraphDataNodeExt = GraphDataNode & {width: number; height: number};
 type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NodeLayout = (drawSettings: DrawSettingsInterface, childNodes: GraphDataNode[], parentNode?: GraphDataNode, options?: any) => void;
+type NodeLayout = (
+	drawSettings: DrawSettingsInterface,
+	childNodes: GraphDataNode[],
+	parentNode?: GraphDataNode,
+	options?: any,
+) => void;
 
 /**
  * Helper function for layouts
@@ -288,10 +293,10 @@ export const straightTreeLayout: NodeLayout = function (drawSettings, childNodes
  */
 
 function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
-	const minX = nodes.reduce((acc,n) => Math.min(acc, n.x! - 0.5*n.width!), Infinity);
-	const minY = nodes.reduce((acc,n) => Math.min(acc, n.y! - 0.5*n.height!), Infinity);
-	const maxX = nodes.reduce((acc,n) => Math.max(acc, n.x! + 0.5*n.width!), -Infinity);
-	const maxY = nodes.reduce((acc,n) => Math.max(acc, n.y! + 0.5*n.height!), -Infinity);
+	const minX = nodes.reduce((acc, n) => Math.min(acc, n.x! - 0.5 * n.width!), Infinity);
+	const minY = nodes.reduce((acc, n) => Math.min(acc, n.y! - 0.5 * n.height!), Infinity);
+	const maxX = nodes.reduce((acc, n) => Math.max(acc, n.x! + 0.5 * n.width!), -Infinity);
+	const maxY = nodes.reduce((acc, n) => Math.max(acc, n.y! + 0.5 * n.height!), -Infinity);
 
 	const centerX = (maxX - minX) / 2;
 	const centerY = (maxY - minY) / 2;
@@ -303,11 +308,11 @@ function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
 
 	if (edges) {
 		edges.forEach(e => {
-			e.routing.forEach((point) => {
+			e.routing.forEach(point => {
 				point.x -= centerX;
 				point.y -= centerY;
-			})
-		})
+			});
+		});
 	}
 
 	return {
@@ -319,7 +324,12 @@ function centerize(nodes: GraphDataNode[], edges?: GraphDataEdge[]) {
 /**
  * A layered tree using the Sugiyama method
  */
-export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, parentNode?, options?) {
+export const layerTreeLayout: NodeLayout = function (
+	drawSettings,
+	childNodes,
+	parentNode?,
+	options?,
+) {
 	if (childNodes.length === 0) return;
 
 	/**
@@ -344,18 +354,17 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 
 	/** DummyType for vertex ordering step */
 	type DummyNode = {
-		layer: number
-		height: number,
-		width: number,
-		x?: number,
-		y?: number,
+		layer: number;
+		height: number;
+		width: number;
+		x?: number;
+		y?: number;
 		/** The existence of this property is used to mark this node as a DummyNode */
-		isDummy: true,
-		/** In between steps 3 and 4, dummynodes are merged and deleted. 
+		isDummy: true;
+		/** In between steps 3 and 4, dummynodes are merged and deleted.
 		 * If this node has been deleted, this property points to the merged node */
-		realDummy?: DummyNode,
-	}
-
+		realDummy?: DummyNode;
+	};
 
 	/** Array containing all layers, where layers themselves are stored.
 	 * Layers themselves are modelled as arrays of nodes, where the position in the array indicated the position the node is rendered in.
@@ -416,21 +425,19 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		inverted: boolean;
 	};
 
-
 	const sugEdges = [...allEdges].map((e): SugEdge => {
 		const source = e.liftedSource as LayerTreeNode;
 		const target = e.liftedTarget as LayerTreeNode;
 		if (source.layer! < target.layer!) {
-			return {source, target, original: e, inverted: false,}
+			return {source, target, original: e, inverted: false};
 		} else {
 			return {
 				source: target,
 				target: source,
 				original: e,
 				inverted: true,
-			}
+			};
 		}
-
 	});
 
 	// Step 3 part 1: Insert dummy nodes for edges spanning multiple layers
@@ -453,8 +460,7 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 				target: e.target,
 				original: e.original,
 				inverted: e.inverted,
-			})
-
+			});
 
 			// Change current edge to go to the dummy node
 			e.target = dummyNode;
@@ -484,13 +490,13 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 	}
 
 	// In between: let's remove consecutive dummy nodes, otherwise the result will look ugly
-	layerNodes.forEach((layer) => {
-		for (let i = 0; i < layer.length;) {
+	layerNodes.forEach(layer => {
+		for (let i = 0; i < layer.length; ) {
 			const thisItem = layer[i];
-			const nextItem = layer[i+1] ?? {};
+			const nextItem = layer[i + 1] ?? {};
 			if ('isDummy' in thisItem && 'isDummy' in nextItem) {
 				nextItem.realDummy = thisItem;
-				layer.splice(i+1, 1);
+				layer.splice(i + 1, 1);
 			} else {
 				i++;
 			}
@@ -540,7 +546,6 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
 		});
 	}
 
-
 	if (parentNode) {
 		const {width, height} = centerize(nodes, [...allEdges]);
 
@@ -554,9 +559,9 @@ export const layerTreeLayout: NodeLayout = function(drawSettings, childNodes, pa
  *
  * Should be optimized at some point.
  */
-function discoverDAG(graphNodes: (GraphDataNode)[]) {
+function discoverDAG(graphNodes: GraphDataNode[]) {
 	type MarkedNode = GraphDataNode & {mark?: boolean};
-	const nodes = graphNodes as  MarkedNode[];
+	const nodes = graphNodes as MarkedNode[];
 	const DAGedges: GraphDataEdge[] = [];
 
 	// Start with all edges
@@ -568,7 +573,7 @@ function discoverDAG(graphNodes: (GraphDataNode)[]) {
 		});
 	});
 
-	/** Depth first search: remove node if we run into a cycle*/ 
+	/** Depth first search: remove node if we run into a cycle*/
 	function dfs(node: MarkedNode, markedNodes: GraphDataNode[]) {
 		DAGedges.filter(e => e.liftedSource === node).forEach(edge => {
 			const target = edge.liftedTarget!;
@@ -578,7 +583,7 @@ function discoverDAG(graphNodes: (GraphDataNode)[]) {
 			} else {
 				if (!node.mark) dfs(target, [...markedNodes, target]);
 			}
-		})
+		});
 		node.mark = true;
 	}
 
@@ -586,7 +591,7 @@ function discoverDAG(graphNodes: (GraphDataNode)[]) {
 		if (!node.mark) {
 			dfs(node, [node]);
 		}
-	})
+	});
 
 	nodes.forEach(node => {
 		delete node.mark;

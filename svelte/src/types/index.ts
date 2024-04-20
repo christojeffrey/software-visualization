@@ -104,22 +104,22 @@ export interface GraphDataEdge {
 	routing: EdgeRoutingPoint[];
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
-	gradientDirection? : boolean;
-	labelCoordinates?: {x: number; y: number} [];
+	gradientDirection?: boolean;
+	labelCoordinates?: {x: number; y: number}[];
 }
 
 /** Routing information for edges.
- * 
- * Represented by the x and y coordinates of a point that the edge should pass through, 
+ *
+ * Represented by the x and y coordinates of a point that the edge should pass through,
  * relative to the position of origin.
- * 
- * Origin is neither the source of the edge nor the target; it is the parentnode of the layout responsible 
+ *
+ * Origin is neither the source of the edge nor the target; it is the parentnode of the layout responsible
  * for adding the RoutingPoint, to allow the use of relative coordinates.
  */
 interface EdgeRoutingPoint {
-	x: number,
-	y: number,
-	origin?: GraphDataNode,
+	x: number;
+	y: number;
+	origin?: GraphDataNode;
 }
 
 export interface GraphDataNode extends SimpleNode {
