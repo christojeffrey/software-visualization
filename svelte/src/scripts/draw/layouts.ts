@@ -5,11 +5,11 @@ import {notNaN} from '$helper';
 
 type GraphDataNodeExt = GraphDataNode & {width: number; height: number};
 type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type NodeLayout = (
 	drawSettings: DrawSettingsInterface,
 	childNodes: GraphDataNode[],
 	parentNode?: GraphDataNode,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	options?: any,
 ) => void;
 
