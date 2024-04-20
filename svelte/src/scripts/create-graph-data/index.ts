@@ -85,11 +85,10 @@ function leastCommonAncestor(source: GraphDataNode, target: GraphDataNode) {
 }
 
 export function createGraphData(convertedData: ConvertedData): GraphData {
-	// do deep copy. TODO: now that we don't need to preserve previous graphData, we don't need to copy it.
-	const nodes: ConvertedNode[] = JSON.parse(JSON.stringify(convertedData.nodes));
+	const nodes: ConvertedNode[] = convertedData.nodes;
 	const flattenNodes = flattenNode<ConvertedNode>(nodes);
 
-	const links: ConvertedEdge[] = JSON.parse(JSON.stringify(convertedData.links));
+	const links: ConvertedEdge[] = convertedData.links;
 
 	const graphDataNodes = nodes as GraphDataNode[];
 	const graphDataFlattenNodes = flattenNodes as GraphDataNode[];
