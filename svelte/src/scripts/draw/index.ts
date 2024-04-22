@@ -25,6 +25,11 @@ export function draw(
 		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
 
+	// Initialize links routing
+	graphData.links.forEach(link => {
+		link.routing = [];
+	});
+
 	// Calculate layouts for non-simple nodes
 
 	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
