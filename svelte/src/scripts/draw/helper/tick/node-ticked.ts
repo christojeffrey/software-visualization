@@ -1,5 +1,9 @@
-import type { DrawSettingsInterface, GraphData, GraphDataNode } from '$types';
-import { calculateWidthHeighXandYBasedOnChildrenRecursive, updateLocationNode, updateLocationNodeButtonsAndLabels } from './helper';
+import type {DrawSettingsInterface, GraphData, GraphDataNode} from '$types';
+import {
+	calculateWidthHeighXandYBasedOnChildrenRecursive,
+	updateLocationNode,
+	updateLocationNodeButtonsAndLabels,
+} from './helper';
 
 export function innerTicked(
 	drawSettings: DrawSettingsInterface,
@@ -7,7 +11,7 @@ export function innerTicked(
 	memberElements: d3.Selection<SVGRectElement, GraphDataNode, SVGGElement, unknown>,
 	nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>,
 	collapseButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
-	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>
+	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
 ) {
 	updateLocationNode(membersContainerElement, memberElements);
 
@@ -15,7 +19,7 @@ export function innerTicked(
 		drawSettings,
 		collapseButtonElements,
 		liftButtonElements,
-		nodeLabelsElements
+		nodeLabelsElements,
 	);
 }
 
@@ -26,7 +30,7 @@ export function masterSimulationTicked(
 	drawSettings: DrawSettingsInterface,
 	nodeLabelsElements: d3.Selection<SVGTextElement, GraphDataNode, SVGGElement, unknown>,
 	collapseButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
-	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>
+	liftButtonElements: d3.Selection<SVGCircleElement, GraphDataNode, SVGGElement, unknown>,
 ) {
 	// calculate nodes width and height, x and y (which is cx and cy) - based on the location of the its members.
 	// only do this calculation once, on master simulation
@@ -40,6 +44,6 @@ export function masterSimulationTicked(
 		drawSettings,
 		collapseButtonElements,
 		liftButtonElements,
-		nodeLabelsElements
+		nodeLabelsElements,
 	);
 }

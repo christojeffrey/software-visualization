@@ -1,4 +1,4 @@
-import { EdgeType } from '../../../types';
+import {EdgeType} from '../../../types';
 
 const LINK_COLOR_POOL = [
 	['#e5f5f9', '#2ca25f'],
@@ -7,7 +7,7 @@ const LINK_COLOR_POOL = [
 	['#e0f3db', '#43a2ca'],
 	['#e7e1ef', '#dd1c77'],
 	['#ffffe5', '#662506'],
-	['#ffffe5', '#004529']
+	['#ffffe5', '#004529'],
 ];
 
 export function setupGradient(svg: d3.Selection<SVGGElement, unknown, null, undefined>) {
