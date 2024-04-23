@@ -1,29 +1,28 @@
 // PLAN B CHARGE FORCE!
 
-import * as d3 from "d3";
-import type { simulationLinkType, simulationNodeDatumType } from "./types";
+import * as d3 from 'd3';
+import type {simulationLinkType, simulationNodeDatumType} from './types';
 
 interface simulationNOdeDatumTypeExt extends simulationNodeDatumType {
 	treeData?: {
 		targets: Map<simulationNodeDatumType, number>; // Store nodes at lower level
 		level: number; // The depth of the node in the tree
-	}
-};
+	};
+}
 
-/** 
+/**
  * Caculates a set of arboricities on the given graph, but only on the top level in the dependency hierarchy.
  * (Not necicarilly maximal or efficient)
- * 
+ *
  * Stores data in a new property treeData on the node (in place)
- * 
+ *
  * TODO move to parser
- * */ 
+ * */
 function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 	// Helper functions
 	function getOutLinks(node: simulationNOdeDatumTypeExt): simulationLinkType[] {
-		return node.members.flatMap(m => getOutLinks(m))
-		.concat(node.outgoingLinks ?? []);
-	};
+		return node.members.flatMap(m => getOutLinks(m)).concat(node.outgoingLinks ?? []);
+	}
 
 	function getCompoundNode(node: simulationNodeDatumType): simulationNodeDatumType {
 		if (nodes.includes(node)) {
@@ -31,13 +30,13 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 		} else if (node.parent) {
 			return getCompoundNode(node.parent);
 		} else {
-			throw(`Invalid node data, ${node.id} is not related to any node passed to findArboricity`);
+			throw `Invalid node data, ${node.id} is not related to any node passed to findArboricity`;
 		}
 	}
 
 	// (Works in place!)
 	function liftOutLinks(node: simulationNOdeDatumTypeExt, links: simulationLinkType[]) {
-		links.forEach((link) => {
+		links.forEach(link => {
 			const outNode = getCompoundNode(link.target);
 			if (outNode !== node) {
 				node.treeData!.targets!.set(outNode, (node.treeData!.targets!.get(outNode) ?? 0) + 1);
@@ -48,7 +47,7 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 	// Start actual logic
 	// Prepare data/structure
 	// All dependencies must be lifted, but not in render data
-	nodes.forEach((node) => {
+	nodes.forEach(node => {
 		node.treeData = {
 			targets: new Map(),
 			level: NaN,
@@ -58,7 +57,7 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 	});
 
 	// Get node with maximum outgoing connections, we assume this is the root of the first arboricity.
-	const findRootReduce = (a: simulationNOdeDatumTypeExt, node: simulationNOdeDatumTypeExt) => 
+	const findRootReduce = (a: simulationNOdeDatumTypeExt, node: simulationNOdeDatumTypeExt) =>
 		node.treeData!.targets.size > a.treeData!.targets.size ? node : a;
 	const initialRoot = nodes.reduce(findRootReduce);
 	initialRoot.treeData!.level = 0;
@@ -75,27 +74,26 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 		// Add current node to cover
 		node.treeData!.level = level;
 		if (levelMap.has(level)) {
-			levelMap.get(level)!.add(node) 
+			levelMap.get(level)!.add(node);
 		} else {
 			levelMap.set(level, new Set());
-		};
+		}
 		nodesCovered.add(node);
 
-		let options : {weigth: number; target: simulationNOdeDatumTypeExt; level: number}[] = [];
+		let options: {weigth: number; target: simulationNOdeDatumTypeExt; level: number}[] = [];
 		do {
 			options = [];
-			nodesCovered.forEach((n) => {
-				n.treeData!.targets
-				.forEach((weigth, target) => {
+			nodesCovered.forEach(n => {
+				n.treeData!.targets.forEach((weigth, target) => {
 					if (!nodesCovered.has(target)) {
-						const o = options.find((o) => o.target === target);
+						const o = options.find(o => o.target === target);
 						if (o) {
 							o.weigth += weigth;
-						} else if (!nodesCovered.has(target)){
+						} else if (!nodesCovered.has(target)) {
 							options.push({weigth, target, level: n.treeData!.level + 1});
 						}
 					}
-				})
+				});
 			});
 			if (options.length > 0) {
 				const bestOption = options.reduce((a, o) => {
@@ -103,9 +101,9 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 					return a;
 				});
 				calculateTree(bestOption.target, bestOption.level);
-			} 
+			}
 		} while (options.length > 0);
-	};
+	}
 
 	calculateTree(initialRoot, 0);
 
@@ -120,23 +118,25 @@ function findArboricity(nodes: simulationNOdeDatumTypeExt[]) {
 	return levelMap;
 }
 
-export function addStaticTreeLayout(nodes: simulationNodeDatumType[], simulation: d3.Simulation<simulationNodeDatumType, undefined>) {
-    const levelMap = findArboricity(nodes);
-    const treeForce = d3.forceY((d: simulationNOdeDatumTypeExt) => {
-        let res = 30;
-        for (let i = 0; i < d.treeData!.level; i++) {
-            let maxHeight = 0;
-            levelMap.get(i)!.forEach(node => {
-                maxHeight = Math.max(node.height ?? 0, maxHeight ?? 0);
-            });
-            res += maxHeight
-        }
-        return res;
-    });
+export function addStaticTreeLayout(
+	nodes: simulationNodeDatumType[],
+	simulation: d3.Simulation<simulationNodeDatumType, undefined>,
+) {
+	const levelMap = findArboricity(nodes);
+	const treeForce = d3.forceY((d: simulationNOdeDatumTypeExt) => {
+		let res = 30;
+		for (let i = 0; i < d.treeData!.level; i++) {
+			let maxHeight = 0;
+			levelMap.get(i)!.forEach(node => {
+				maxHeight = Math.max(node.height ?? 0, maxHeight ?? 0);
+			});
+			res += maxHeight;
+		}
+		return res;
+	});
 
-    // horrible hack
-    setTimeout(function() {
-        simulation.force('y', treeForce);
-    }, 1000);
+	// horrible hack
+	setTimeout(function () {
+		simulation.force('y', treeForce);
+	}, 1000);
 }
-

@@ -1,9 +1,9 @@
-import type { GraphDataEdge } from '$types';
+import type {GraphDataEdge} from '$types';
 
 export function linkTicked(
 	edges: GraphDataEdge[],
 	linkElements: d3.Selection<SVGPathElement, GraphDataEdge, SVGGElement, unknown>,
-	linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdge, SVGGElement, unknown>
+	linkLabelElements: d3.Selection<SVGTextElement, GraphDataEdge, SVGGElement, unknown>,
 ) {
 	// calculate all the link labels location.
 	const allResult: {
@@ -14,14 +14,14 @@ export function linkTicked(
 			y2: number;
 		};
 	} = {};
-	edges.forEach((d) => {
+	edges.forEach(d => {
 		// callculate once here change to global coordinates.
 		// calculate new source
 		const newLocation = {
 			x1: d.source.x ?? 0,
 			y1: d.source.y ?? 0,
 			x2: d.target.x ?? 0,
-			y2: d.target.y ?? 0
+			y2: d.target.y ?? 0,
 		};
 
 		let source = d.source;
@@ -53,12 +53,12 @@ export function linkTicked(
 
 	if (linkLabelElements) {
 		linkLabelElements
-			.attr('x', (d) => {
+			.attr('x', d => {
 				const x1 = allResult[d.id].x1;
 				const x2 = allResult[d.id].x2;
 				return (x1 + x2) / 2;
 			})
-			.attr('y', (d) => {
+			.attr('y', d => {
 				const y1 = allResult[d.id].y1;
 				const y2 = allResult[d.id].y2;
 				return (y1 + y2) / 2;
