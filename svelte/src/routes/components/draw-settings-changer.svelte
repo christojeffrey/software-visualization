@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Toggle from '$ui/toggle.svelte';
 	import Heading from '$ui/heading.svelte';
-	import type {DrawSettingsInterface} from '$types';
+	import type {DrawSettingsInterface, LayoutOptions} from '$types';
 	import Input from '$ui/input.svelte';
 	import Button from '$ui/button.svelte';
 	export let drawSettings: DrawSettingsInterface;
@@ -9,7 +9,7 @@
 	export let doRelayout;
 
 	// layout options
-	let options = ['layerTree', 'straightTree', 'circular'];
+	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
 </script>
 
 <div class="overflow-auto">
