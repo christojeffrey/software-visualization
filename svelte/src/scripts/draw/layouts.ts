@@ -217,7 +217,7 @@ export const straightTreeLayout: NodeLayout = function (
 	// Make add nodes the same size (as intended for the algorithm)
 	if (!options.uniformSize) {
 		const width = Math.max(...nodes.map(n => n.width));
-		const height = Math.max(...nodes.map(n => n.width));
+		const height = Math.max(...nodes.map(n => n.height));
 		nodes.forEach(n => {
 			n.width = width;
 			n.height = height;
@@ -288,18 +288,10 @@ export const straightTreeLayout: NodeLayout = function (
 	const finalLayout = layoutRec(rootNode);
 
 	if (parentNode) {
-		//parentNode.width = finalLayout.width + 2 * drawSettings.nodePadding;
-		//parentNode.height = finalLayout.height + 2 * drawSettings.nodePadding;
 		const {width, height} = centerize(nodes);
 
 		parentNode.width = width + 2 * drawSettings.nodePadding;
 		parentNode.height = height + 2 * drawSettings.nodePadding;
-
-		// Translate all nodes such that the top-left coordinate of the rootNode is in the top-left corner of the parentNode.
-		// finalLayout.nodes.forEach(n => {
-		// 	n.x! -= 0.5 * parentNode.width!;
-		// 	n.y! -= 0.5 * parentNode.height!;
-		// });
 	}
 
 	cleanupTree(nodes);
