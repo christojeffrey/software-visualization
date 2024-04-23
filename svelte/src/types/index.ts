@@ -21,15 +21,14 @@ export interface DrawSettingsInterface {
 	nodeDefaultColor: string;
 	nodeColors: string[];
 	/** Remembers the last transformation in-between redraws. */
-	transformation?: { k: number; x: number; y: number }; 
+	transformation?: { k: number; x: number; y: number };
 	// layout options
 	innerLayout: LayoutOptions;
 	intermediateLayout: LayoutOptions;
 	rootLayout: LayoutOptions;
 }
 
-type LayoutOptions = 'layerTree' | 'circular' | 'straightTree';
-
+export type LayoutOptions = 'layerTree' | 'circular' | 'straightTree' | 'forceBased';
 
 export interface SimpleNode {
 	id: string;
@@ -86,15 +85,15 @@ export interface GraphData {
 	links: GraphDataEdge[];
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
-	nodesDict: {[id: string]: GraphDataNode};
+	nodesDict: { [id: string]: GraphDataNode };
 }
 export interface GraphDataEdge {
 	/** The source / target of the edge, after edge lifting and other filter-operation */
- 	source: string | GraphDataNode; 
+	source: string | GraphDataNode;
 	target: string | GraphDataNode;
 
-	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */ 
-	liftedSource?: GraphDataNode; 
+	/** The source / target of the edge, when lifting would be applied at level 0 (used for lay-outing) */
+	liftedSource?: GraphDataNode;
 	liftedTarget?: GraphDataNode;
 
 	id: string;
@@ -102,13 +101,13 @@ export interface GraphDataEdge {
 	weight: number;
 	originalWeight?: number;
 
-	/** The original source / target of the edge, if filter operations are ignored */ 
+	/** The original source / target of the edge, if filter operations are ignored */
 	originalSource?: GraphDataNode;
 	originalTarget?: GraphDataNode;
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
-	gradientDirection? : boolean;
-	absoluteCoordinates?: {x: number; y: number} [];
+	gradientDirection?: boolean;
+	absoluteCoordinates?: { x: number; y: number }[];
 }
 export interface GraphDataNode extends SimpleNode {
 	// initial data

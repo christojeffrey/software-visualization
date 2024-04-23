@@ -1,12 +1,15 @@
 import * as d3 from 'd3';
 import { notNaN } from '$helper';
-import type {
-	DrawSettingsInterface,
-	GraphData,
-	GraphDataNode} from '$types';
+import type { DrawSettingsInterface, GraphData, GraphDataNode, LayoutOptions } from '$types';
 
 import { setupGradient } from './helper/gradient-setup';
-import { forceBasedLayout, circularLayout, straightTreeLayout, layerTreeLayout } from './layouts';
+import {
+	forceBasedLayout,
+	circularLayout,
+	straightTreeLayout,
+	layerTreeLayout,
+	type NodeLayout
+} from './layouts';
 import { renderLinks } from './link-render';
 import { addDragAndDrop } from './drag-and-drop';
 import { renderNodes, renderNodeLabels, addLiftCollapseButtons } from './nodes-render';
@@ -17,39 +20,39 @@ export function draw(
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void
-) {	
+) {
 	const nodes = graphData.nodes;
 
 	// CALCULATE LAYOUT
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
-	const {simpleNodes, innerNodes, intermediateNodes, rootNodes } = splitNodes(nodes);
+	const { simpleNodes, innerNodes, intermediateNodes, rootNodes } = splitNodes(nodes);
 
 	// Initialize width and height of simple nodes
-	simpleNodes.forEach(n => {
+	simpleNodes.forEach((n) => {
 		n.width = notNaN(drawSettings.minimumNodeSize);
 		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
-	const layoutOptionToFunction = {
+	const layoutOptionToFunction: { [id in LayoutOptions]: NodeLayout } = {
 		circular: circularLayout,
 		straightTree: straightTreeLayout,
-		layerTree: layerTreeLayout
+		layerTree: layerTreeLayout,
+		forceBased: forceBasedLayout
 	};
 	// Calculate layouts for non-simple nodes
-innerNodes.forEach((n) =>
-	layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n)
-);
-intermediateNodes.forEach((n) =>
-	layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n)
-);
-rootNodes.forEach((n) =>
-	layoutOptionToFunction[drawSettings.rootLayout](drawSettings, n.members, n)
-);
-layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
+	innerNodes.forEach((n) =>
+		layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n)
+	);
+	intermediateNodes.forEach((n) =>
+		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n)
+	);
+	rootNodes.forEach((n) =>
+		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n)
+	);
+	layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes);
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
-	const canvas = d3.select(svgElement).append('g')
-		.attr('id', 'canvas');
+	const canvas = d3.select(svgElement).append('g').attr('id', 'canvas');
 	const canvasElement = document.getElementById('canvas')!;
 
 	// Add zoom handler
@@ -68,18 +71,16 @@ layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
 		);
 	}
 
-
 	// RENDERING
 	// Render nodes
 	renderNodes(rootNodes, canvasElement, drawSettings);
-	renderNodeLabels(canvasElement, drawSettings)
+	renderNodeLabels(canvasElement, drawSettings);
 	addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
 
 	// Render links
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas').lower();
-	setupGradient(linkCanvas)
+	setupGradient(linkCanvas);
 	renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
-
 
 	// DRAG AND DROP
 	addDragAndDrop(rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
@@ -90,8 +91,8 @@ layerTreeLayout(drawSettings, rootNodes); // Todo this is weird
 	return function rerender(drawSettings: DrawSettingsInterface) {
 		renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
 		renderNodes(rootNodes, canvasElement, drawSettings);
-		renderNodeLabels(canvasElement, drawSettings)
-	}
+		renderNodeLabels(canvasElement, drawSettings);
+	};
 }
 
 /**
@@ -105,7 +106,7 @@ function splitNodes(nodes: GraphDataNode[]) {
 	const rootNodes: GraphDataNode[] = [];
 
 	function recurse(node: GraphDataNode) {
-		node.members.forEach(node => recurse(node));
+		node.members.forEach((node) => recurse(node));
 		if (node.level === 0) {
 			if (node.members.length === 0) {
 				simpleNodes.push(node);
@@ -114,19 +115,21 @@ function splitNodes(nodes: GraphDataNode[]) {
 			rootNodes.push(node);
 		} else if (node.members.length === 0) {
 			simpleNodes.push(node);
-		} else if (node.members.reduce(
-			(a: number, item) => (item.members.length ? (item.members.length > 0 ? a + 1 : a) : a),
-			0
-		) === 0) {
+		} else if (
+			node.members.reduce(
+				(a: number, item) => (item.members.length ? (item.members.length > 0 ? a + 1 : a) : a),
+				0
+			) === 0
+		) {
 			innerNodes.push(node);
 		} else {
 			intermediateNodes.push(node);
 		}
 	}
 
-	nodes.forEach(node => recurse(node));
+	nodes.forEach((node) => recurse(node));
 
-	return { simpleNodes, innerNodes, rootNodes, intermediateNodes };	
+	return { simpleNodes, innerNodes, rootNodes, intermediateNodes };
 }
 
 export default draw;
