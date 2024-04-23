@@ -215,9 +215,9 @@ export const straightTreeLayout: NodeLayout = function (
 	const {nodes, rootNode} = discoverTree(childNodes);
 
 	// Make add nodes the same size (as intended for the algorithm)
-	if (!options.uniformSize) {
-		const width = Math.max(...nodes.map(n => n.width));
-		const height = Math.max(...nodes.map(n => n.height));
+	if (!options?.uniformSize) {
+		const width = Math.max(...nodes.map(n => n.width), drawSettings.minimumNodeSize);
+		const height = Math.max(...nodes.map(n => n.height), drawSettings.minimumNodeSize);
 		nodes.forEach(n => {
 			n.width = width;
 			n.height = height;
