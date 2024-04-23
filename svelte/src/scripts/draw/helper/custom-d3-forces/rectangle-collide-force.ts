@@ -1,5 +1,5 @@
-import type { Force } from 'd3';
-import type { GraphDataNode } from '$types';
+import type {Force} from 'd3';
+import type {GraphDataNode} from '$types';
 
 interface point {
 	x: number;
@@ -29,20 +29,20 @@ function makeSquare(node: GraphDataNode): squareData {
 		topleft: {
 			// Coordinates of top-left point
 			x: topLeftx,
-			y: topLefty
+			y: topLefty,
 		},
 		bottomright: {
 			// Coordinates of bottomright point
 			x: topLeftx + node.width,
-			y: topLefty + node.height
+			y: topLefty + node.height,
 		},
 		middle: {
 			x: topLeftx + 0.5 * node.width,
-			y: topLefty + 0.5 * node.height
+			y: topLefty + 0.5 * node.height,
 		},
 		width: node.width,
 		height: node.height,
-		node: node
+		node: node,
 	};
 }
 

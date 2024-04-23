@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Toggle from '$ui/toggle.svelte';
 	import Heading from '$ui/heading.svelte';
-	import type { DrawSettingsInterface } from '$types';
+	import type {DrawSettingsInterface} from '$types';
 	import Input from '$ui/input.svelte';
 	import Button from '$ui/button.svelte';
 	export let drawSettings: DrawSettingsInterface;
@@ -22,7 +22,7 @@
 							type="checkbox"
 							id={edgeType}
 							name="edgeType"
-							on:click={(e) => {
+							on:click={e => {
 								drawSettings.shownEdgesType?.set(edgeType, e.currentTarget.checked);
 								doRedraw = true;
 							}}
@@ -74,7 +74,7 @@
 		<Input
 			type="number"
 			value={drawSettings.buttonRadius}
-			onChange={(e) => {
+			onChange={e => {
 				drawSettings.buttonRadius = Number(e.currentTarget.value);
 				doRedraw = true;
 			}}
@@ -86,7 +86,7 @@
 		<Input
 			type="number"
 			value={drawSettings.minimumNodeSize}
-			onChange={(e) => {
+			onChange={e => {
 				drawSettings.minimumNodeSize = Number(e.currentTarget.value);
 				doRelayout = true;
 			}}
@@ -98,7 +98,7 @@
 		<Input
 			type="number"
 			value={drawSettings.nodeCornerRadius}
-			onChange={(e) => {
+			onChange={e => {
 				drawSettings.nodeCornerRadius = Number(e.currentTarget.value);
 				doRedraw = true;
 			}}
@@ -110,7 +110,7 @@
 		<Input
 			type="number"
 			value={drawSettings.nodePadding}
-			onChange={(e) => {
+			onChange={e => {
 				drawSettings.nodePadding = Number(e.currentTarget.value);
 				doRelayout = true;
 			}}
@@ -125,7 +125,7 @@
 		<Input
 			type="color"
 			value={drawSettings.nodeDefaultColor}
-			onChange={(e) => {
+			onChange={e => {
 				drawSettings.nodeDefaultColor = e.currentTarget.value;
 				doRedraw = true;
 			}}
@@ -140,7 +140,7 @@
 				<Input
 					type="color"
 					value={color}
-					onChange={(e) => {
+					onChange={e => {
 						drawSettings.nodeColors[index] = e.currentTarget.value;
 						doRedraw = true;
 					}}
