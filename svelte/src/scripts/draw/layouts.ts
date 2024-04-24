@@ -5,7 +5,7 @@ import {notNaN} from '$helper';
 
 type GraphDataNodeExt = GraphDataNode & {width: number; height: number};
 type TreeNode = GraphDataNodeExt & {next: TreeNode[]};
-type NodeLayout = (
+export type NodeLayout = (
 	drawSettings: DrawSettingsInterface,
 	childNodes: GraphDataNode[],
 	parentNode?: GraphDataNode,

@@ -1,12 +1,15 @@
 <script lang="ts">
 	import Toggle from '$ui/toggle.svelte';
 	import Heading from '$ui/heading.svelte';
-	import type {DrawSettingsInterface} from '$types';
+	import type {DrawSettingsInterface, LayoutOptions} from '$types';
 	import Input from '$ui/input.svelte';
 	import Button from '$ui/button.svelte';
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
 	export let doRelayout;
+
+	// layout options
+	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
 </script>
 
 <div class="overflow-auto">
@@ -165,5 +168,38 @@
 		>
 			Add new level
 		</Button>
+	</div>
+	<!-- layout settings -->
+	<div>
+		<Heading headingNumber={5}>Inner Layout</Heading>
+
+		<select
+			bind:value={drawSettings.innerLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
+		<Heading headingNumber={5}>Intermediate Layout</Heading>
+
+		<select
+			bind:value={drawSettings.intermediateLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
+		<Heading headingNumber={5}>Root Layout</Heading>
+
+		<select
+			bind:value={drawSettings.rootLayout}
+			on:change={() => {
+				doRelayout = true;
+			}}
+		>
+			{#each options as value}<option {value}>{value}</option>{/each}
+		</select>
 	</div>
 </div>

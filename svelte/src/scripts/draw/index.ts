@@ -1,9 +1,15 @@
 import * as d3 from 'd3';
 import {notNaN} from '$helper';
-import type {DrawSettingsInterface, GraphData, GraphDataNode} from '$types';
+import type {DrawSettingsInterface, GraphData, GraphDataNode, LayoutOptions} from '$types';
 
 import {setupGradient} from './helper/gradient-setup';
-import {forceBasedLayout, circularLayout, straightTreeLayout, layerTreeLayout} from './layouts';
+import {
+	forceBasedLayout,
+	circularLayout,
+	straightTreeLayout,
+	layerTreeLayout,
+	type NodeLayout,
+} from './layouts';
 import {renderLinks} from './link-render';
 import {addDragAndDrop} from './drag-and-drop';
 import {renderNodes, renderNodeLabels, addLiftCollapseButtons} from './nodes-render';
@@ -30,12 +36,22 @@ export function draw(
 		link.routing = [];
 	});
 
+	const layoutOptionToFunction: {[layout in LayoutOptions]: NodeLayout} = {
+		circular: circularLayout,
+		straightTree: straightTreeLayout,
+		layerTree: layerTreeLayout,
+	};
 	// Calculate layouts for non-simple nodes
-
-	innerNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
-	intermediateNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
-	rootNodes.forEach(n => layerTreeLayout(drawSettings, n.members, n, {edgeRouting: true}));
-	layerTreeLayout(drawSettings, rootNodes, undefined, {edgeRouting: true}); // Todo this is weird
+	innerNodes.forEach(n =>
+		layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n),
+	);
+	intermediateNodes.forEach(n =>
+		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+	);
+	rootNodes.forEach(n =>
+		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+	);
+	layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); // Todo this is weird
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
