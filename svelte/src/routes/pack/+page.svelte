@@ -12,7 +12,9 @@
 		count: number;
 		children?: HierarchyData[];
 	};
+
 	let isMounted = false;
+	let hoverDetail = '';
 	function inputDataToHierarchyData(csvText: string): any {
 		// package, class, layer, count
 		const table = d3.csvParse(csvText);
@@ -25,17 +27,56 @@
 			}
 			packages[row.package].push(row);
 		});
-		const roots: any = [];
+		roots = [];
 		Object.entries(packages).forEach(([key, value]: any) => {
+			// setup data
 			let temporaryTable = [...value];
+
+			// if there's same class, combine them into one parent class and add -child1, -child2, etc
+
+			let groupedTable: any = {};
+			temporaryTable.forEach((row: any) => {
+				if (!(row.class in groupedTable)) {
+					groupedTable[row.class] = [];
+				}
+				groupedTable[row.class].push(row);
+			});
+
+			temporaryTable = [];
+			Object.entries(groupedTable).forEach(([key, value]: any) => {
+				if (value.length > 1) {
+					// append children
+					value.forEach((row: any, index: number) => {
+						temporaryTable.push({
+							class: `${key}-child${index + 1}`,
+							package: key,
+							count: row.count,
+							layer: row.layer,
+						});
+					});
+					// append parent class
+					temporaryTable.push({
+						class: key,
+						package: value[0].package, // all same
+						count: 0,
+						layer: '',
+					});
+				} else {
+					temporaryTable.push(value[0]);
+				}
+			});
+
+			// append package
 			temporaryTable.push({
 				class: key,
 				package: '',
-				count: 1,
+				count: 0,
 				layer: '',
 			});
 			console.log('temporaryTable');
 			console.log(temporaryTable);
+
+			// turn to d3 hierarchy
 			const root = d3
 				.stratify()
 				.id((d: any) => d.class)
@@ -44,7 +85,6 @@
 		});
 		console.log('roots', roots);
 
-		root = roots[5];
 		d3.select(svgElement!).selectChildren().remove();
 	}
 	const data: HierarchyData = {
@@ -61,58 +101,96 @@
 				],
 			},
 			{id: 'Abel', count: 1},
-			{id: 'Awan', count: 1, children: [{id: 'Enoch', count: 1}]},
+			{id: 'Awan', count: 1},
 			{id: 'Azura', count: 1},
 		],
 	};
-	let root = d3.hierarchy(data) as any;
+	let roots = [d3.hierarchy(data) as any];
 	$: {
 		if (isMounted) {
 			// Construct the treemap layout.
-			const pack = d3.pack<any>();
-			pack.size([500, 500]);
-			pack.padding(2);
+			d3.select(svgElement!).call(
+				d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
+					canvas.attr('transform', transform);
+				}),
+			);
+			const canvas = d3.select(svgElement!).append('g').attr('id', 'canvas');
+			roots.forEach((root: any, index: number) => {
+				const pack = d3.pack<any>();
+				pack.padding(2);
 
-			// // Sum and sort the data.
-			root.sum((d: any) => d.count);
-			// root.sort((a, b) => b.height - a.height || b.value! - a.value!);
+				// // Sum and sort the data.
+				root.sum((d: any) => d.count);
+				// root.sort((a, b) => b.height - a.height || b.value! - a.value!);
+				// check the root value
+				console.log('root', root.value);
+				const FACTOR = 100;
+				// let size = (root.value ** 1/2) * FACTOR; // make it non linear
+				let size = Math.sqrt(Math.sqrt(root.value)) * FACTOR; // make it non linear
+				pack.size([size, size]);
+				// Compute the pack layout.
+				pack(root);
 
-			// Compute the pack layout.
-			pack(root);
-			let canvas = d3.select(svgElement!).append('g').attr('id', 'canvas');
-
-			root.each((d: any) => {
-				console.log(d);
-				const node = canvas
+				let containerElement = canvas
 					.append('g')
-					.attr('transform', `translate(${d.x},${d.y})`)
-					.attr('class', 'node');
+					.attr('transform', `translate(0,0)`)
+					.attr('id', `root-${index}`);
 
-				node
-					.append('circle')
-					.attr('r', d.r)
-					.attr('fill', () => {
-						console.log('d', d);
-						// based on data.layer
-						if (d?.data?.layer === 'Data Source Layer') {
-							return 'rgba(0, 100, 0, 0.2)';
-						} else if (d?.data?.layer === 'Domain Layer') {
-							return 'rgba(100, 0, 0, 0.2)';
-						} else if (d?.data?.layer === 'Presentation Layer') {
-							return 'rgba(0, 0, 100, 0.2)';
-						} else {
-							return 'rgba(0, 0, 0, 0.2)';
-						}
-					})
-					.attr('stroke', 'black');
+				// add container drag
+				containerElement.call(
+					d3.drag<any, any>().on('drag', function (event) {
+						// console.log('event', drawSettings.transform.k); - this would result in error
+						const x = event.dx / 1;
+						const y = event.dy / 1;
+						root.x += x;
+						root.y += y;
+						d3.select(this).attr('transform', `translate(${root.x},${root.y})`);
+					}),
+				);
 
-				node
-					.append('text')
-					.attr('dy', '0.3em')
-					.attr('fill', 'black')
-					.attr('text-anchor', 'middle')
-					.attr('font-size', '10px')
-					.text(d.data.id);
+				root.each((d: any) => {
+					const node = containerElement
+						.append('g')
+						.attr('transform', `translate(${d.x},${d.y})`)
+						.attr('class', 'node');
+
+					node
+						.append('circle')
+						.attr('r', d.r)
+						.attr('fill', () => {
+							// based on data.layer
+							if (d?.data?.layer === 'Data Source Layer') {
+								return 'rgba(0, 100, 0, 0.2)';
+							} else if (d?.data?.layer === 'Domain Layer') {
+								return 'rgba(100, 0, 0, 0.2)';
+							} else if (d?.data?.layer === 'Presentation Layer') {
+								return 'rgba(0, 0, 100, 0.2)';
+							} else if (d?.data?.layer === 'Service Layer') {
+								return 'rgba(100, 100, 0, 0.2)';
+							} else {
+								return 'rgba(0, 0, 0, 0)';
+							}
+						})
+						.attr('stroke', 'black');
+
+					node.on('mouseover', function (event, data) {
+						hoverDetail = JSON.stringify(d.data, null, '\t');
+						d3.select(this).select('circle').attr('stroke-width', 2);
+					});
+
+					node.on('mouseout', function (event, data) {
+						hoverDetail = '';
+						d3.select(this).select('circle').attr('stroke-width', 1);
+					});
+
+					node
+						.append('text')
+						.attr('dy', '0.3em')
+						.attr('fill', 'black')
+						.attr('text-anchor', 'middle')
+						.attr('font-size', '10px')
+						.text(d.data.id);
+				});
 			});
 		}
 	}
@@ -134,15 +212,25 @@
 
 <div class="p-4 h-full w-full">
 	<Resizable.PaneGroup direction="horizontal">
-		<Resizable.Pane class="p-2" defaultSize={85}>
+		<!-- left -->
+		<Resizable.Pane class="p-4" defaultSize={85}>
 			<svg bind:this={svgElement} class="w-full h-full" width="100%" />
 		</Resizable.Pane>
+		<!-- handle -->
 		<Resizable.Handle />
-		<Resizable.Pane class="p-2"
-			><div class="grid w-full max-w-sm items-center gap-1.5">
-				<Label for="picture" class="font-bold">Input</Label>
-				<Input id="picture" type="file" on:change={handleFileChange} />
-			</div></Resizable.Pane
-		>
+		<!-- right -->
+		<Resizable.Pane class="pl-4">
+			<Resizable.PaneGroup direction="vertical">
+				<Resizable.Pane class="pb-4" defaultSize={20}>{hoverDetail}</Resizable.Pane>
+				<Resizable.Handle />
+
+				<Resizable.Pane class="pt-4">
+					<div class="grid w-full max-w-sm items-center gap-1.5">
+						<Label for="picture" class="font-bold">Input</Label>
+						<Input id="picture" type="file" on:change={handleFileChange} />
+					</div>
+				</Resizable.Pane>
+			</Resizable.PaneGroup>
+		</Resizable.Pane>
 	</Resizable.PaneGroup>
 </div>
