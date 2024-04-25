@@ -5,6 +5,7 @@ import type {
 	GraphDataNode,
 	SimpleNodesDictionaryType,
 } from '$types';
+import { NormalizeWeight } from './helper/normalize-weight';
 
 /**
  * Render and or update all given links
@@ -151,6 +152,7 @@ export function renderLinks(
 			'stroke',
 			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
 		)
+		.attr('stroke-width', l => NormalizeWeight(l.weight))
 		.attr('fill', 'transparent');
 
 	// Update
