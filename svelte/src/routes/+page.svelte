@@ -19,6 +19,7 @@
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
+	import InfoBox from '$ui/info-box.svelte'
 
 	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
@@ -132,7 +133,10 @@
 
 <div class="flex justify-between h-full">
 	<!-- canvas -->
-	<div class="m-6 w-full">
+	<div class="relative m-6 w-full">
+		<div class="absolute right-0 bottom-0">
+			<InfoBox/>
+		</div>
 		<svg bind:this={svgElement} class="w-full h-full" />
 	</div>
 

@@ -134,6 +134,15 @@ export function renderNodes(
 				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
 			});
 
+			// Set the data for the info box
+			const infoBox = document.getElementById('info-box')!;
+			infoBox.style.display = 'block';
+			infoBox.style.background = drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor;
+			infoBox.style.fillOpacity = '0.1';
+			document.getElementById('info-box-name')!.innerText = data.simpleName;
+			const subHeading = data.rs === '' ? data.kind : data.kind + ' - ' + data.rs;
+			document.getElementById('info-box-heading2')!.innerText = subHeading;
+			document.getElementById('info-box-desc')!.innerText = data.description;
 		})
 		.on('mouseout', function (event, data) {
 			d3.select(this).attr('fill-opacity', '0.1');
