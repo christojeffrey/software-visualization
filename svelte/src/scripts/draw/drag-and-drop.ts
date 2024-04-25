@@ -10,6 +10,7 @@ import {renderLinks} from './link-render';
 import {updateNodePosition} from './nodes-render';
 
 export function addDragAndDrop(
+	links: GraphDataEdge[],
 	nodes: GraphDataNode[],
 	nodesDictionary: SimpleNodesDictionaryType,
 	svgElement: Element,
@@ -54,23 +55,12 @@ export function addDragAndDrop(
 				// Rerender nodes
 				updateNodePosition(node, svgElement);
 
-				// Need to find all relevant links to rerender them.
-				// TODO it might be faster to just rerender every link globally.
-				const links = new Set<GraphDataEdge>();
-				const rec = (nodes: GraphDataNode[]) => {
-					nodes.forEach(n => {
-						[...n.incomingLinks, ...n.outgoingLinks].forEach(l => links.add(l));
-						rec(n.members);
-					});
-				};
-				rec(nodes);
-
-				renderLinks([...links], nodesDictionary, linkCanvas, drawSettings);
+				renderLinks(links, nodesDictionary, linkCanvas, drawSettings);
 			}),
 	);
 
 	nodes.forEach(node => {
 		const element = document.getElementById(`group-${toHTMLToken(node.id)}`)!;
-		addDragAndDrop(node.members, nodesDictionary, element, linkCanvas, drawSettings);
+		addDragAndDrop(links, node.members, nodesDictionary, element, linkCanvas, drawSettings);
 	});
 }
