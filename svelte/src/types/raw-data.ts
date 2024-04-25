@@ -11,6 +11,8 @@ export interface RawNodeType {
 		properties: {
 			simpleName: string;
 			kind?: string;
+			description?: string;
+			rs?: string;
 		};
 		labels: string[];
 	};
