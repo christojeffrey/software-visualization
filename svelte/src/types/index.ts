@@ -165,3 +165,10 @@ export interface GraphDataNode extends SimpleNode {
 	x?: number;
 	y?: number;
 }
+
+export interface infoBoxData {
+	simpleName: string;
+	kind: string;
+	description: string;
+	rs: string;
+}
