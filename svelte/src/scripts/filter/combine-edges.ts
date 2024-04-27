@@ -4,7 +4,7 @@ export function doCombineEdgesWeight(graphData: GraphData) {
 	const linkDict: Map<string, GraphDataEdge> = new Map()
 
 	graphData.links.forEach(edge => {
-		const key: string = `${(edge.source as GraphDataNode).id}-${(edge.target as GraphDataNode).id}`
+		const key: string = `${(edge.source as GraphDataNode).id}-${(edge.target as GraphDataNode).id}-${edge.type}`
 		if (linkDict.has(key)) {
 			linkDict.get(key)!.weight += edge.weight
 		} else {
