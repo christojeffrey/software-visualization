@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as d3 from 'd3';
-import type {DrawSettingsInterface, GraphDataEdge, GraphDataNode} from '$types';
+import {EdgeType, type DrawSettingsInterface, type GraphDataEdge, type GraphDataNode} from '$types';
 import {notNaN} from '$helper';
 
 type GraphDataNodeExt = GraphDataNode & {width: number; height: number};
@@ -12,6 +12,10 @@ type NodeLayout = (
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	options?: any,
 ) => void;
+
+const filterEdges = (l: GraphDataEdge) => {
+	return l.type === EdgeType.calls;
+};
 
 /**
  * Helper function for layouts
@@ -89,7 +93,7 @@ export const forceBasedLayout: NodeLayout = function (drawSettings, childNodes, 
 	// collect relevant edges
 	const allLinks = new Set<GraphDataEdge>();
 	childNodes.forEach(node => node.incomingLinksLifted.forEach(node => allLinks.add(node)));
-	const copyLinks = [...allLinks].map(l => {
+	const copyLinks = [...allLinks].filter(filterEdges).map(l => {
 		return {
 			source: l.liftedSource!,
 			target: l.liftedTarget!,
@@ -143,7 +147,9 @@ function discoverTree(graphNodes: GraphDataNode[]) {
 	// Function (and type) to find the next root node (via reduce)
 	type NextRootNodeAccType = {node: TreeNode; score: number} | undefined;
 	const nextRootNode = (acc: NextRootNodeAccType, node: TreeNode) => {
-		const score = node.incomingLinksLifted.length - node.outgoingLinksLifted.length;
+		const incoming = node.incomingLinksLifted.filter(filterEdges);
+		const outgoing = node.outgoingLinks.filter(filterEdges);
+		const score = incoming.length - outgoing.length;
 		if (score < (acc?.score ?? Infinity)) {
 			return {node: node, score: score};
 		} else {
@@ -159,7 +165,7 @@ function discoverTree(graphNodes: GraphDataNode[]) {
 	const toExplore = [rootNode];
 	while (toExplore.length != nodes.length) {
 		for (let i = 0; i < toExplore.length; i++) {
-			toExplore[i].outgoingLinksLifted.forEach(edge => {
+			toExplore[i].outgoingLinksLifted.filter(filterEdges).forEach(edge => {
 				const target = edge.liftedTarget! as TreeNode;
 				if (!toExplore.includes(target)) {
 					toExplore.push(target);
@@ -350,7 +356,7 @@ export const layerTreeLayout: NodeLayout = function (
 
 	/** Set containing all lifted edges between elements of childNodes */
 	const allEdges: Set<GraphDataEdge> = new Set();
-	childNodes.forEach(n => n.incomingLinksLifted.forEach(l => allEdges.add(l)));
+	childNodes.forEach(n => n.incomingLinksLifted.filter(filterEdges).forEach(l => allEdges.add(l)));
 
 	/** DummyType for vertex ordering step */
 	type DummyNode = {
@@ -566,7 +572,7 @@ function discoverDAG(graphNodes: GraphDataNode[]) {
 
 	// Start with all edges
 	nodes.forEach(node => {
-		node.outgoingLinksLifted.forEach(e => {
+		node.outgoingLinksLifted.filter(filterEdges).forEach(e => {
 			if (!DAGedges.includes(e)) {
 				DAGedges.push(e);
 			}
