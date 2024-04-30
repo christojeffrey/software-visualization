@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Heading from '$ui/heading.svelte';
 	import type {ConfigInterface} from '$types';
+	import {runMetrics} from '$scripts/draw/metrics';
 	let dependencyLiftTolarance: string;
 	export let config: ConfigInterface;
 </script>
@@ -19,6 +20,15 @@
 				dependencyLiftTolarance = String(num || 0);
 				config.dependencyTolerance = num || 0;
 			}}
+		/>
+		<br />
+		<input
+			type="button"
+			on:click={_ => {
+				runMetrics();
+			}}
+			value="Evaluate layout"
+			style="background: #e5e7eb; padding: 5px; border-radius: 3px; margin-bottom: 5px; border: 1px solid gray;"
 		/>
 	</div>
 </div>

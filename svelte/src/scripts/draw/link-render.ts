@@ -63,6 +63,22 @@ export function renderLinks(
 		}
 		const intersectionTarget = {x: target.x + x, y: target.y + y};
 
+		// TODO above code is bugged and may return -infinity on dataset jhotdraw-trc-sum
+		// Will need to figure out why later
+		// We'll just set it to 0 for now
+		if (!Number.isFinite(intersectionTarget.x)) {
+			intersectionTarget.x = 0;
+		}
+		if (!Number.isFinite(intersectionTarget.y)) {
+			intersectionTarget.y = 0;
+		}
+		if (!Number.isFinite(intersectionSource.x)) {
+			intersectionSource.x = 0;
+		}
+		if (!Number.isFinite(intersectionSource.y)) {
+			intersectionSource.y = 0;
+		}
+
 		return {intersectionSource, intersectionTarget};
 	}
 	/** Returns path coordinates, and annotates the line-data with extra info */
@@ -72,7 +88,7 @@ export function renderLinks(
 		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
-		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
+		let {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
 			{
 				x: sourceAbsoluteCoordinate.x,
 				y: sourceAbsoluteCoordinate.y,
@@ -103,7 +119,7 @@ export function renderLinks(
 			t,
 		];
 
-		let result = `M ${s.x} ${s.y} `;
+		let result = `M ${notNaN(s.x)} ${notNaN(s.y)} `;
 
 		let maxDistance = -Infinity;
 		for (let i = 0; i < coordinates.length - 2; i++) {
@@ -121,9 +137,10 @@ export function renderLinks(
 				l.labelCoordinates = [p1, p2];
 			}
 
-			result += `L ${turnPoint1.x} ${turnPoint1.y} Q ${p2.x} ${p2.y}, ${turnPoint2.x} ${turnPoint2.y} `;
+			result += `L ${notNaN(turnPoint1.x)} ${notNaN(turnPoint1.y)} 
+			Q ${notNaN(p2.x)} ${notNaN(p2.y)}, ${notNaN(turnPoint2.x)} ${notNaN(turnPoint2.y)} `;
 		}
-		result += `L ${t.x} ${t.y}`;
+		result += `L ${notNaN(t.x)} ${notNaN(t.y)}`;
 
 		return result;
 	}

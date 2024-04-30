@@ -108,6 +108,11 @@ export interface GraphDataEdge {
 	labelCoordinates?: {x: number; y: number}[];
 }
 
+export interface GraphDataEdgeAfterLayout extends GraphDataEdge {
+	source: GraphDataNode;
+	target: GraphDataNode;
+}
+
 /** Routing information for edges.
  *
  * Represented by the x and y coordinates of a point that the edge should pass through,
