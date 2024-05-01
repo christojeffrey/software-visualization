@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: remove above line
 const FACTOR = 100;
-const PADDING = 2;
+const PADDING_INNER_PACK = 2;
+const PADDING_INTER_PACK = 10; // must be more than 1
+const PADDING_X_LAYER = 100;
 import * as d3 from 'd3';
 const layers = ['Presentation Layer', 'Service Layer', 'Data Source Layer', 'Domain Layer'];
 
@@ -10,11 +12,11 @@ export default function drawPack(
 	roots: any[],
 	writeDetailHover: (detail: string) => void,
 ) {
-	// 1. COMPUTE
+	// COMPUTE
 	roots.forEach((root, index: number) => {
 		// 1. Compute the pack layout.
 		const pack = d3.pack<any>();
-		pack.padding(PADDING);
+		pack.padding(PADDING_INNER_PACK);
 
 		// // Sum and sort the data.
 		root.sum((d: any) => d.count);
@@ -81,6 +83,7 @@ export default function drawPack(
 		root.data.layerPercentageArray = layerPercentageArray;
 	});
 
+	// CALCULATE LAYOUT
 	// draw the layer as rectangle
 	// height is the biggest pack size
 	const biggestRootRadius = roots.reduce((acc, root) => {
@@ -90,12 +93,11 @@ export default function drawPack(
 		return acc;
 	});
 	const layerHeight = biggestRootRadius.r * 3;
-	// CALCULATE LAYOUT
 	// find the y for each root based on the dominantLayer
 
 	let maxWidth = 0;
 	const previousRoots: any = [];
-	roots.forEach((root, index: number) => {
+	roots.forEach(root => {
 		const dominantLayer = root.data.dominantLayer;
 		/*
 			if dominant layer > 2 ,set Y to be -100
@@ -105,6 +107,7 @@ export default function drawPack(
 		*/
 		if (dominantLayer.length > 2) {
 			root.containerY = -100;
+			root.isCrossOver = true;
 		} else if (dominantLayer.length === 2) {
 			const layer1 = dominantLayer[0].layer;
 			const layer2 = dominantLayer[1].layer;
@@ -121,11 +124,6 @@ export default function drawPack(
 				const layer2Location = (layer2Index + 0.5) * layerHeight;
 				const layer2Percentage = dominantLayer[1].percentage;
 
-				console.log(layer1Location);
-				console.log(layer2Location);
-				console.log(layer1Percentage);
-				console.log(layer2Percentage);
-
 				// calculate based on ratio
 				const distanceAdded =
 					(layer2Location - layer1Location) *
@@ -133,6 +131,7 @@ export default function drawPack(
 				root.containerY = layer1Location + distanceAdded;
 			} else {
 				root.containerY = -100;
+				root.isCrossOver = true;
 			}
 		} else if (dominantLayer.length === 1) {
 			const layer = dominantLayer[0].layer;
@@ -140,12 +139,19 @@ export default function drawPack(
 			root.containerY = (layerIndex + 0.5) * layerHeight;
 		} else {
 			root.containerY = -100;
+			root.isCrossOver = true;
 		}
 		// the coordinate is from top left.
 		root.containerY -= root.r;
 
 		// calculate the x. check if it overlaps with previous roots. if it does, move it to the right then check again
-		root.containerX = 0;
+		root.containerX = PADDING_X_LAYER;
+		
+		// skip if crossover
+		if (root.isCrossOver) {
+			return;
+		}
+
 		let isOverlap = false;
 		do {
 			isOverlap = false;
@@ -163,14 +169,7 @@ export default function drawPack(
 				};
 				if (doesCircleOverlap(circle1, circle2)) {
 					isOverlap = true;
-					if (previousRoots.length === 5) {
-						console.log('overlap');
-						console.log('root.containerX', root.containerX);
-					}
-					root.containerX += findMoveNeededInXForCircle2(circle1, circle2) + 1;
-					if (previousRoots.length === 5) {
-						console.log('new root.containerX', root.containerX);
-					}
+					root.containerX += findMoveNeededInXForCircle2(circle1, circle2) + PADDING_INTER_PACK;
 					break;
 				}
 			}
@@ -180,13 +179,10 @@ export default function drawPack(
 		if (root.containerX + root.r * 2 > maxWidth) {
 			maxWidth = root.containerX + root.r * 2;
 		}
-
-		console.log('root.containerY', root.containerY);
-		console.log('root.containerX', maxWidth);
 	});
 
 	// RENDER LAYER
-	const layerWidth = maxWidth;
+	const layerWidth = maxWidth + PADDING_X_LAYER;
 	layers.forEach((layer, i) => {
 		canvas
 			.append('rect')
@@ -220,7 +216,7 @@ export default function drawPack(
 			.text(layer);
 	});
 
-	// 2. RENDER PACKS
+	// RENDER PACKS
 	roots.forEach((root, index: number) => {
 		const containerElement = canvas
 			.append('g')
@@ -229,20 +225,13 @@ export default function drawPack(
 
 		// add container drag
 		containerElement.call(
-			d3
-				.drag<any, any>()
-				.on('drag', function (event) {
-					console.log(event);
-					const x = event.dx;
-					const y = event.dy;
-					root.containerX += x;
-					root.containerY += y;
-					d3.select(this).attr('transform', `translate(${root.containerX},${root.containerY})`);
-				})
-				.on('start', function (event) {
-					// drag always assume from the center.
-					// TODO: first, reposition based on mouse location relative to the node center
-				}),
+			d3.drag<any, any>().on('drag', function (event) {
+				const x = event.dx;
+				const y = event.dy;
+				root.containerX += x;
+				root.containerY += y;
+				d3.select(this).attr('transform', `translate(${root.containerX},${root.containerY})`);
+			}),
 		);
 
 		root.each((d: any) => {
@@ -314,9 +303,5 @@ function findMoveNeededInXForCircle2(circle1: Circle, circle2: Circle) {
 	if (circle2.x < circle1.x) {
 		moveNeeded += 2 * currentDistanceInX;
 	}
-	console.log('moveNeeded', moveNeeded);
-	console.log(targetDistanceInX, currentDistanceInX);
-	console.log(JSON.stringify(circle1));
-	console.log(JSON.stringify(circle2));
 	return moveNeeded;
 }
