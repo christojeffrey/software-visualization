@@ -164,7 +164,7 @@ export function renderPorts(
 			unknown
 		>
 	).each(function ({id, level, members}) {
-		const data = [portMap[id]!];
+		const data = portMap[id];
 		members.length > 0 &&
 			d3
 				.select(this)
@@ -178,7 +178,5 @@ export function renderPorts(
 				.attr('height', ({height}) => height)
 				.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
 				.attr('fill-opacity', '0.1');
-		// (for debugging)
-		// .attr('style', 'stroke-width:1;stroke:black');
 	});
 }

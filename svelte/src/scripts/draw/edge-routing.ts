@@ -1,12 +1,15 @@
 import {edgesAreDrawn, getCommonAncestors, nodesAreDrawn} from '$helper/graphdata-helpers';
 import type {
 	DrawSettingsInterface,
+	EdgePort,
 	EdgePortMap,
 	EdgeRoutingOrigin,
 	EdgeRoutingPoint,
 	GraphDataEdge,
 	GraphDataNode,
 } from '$types';
+
+type portMap = {[id: string]: EdgePort};
 
 export function addEdgePorts(
 	edges: GraphDataEdge[],
@@ -18,33 +21,57 @@ export function addEdgePorts(
 	}
 
 	const minPortWidth = 40;
-	const portHeight = 3;
+	const portHeight = 0.5 * drawSettings.nodePadding;
 
-	const portMap: EdgePortMap = {};
+	const incomingMap: portMap = {};
+	const outgoingMap: portMap = {};
 
 	nodes.forEach(n => {
-		const port = {
-			// Remember we use center coordinates
+		// Remember we use center coordinates
+		const incoming = {
 			x: 0,
 			y: -0.5 * n.height - 0.5 * portHeight,
 			width: minPortWidth,
 			height: portHeight,
 			parent: n,
 		};
-		portMap[n.id] = port;
+		const outgoing = {
+			x: 0,
+			y: 0.5 * n.height + 0.5 * portHeight,
+			width: minPortWidth,
+			height: portHeight,
+			parent: n,
+		};
+		incomingMap[n.id] = incoming;
+		outgoingMap[n.id] = outgoing;
 	});
 
 	edges.forEach(edge => {
 		const {slice1, slice2} = getCommonAncestors(edge.source, edge.target);
-		[...slice1, ...slice2.reverse()].forEach(node => {
+		slice1.forEach(node => {
 			const point: EdgeRoutingPoint = {
 				x: 0,
 				y: -0.5 * portHeight,
-				origin: portMap[node.id]!,
+				origin: incomingMap[node.id]!,
 			};
 			edge.routing.push(point);
 		});
+		slice2.reverse().forEach(node => {
+			const point: EdgeRoutingPoint = {
+				x: 0,
+				y: 0.5 * portHeight,
+				origin: outgoingMap[node.id],
+			};
+		});
 	});
 
+	// Merge dictionaries for rendering:
+	const portMap: EdgePortMap = {}; // = Object.assign({}, ...nodes.map(({id}) => ({[id]: []})));
+	[...Object.entries(incomingMap), ...Object.entries(outgoingMap)].forEach(([key, value]) => {
+		portMap[key] ??= [];
+		portMap[key].push(value);
+	});
+
+	//return incomingMap;
 	return portMap;
 }

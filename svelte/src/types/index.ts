@@ -170,4 +170,4 @@ export interface EdgePort extends EdgeRoutingOrigin {
 	height: number;
 }
 
-export type EdgePortMap = {[id: string]: EdgePort};
+export type EdgePortMap = {[id: string]: EdgePort[]};
