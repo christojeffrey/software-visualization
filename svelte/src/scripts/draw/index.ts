@@ -12,7 +12,8 @@ import {
 } from './layouts';
 import {renderLinks} from './link-render';
 import {addDragAndDrop} from './drag-and-drop';
-import {renderNodes, renderNodeLabels, addLiftCollapseButtons} from './nodes-render';
+import {renderNodes, renderNodeLabels, addLiftCollapseButtons, renderPorts} from './nodes-render';
+import {addEdgePorts} from './edge-routing';
 
 export function draw(
 	svgElement: SVGElement,
@@ -79,15 +80,17 @@ export function draw(
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
 
+	const portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
+
 	// DRAG AND DROP
 
 	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
-	 * TODO actually use this somewhere
 	 */
 
 	function rerender(drawSettings: DrawSettingsInterface) {
 		renderNodes(rootNodes, canvasElement, drawSettings);
 		renderNodeLabels(canvasElement, drawSettings);
+		renderPorts(portMap, canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
 		addDragAndDrop(rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
 

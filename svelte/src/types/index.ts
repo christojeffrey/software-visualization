@@ -122,10 +122,17 @@ export interface GraphDataEdge {
  * Origin is neither the source of the edge nor the target; it is the parentnode of the layout responsible
  * for adding the RoutingPoint, to allow the use of relative coordinates.
  */
-interface EdgeRoutingPoint {
+export interface EdgeRoutingPoint {
 	x: number;
 	y: number;
-	origin?: GraphDataNode;
+	origin?: EdgeRoutingOrigin;
+}
+
+export interface EdgeRoutingOrigin {
+	x: number;
+	y: number;
+	parent?: GraphDataNode;
+	node?: GraphDataNode;
 }
 
 export interface GraphDataNode extends SimpleNode {
@@ -157,3 +164,10 @@ export interface GraphDataNode extends SimpleNode {
 	x?: number;
 	y?: number;
 }
+
+export interface EdgePort extends EdgeRoutingOrigin {
+	width: number;
+	height: number;
+}
+
+export type EdgePortMap = {[id: string]: EdgePort};

@@ -1,6 +1,7 @@
 import {distance, geometricMean, notNaN, toHTMLToken} from '$helper';
 import type {
 	DrawSettingsInterface,
+	EdgeRoutingOrigin,
 	GraphDataEdge,
 	GraphDataNode,
 	SimpleNodesDictionaryType,
@@ -18,7 +19,7 @@ export function renderLinks(
 	drawSettings: DrawSettingsInterface,
 ) {
 	/** Returns the absolute x and y coordinates of a GraphDataNode */
-	function getAbsCoordinates(node?: GraphDataNode): {x: number; y: number} {
+	function getAbsCoordinates(node?: EdgeRoutingOrigin | GraphDataNode): {x: number; y: number} {
 		if (node) {
 			const {x, y} = getAbsCoordinates(node.parent);
 			return {
