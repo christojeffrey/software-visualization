@@ -9,6 +9,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'main',
 						kind: 'class',
+						description: 'main class where the program starts',
 					},
 					labels: ['Structure'],
 				},
@@ -19,6 +20,8 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'a',
 						kind: 'class',
+						description: 'class a',
+						rs: 'Service Provider'
 					},
 					labels: ['Structure'],
 				},
@@ -29,6 +32,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'b',
 						kind: 'class',
+						description: 'class b',
 					},
 					labels: ['Structure'],
 				},
@@ -59,6 +63,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'appl',
 						kind: 'packages',
+						rs: 'Information Holder'
 					},
 					labels: ['Container'],
 				},
@@ -69,6 +74,8 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'db',
 						kind: 'packages',
+						description: 'the database package',
+						rs: 'Information Holder'
 					},
 					labels: ['Container'],
 				},
@@ -89,6 +96,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'lib',
 						kind: 'packages',
+						rs: 'Service Provider'
 					},
 					labels: ['Container'],
 				},

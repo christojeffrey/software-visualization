@@ -202,12 +202,27 @@ function cleanupTree(nodes: TreeNode[]) {
  * (which is unavoidable anyway)
  */
 
-export const straightTreeLayout: NodeLayout = function (drawSettings, childNodes, parentNode?) {
+export const straightTreeLayout: NodeLayout = function (
+	drawSettings,
+	childNodes,
+	parentNode?,
+	options?,
+) {
 	if (childNodes.length === 0) {
 		return;
 	}
 
 	const {nodes, rootNode} = discoverTree(childNodes);
+
+	// Make add nodes the same size (as intended for the algorithm)
+	if (!options?.uniformSize) {
+		const width = Math.max(...nodes.map(n => n.width), drawSettings.minimumNodeSize);
+		const height = Math.max(...nodes.map(n => n.height), drawSettings.minimumNodeSize);
+		nodes.forEach(n => {
+			n.width = width;
+			n.height = height;
+		});
+	}
 
 	// Make sure all nodes have their top left coordinate at the same spot, namely the center of the parentnode
 	nodes.forEach(n => {
@@ -273,14 +288,10 @@ export const straightTreeLayout: NodeLayout = function (drawSettings, childNodes
 	const finalLayout = layoutRec(rootNode);
 
 	if (parentNode) {
-		parentNode.width = finalLayout.width + 2 * drawSettings.nodePadding;
-		parentNode.height = finalLayout.height + 2 * drawSettings.nodePadding;
+		const {width, height} = centerize(nodes);
 
-		// Translate all nodes such that the top-left coordinate of the rootNode is in the top-left corner of the parentNode.
-		finalLayout.nodes.forEach(n => {
-			n.x! -= 0.5 * parentNode.width!;
-			n.y! -= 0.5 * parentNode.height!;
-		});
+		parentNode.width = width + 2 * drawSettings.nodePadding;
+		parentNode.height = height + 2 * drawSettings.nodePadding;
 	}
 
 	cleanupTree(nodes);

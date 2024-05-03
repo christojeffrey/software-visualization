@@ -40,6 +40,10 @@ export interface ConvertedNode extends SimpleNode {
 	level: number;
 	members?: ConvertedNode[];
 	parentId?: string;
+	description: string;
+	rs: string;
+	simpleName: string;
+	kind: string;
 }
 export interface ConvertedEdge {
 	id: string;
@@ -135,6 +139,10 @@ export interface GraphDataNode extends SimpleNode {
 	// initial data
 	id: string;
 	level: number;
+	description: string;
+	rs: string;
+	simpleName: string;
+	kind: string;
 
 	// bellow is initial data but already a Reference.
 	members: GraphDataNode[];
@@ -159,4 +167,11 @@ export interface GraphDataNode extends SimpleNode {
 	height?: number;
 	x?: number;
 	y?: number;
+}
+
+export interface infoBoxData {
+	simpleName: string;
+	kind: string;
+	description: string;
+	rs: string;
 }
