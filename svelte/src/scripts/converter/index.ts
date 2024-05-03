@@ -18,6 +18,10 @@ export function converter(rawData: RawInputType): ConvertedData {
 			id: data.id,
 			level: 0,
 			members: [],
+			description: data.properties.description? data.properties.description : '',
+			rs: data.properties.rs? data.properties.rs : '',
+			simpleName: data.properties.simpleName,
+			kind: data.properties.kind? data.properties.kind : '',
 		};
 	});
 
