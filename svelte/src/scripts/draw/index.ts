@@ -1,6 +1,12 @@
 import * as d3 from 'd3';
 import {notNaN} from '$helper';
-import type {DrawSettingsInterface, GraphData, GraphDataNode, LayoutOptions} from '$types';
+import type {
+	DrawSettingsInterface,
+	EdgePortMap,
+	GraphData,
+	GraphDataNode,
+	LayoutOptions,
+} from '$types';
 
 import {setupGradient} from './helper/gradient-setup';
 import {
@@ -80,7 +86,10 @@ export function draw(
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
 
-	const portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
+	let portMap: EdgePortMap;
+	if (drawSettings.showEdgePorts) {
+		portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
+	}
 
 	// DRAG AND DROP
 
@@ -90,7 +99,7 @@ export function draw(
 	function rerender(drawSettings: DrawSettingsInterface) {
 		renderNodes(rootNodes, canvasElement, drawSettings);
 		renderNodeLabels(canvasElement, drawSettings);
-		renderPorts(portMap, canvasElement, drawSettings);
+		portMap && renderPorts(portMap, canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
 		addDragAndDrop(rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
 

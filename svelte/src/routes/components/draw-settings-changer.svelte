@@ -68,6 +68,21 @@
 		</Toggle>
 	</div>
 
+	<!-- Show Edge Port -->
+	<div>
+		<Heading headingNumber={5}>Show Edge Port</Heading>
+		<Toggle
+			class="ml-4"
+			onToggle={() => {
+				drawSettings.showEdgePorts = !drawSettings.showEdgePorts;
+				doRelayout = true;
+			}}
+			state={drawSettings.showEdgePorts}
+		>
+			{drawSettings.showEdgePorts ? 'Hide' : 'Show'}
+		</Toggle>
+	</div>
+
 	<!-- seperator -->
 	<div class="h-8" />
 
