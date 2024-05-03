@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import {toHTMLToken} from '$helper';
 import type {DrawSettingsInterface, GraphDataNode} from '$types';
+import { NormalizeWeight } from './helper/normalize-weight';
 import { renderInfoBox } from './helper/info-box';
 
 /**
@@ -128,11 +129,11 @@ export function renderNodes(
 		.on('mouseover', function (event, data) {
 			d3.select(this).attr('fill-opacity', '0.2');
 			data.outgoingLinks.forEach(link => {
-				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', NormalizeWeight(link.weight) + 4);
 			});
 			data.incomingLinks.forEach(link => {
 				// hightlight
-				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', NormalizeWeight(link.weight) + 4);
 			});
 
 			// render info box
@@ -141,10 +142,10 @@ export function renderNodes(
 		.on('mouseout', function (event, data) {
 			d3.select(this).attr('fill-opacity', '0.1');
 			data.outgoingLinks.forEach(link => {
-				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '1');
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', NormalizeWeight(link.weight));
 			});
 			data.incomingLinks.forEach(link => {
-				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '1');
+				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', NormalizeWeight(link.weight));
 			});
 		})
 	

@@ -246,6 +246,17 @@ export const simpleData: RawInputType = {
 					},
 				},
 			},
+			{
+				data: {
+					id: 'fourteen',
+					source: 'subMain',
+					label: 'accesses',
+					target: 'db',
+					properties: {
+						weight: 200,
+					},
+				},
+			},
 		],
 	},
 };

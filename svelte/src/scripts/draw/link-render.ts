@@ -5,6 +5,7 @@ import type {
 	GraphDataNode,
 	SimpleNodesDictionaryType,
 } from '$types';
+import { NormalizeWeight } from './helper/normalize-weight';
 
 /**
  * Render and or update all given links
@@ -28,6 +29,15 @@ export function renderLinks(
 		} else {
 			return {x: 0, y: 0};
 		}
+	}
+
+	/** Returns true if atan2 is between (-3PI/4, -PI/4), (PI/4, 3PI/4) */
+	function isVertical(x1: number, x2: number, y1: number, y2: number) {
+		const radial = Math.atan2(y2 - y1, x2 - x1);
+		return (
+			(radial > (Math.PI * -3) / 4 && radial < Math.PI / -4) ||
+			(radial > Math.PI / 4 && radial < (3 * Math.PI) / 4)
+		);
 	}
 
 	function calculateIntersection(
@@ -72,6 +82,10 @@ export function renderLinks(
 		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
+		l.absoluteCoordinates = [sourceAbsoluteCoordinate, targetAbsoluteCoordinate];
+		l.isGradientVertical = isVertical(sourceAbsoluteCoordinate.x, targetAbsoluteCoordinate.x, sourceAbsoluteCoordinate.y, targetAbsoluteCoordinate.y);
+		l.gradientDirection = l.isGradientVertical ? sourceAbsoluteCoordinate.y < targetAbsoluteCoordinate.y : sourceAbsoluteCoordinate.x > targetAbsoluteCoordinate.x;
+
 		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
 			{
 				x: sourceAbsoluteCoordinate.x,
@@ -87,7 +101,6 @@ export function renderLinks(
 			},
 		);
 
-		l.gradientDirection = s.x > t.x;
 		l.labelCoordinates = [s, t];
 
 		/** List of all coordinates the path will need to go through */
@@ -103,7 +116,7 @@ export function renderLinks(
 			t,
 		];
 
-		let result = `M ${s.x} ${s.y} `;
+		let result = `M ${Math.abs(s.x - t.x) < 0.3 ? s.x + 0.5 : s.x} ${Math.abs(s.y - t.y) < 0.3 ? s.y + 0.5 : s.y} `;
 
 		let maxDistance = -Infinity;
 		for (let i = 0; i < coordinates.length - 2; i++) {
@@ -127,7 +140,6 @@ export function renderLinks(
 
 		return result;
 	}
-
 	// Enter
 	linkCanvas
 		.selectAll('path')
@@ -138,10 +150,10 @@ export function renderLinks(
 		.attr('d', annotateLine)
 		.attr(
 			'stroke',
-			l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`,
+			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
 		)
-		.attr('fill', 'transparent')
-		.on('mouseover', (e, d) => {});
+		.attr('stroke-width', l => NormalizeWeight(l.weight))
+		.attr('fill', 'transparent');
 
 	// Update
 	(
@@ -155,7 +167,7 @@ export function renderLinks(
 		.attr('d', annotateLine)
 		.attr(
 			'stroke',
-			l => `url(#${toHTMLToken(l.type)}Gradient${l.gradientDirection ? 'Reversed' : ''})`,
+			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
 		)
 		.attr('display', l => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
 

@@ -32,7 +32,7 @@ export function draw(
 	});
 
 	// Initialize links routing
-	graphData.links.forEach(link => {
+	graphData.renderedLinks.forEach(link => {
 		link.routing = [];
 	});
 
@@ -89,9 +89,9 @@ export function draw(
 		renderNodes(rootNodes, canvasElement, drawSettings);
 		renderNodeLabels(canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
-		addDragAndDrop(rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
+		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
 
-		renderLinks(graphData.links, graphData.nodesDict, linkCanvas, drawSettings);
+		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawSettings);
 	}
 	return rerender;
 }

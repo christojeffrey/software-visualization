@@ -87,6 +87,7 @@ export enum EdgeType {
 export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
+	renderedLinks: GraphDataEdge[]; 
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
 	nodesDict: {[id: string]: GraphDataNode};
@@ -114,7 +115,9 @@ export interface GraphDataEdge {
 	routing: EdgeRoutingPoint[];
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
-	gradientDirection?: boolean;
+	gradientDirection? : boolean;
+	isGradientVertical?: boolean;
+	absoluteCoordinates?: {x: number; y: number} [];
 	labelCoordinates?: {x: number; y: number}[];
 }
 

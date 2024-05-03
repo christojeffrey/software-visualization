@@ -1,6 +1,7 @@
 import type {ConfigInterface, GraphData, GraphDataEdge, GraphDataNode} from '../../types';
 
 import {doCollapseNodes} from './collapse-nodes';
+import { doCombineEdgesWeight } from './combine-edges';
 import {liftDependencies} from './lift-edges';
 
 export function filter(config: ConfigInterface, graphData: GraphData) {
@@ -14,11 +15,11 @@ export function filter(config: ConfigInterface, graphData: GraphData) {
 	liftDependencies(config);
 	// handle collapsed vertices
 	doCollapseNodes(config);
+
+	// filter duplicated links and combine it
+	doCombineEdgesWeight(graphData);
 }
 
-function doCombineEdgesWeight(config: ConfigInterface, graphData: GraphData) {
-	// TODO: impement this, and move it to another file
-}
 
 function resetNodeMemberToOriginal(nodes: GraphDataNode[]) {
 	nodes.forEach(node => {
@@ -34,6 +35,9 @@ function resetLinksSourceAndTargetToOriginal(edges: GraphDataEdge[]) {
 		}
 		if (edge.originalTarget) {
 			edge.target = edge.originalTarget;
+		}
+		if (edge.originalWeight) {
+			edge.weight = edge.originalWeight
 		}
 	});
 }
