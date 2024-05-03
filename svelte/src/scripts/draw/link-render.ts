@@ -1,4 +1,5 @@
 import {distance, geometricMean, notNaN, toHTMLToken} from '$helper';
+import {getAbsCoordinates} from '$helper/graphdata-helpers';
 import type {
 	DrawSettingsInterface,
 	EdgeRoutingOrigin,
@@ -18,19 +19,6 @@ export function renderLinks(
 	linkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	drawSettings: DrawSettingsInterface,
 ) {
-	/** Returns the absolute x and y coordinates of a GraphDataNode */
-	function getAbsCoordinates(node?: EdgeRoutingOrigin | GraphDataNode): {x: number; y: number} {
-		if (node) {
-			const {x, y} = getAbsCoordinates(node.parent);
-			return {
-				x: notNaN(node.x! + x),
-				y: notNaN(node.y! + y),
-			};
-		} else {
-			return {x: 0, y: 0};
-		}
-	}
-
 	function calculateIntersection(
 		source: {x: number; y: number; width: number; height: number},
 		target: {x: number; y: number; width: number; height: number},
@@ -93,7 +81,6 @@ export function renderLinks(
 
 		/** List of all coordinates the path will need to go through */
 		const coordinates = [
-			s,
 			...l.routing.map(point => {
 				const {x, y} = getAbsCoordinates(point.origin);
 				return {
@@ -106,25 +93,9 @@ export function renderLinks(
 
 		let result = `M ${s.x} ${s.y} `;
 
-		let maxDistance = -Infinity;
-		for (let i = 0; i < coordinates.length - 2; i++) {
-			const p1 = coordinates[i];
-			const p2 = coordinates[i + 1];
-			const p3 = coordinates[i + 2];
-
-			const sigma = 0.25;
-			const turnPoint1 = geometricMean(p1, p2, 1 - sigma);
-			const turnPoint2 = geometricMean(p2, p3, sigma);
-
-			const labelDistance = distance(p1, p2);
-			if (labelDistance > maxDistance) {
-				maxDistance = labelDistance;
-				l.labelCoordinates = [p1, p2];
-			}
-
-			result += `L ${turnPoint1.x} ${turnPoint1.y} Q ${p2.x} ${p2.y}, ${turnPoint2.x} ${turnPoint2.y} `;
-		}
-		result += `L ${t.x} ${t.y}`;
+		coordinates.forEach(({x, y}) => {
+			result += `L ${x} ${y} `;
+		});
 
 		return result;
 	}

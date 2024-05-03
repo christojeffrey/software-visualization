@@ -131,7 +131,7 @@ export function renderNodes(
 				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
 			});
 			data.incomingLinks.forEach(link => {
-				// hightlight
+				// highlight
 				d3.select(`#line-${toHTMLToken(link.id)}`).style('stroke-width', '4');
 			});
 		})
@@ -163,20 +163,17 @@ export function renderPorts(
 			Element,
 			unknown
 		>
-	).each(function ({id, level, members}) {
-		const data = portMap[id];
-		members.length > 0 &&
-			d3
-				.select(this)
-				.selectAll('rect.port')
-				.data(data)
-				.join('rect')
-				.attr('class', 'port')
-				.attr('x', ({x, width}) => x - 0.5 * width)
-				.attr('y', ({y, height}) => y - 0.5 * height)
-				.attr('width', ({width}) => width)
-				.attr('height', ({height}) => height)
-				.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
-				.attr('fill-opacity', '0.1');
+	).each(function ({id, level}) {
+		d3.select(this)
+			.selectAll('rect.port')
+			.data(portMap[id])
+			.join('rect')
+			.attr('class', 'port')
+			.attr('x', ({x, width}) => x - 0.5 * width)
+			.attr('y', ({y, height}) => y - 0.5 * height)
+			.attr('width', ({width}) => width)
+			.attr('height', ({height}) => height)
+			.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
+			.attr('fill-opacity', '0.3');
 	});
 }

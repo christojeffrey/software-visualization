@@ -76,6 +76,7 @@ export enum EdgeType {
 	hasScript = 'hasScript',
 	returnType = 'returnType',
 	instantiates = 'instantiates',
+	nests = 'nests',
 	// Temp fix, some of our input data does not have the edge type.
 	unknown = 'UNKNOWN',
 }
@@ -132,7 +133,6 @@ export interface EdgeRoutingOrigin {
 	x: number;
 	y: number;
 	parent?: GraphDataNode;
-	node?: GraphDataNode;
 }
 
 export interface GraphDataNode extends SimpleNode {

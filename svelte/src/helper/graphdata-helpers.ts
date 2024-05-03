@@ -1,5 +1,6 @@
-import type {GraphDataEdge, GraphDataNode} from '$types';
-// I've rewritten these functions so often now
+import {notNaN} from '$helper';
+import type {EdgeRoutingOrigin, GraphDataEdge, GraphDataNode} from '$types';
+// I've rewritten these functions so often now, let's just keep them here from now on.
 
 export function getAncestors(n: GraphDataNode): GraphDataNode[] {
 	if (n.parent) {
@@ -22,7 +23,32 @@ export function getCommonAncestors(node1: GraphDataNode, node2: GraphDataNode) {
 	return {prefix: chain1.slice(0, i), slice1: chain1.slice(i), slice2: chain2.slice(i)};
 }
 
-interface GraphDataNodeDrawn extends GraphDataNode {
+/**
+ * Helper type for function getAbsCoordinates
+ */
+interface thingWithCoordinatesAndParent {
+	x: number;
+	y: number;
+	parent?: thingWithCoordinatesAndParent;
+}
+
+/** Returns the absolute x and y coordinates of a GraphDataNode or an EdgeRoutingOrigin*/
+export function getAbsCoordinates(node?: thingWithCoordinatesAndParent): {
+	x: number;
+	y: number;
+} {
+	if (node) {
+		const {x, y} = getAbsCoordinates(node.parent);
+		return {
+			x: notNaN(node.x! + x),
+			y: notNaN(node.y! + y),
+		};
+	} else {
+		return {x: 0, y: 0};
+	}
+}
+
+export interface GraphDataNodeDrawn extends GraphDataNode {
 	members: GraphDataNodeDrawn[];
 	parent?: GraphDataNodeDrawn;
 
@@ -55,7 +81,7 @@ export function nodesAreDrawn(nodes: GraphDataNode[]): nodes is GraphDataNodeDra
 	return true;
 }
 
-interface GraphDataEdgeDrawn extends GraphDataEdge {
+export interface GraphDataEdgeDrawn extends GraphDataEdge {
 	source: GraphDataNodeDrawn;
 	target: GraphDataNodeDrawn;
 }
