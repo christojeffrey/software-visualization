@@ -1,12 +1,18 @@
 import {notNaN} from '$helper';
-import type {EdgeRoutingOrigin, GraphDataEdge, GraphDataNode} from '$types';
+import type {
+	EdgeRoutingOrigin,
+	GraphDataEdge,
+	GraphDataEdgeDrawn,
+	GraphDataNode,
+	GraphDataNodeDrawn,
+} from '$types';
 // I've rewritten these functions so often now, let's just keep them here from now on.
 
 export function getAncestors(n: GraphDataNode): GraphDataNode[] {
 	if (n.parent) {
-		return [...getAncestors(n.parent), n.parent];
+		return [...getAncestors(n.parent), n];
 	}
-	return [];
+	return [n];
 }
 
 export function getCommonAncestors(node1: GraphDataNode, node2: GraphDataNode) {
@@ -48,16 +54,6 @@ export function getAbsCoordinates(node?: thingWithCoordinatesAndParent): {
 	}
 }
 
-export interface GraphDataNodeDrawn extends GraphDataNode {
-	members: GraphDataNodeDrawn[];
-	parent?: GraphDataNodeDrawn;
-
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
-
 export function nodesAreDrawn(nodes: GraphDataNode[]): nodes is GraphDataNodeDrawn[] {
 	for (const n of nodes) {
 		if (
@@ -79,11 +75,6 @@ export function nodesAreDrawn(nodes: GraphDataNode[]): nodes is GraphDataNodeDra
 		}
 	}
 	return true;
-}
-
-export interface GraphDataEdgeDrawn extends GraphDataEdge {
-	source: GraphDataNodeDrawn;
-	target: GraphDataNodeDrawn;
 }
 
 /** Only use when you are certain the edges are drawn (after nodes are drawn) */

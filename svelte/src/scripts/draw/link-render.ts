@@ -5,6 +5,7 @@ import type {
 	EdgeRoutingOrigin,
 	GraphDataEdge,
 	GraphDataNode,
+	GraphDataNodeDrawn,
 	SimpleNodesDictionaryType,
 } from '$types';
 
@@ -56,31 +57,34 @@ export function renderLinks(
 	}
 	/** Returns path coordinates, and annotates the line-data with extra info */
 	function annotateLine(l: GraphDataEdge) {
-		const source = typeof l.source === 'string' ? nodesDictionary[l.source] : l.source;
-		const target = typeof l.target === 'string' ? nodesDictionary[l.target] : l.target;
-		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
-		const targetAbsoluteCoordinate = getAbsCoordinates(target);
+		const source = (
+			typeof l.source === 'string' ? nodesDictionary[l.source] : l.source
+		) as GraphDataNodeDrawn;
+		const target = (
+			typeof l.target === 'string' ? nodesDictionary[l.target] : l.target
+		) as GraphDataNodeDrawn;
+		// const sourceAbsoluteCoordinate = getAbsCoordinates(source);
+		// const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
-		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
-			{
-				x: sourceAbsoluteCoordinate.x,
-				y: sourceAbsoluteCoordinate.y,
-				width: source.width!,
-				height: source.height!,
-			},
-			{
-				x: targetAbsoluteCoordinate.x,
-				y: targetAbsoluteCoordinate.y,
-				width: target.width!,
-				height: target.height!,
-			},
-		);
+		// const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
+		// 	{
+		// 		x: sourceAbsoluteCoordinate.x,
+		// 		y: sourceAbsoluteCoordinate.y,
+		// 		width: source.width!,
+		// 		height: source.height!,
+		// 	},
+		// 	{
+		// 		x: targetAbsoluteCoordinate.x,
+		// 		y: targetAbsoluteCoordinate.y,
+		// 		width: target.width!,
+		// 		height: target.height!,
+		// 	},
+		// );
 
-		l.gradientDirection = s.x > t.x;
-		l.labelCoordinates = [s, t];
+		l.gradientDirection = source.x! > target.x!;
 
 		/** List of all coordinates the path will need to go through */
-		const coordinates = [
+		let coordinates = [
 			...l.routing.map(point => {
 				const {x, y} = getAbsCoordinates(point.origin);
 				return {
@@ -88,10 +92,16 @@ export function renderLinks(
 					y: y + point.y,
 				};
 			}),
-			t,
 		];
 
-		let result = `M ${s.x} ${s.y} `;
+		if (coordinates.length < 2) {
+			coordinates = [source, target];
+		}
+
+		l.labelCoordinates = [coordinates[0], coordinates[1]];
+
+		//let result = `M ${s.x} ${s.y} `;
+		let result = `M ${coordinates[0].x} ${coordinates[0].y}`;
 
 		coordinates.forEach(({x, y}) => {
 			result += `L ${x} ${y} `;

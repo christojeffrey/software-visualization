@@ -62,6 +62,11 @@ export function notNaN(n?: number): number {
 	return n!;
 }
 
+/** Returns 0 if not a valid number (e.g. finite and not NaN), and the given number otherwise*/
+export function safeNumber(n?: number, defaultValue: number = 0): number {
+	return n && Number.isFinite(n) ? n : notNaN(defaultValue);
+}
+
 /**
  * Clamps num to a range [min, max] (inclusive bounds).
  * Returns an error if the bounds are invalid

@@ -132,7 +132,7 @@ export interface EdgeRoutingPoint {
 export interface EdgeRoutingOrigin {
 	x: number;
 	y: number;
-	parent?: GraphDataNode;
+	parent?: GraphDataNodeDrawn;
 }
 
 export interface GraphDataNode extends SimpleNode {
@@ -171,3 +171,18 @@ export interface EdgePort extends EdgeRoutingOrigin {
 }
 
 export type EdgePortMap = {[id: string]: EdgePort[]};
+
+export interface GraphDataNodeDrawn extends GraphDataNode {
+	members: GraphDataNodeDrawn[];
+	parent?: GraphDataNodeDrawn;
+
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+export interface GraphDataEdgeDrawn extends GraphDataEdge {
+	source: GraphDataNodeDrawn;
+	target: GraphDataNodeDrawn;
+}
