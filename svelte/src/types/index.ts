@@ -16,6 +16,7 @@ export interface DrawSettingsInterface {
 	nodePadding: number;
 	textSize: number;
 	shownEdgesType: Map<EdgeType, boolean>;
+	filteredNodes: string[];
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
