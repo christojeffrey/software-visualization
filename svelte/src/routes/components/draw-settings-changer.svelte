@@ -11,6 +11,7 @@
 	// layout options
 	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
 
+	let filterTextAreaValue: string;
 	function parseFilterNode(texts: string) {
 		return texts.split(',').map(text => text.trim());
 	}
@@ -46,15 +47,20 @@
 	<div>
 		<Heading headingNumber={5}>Filter Node</Heading>
 		<div class="my-2 px-2">
-			<textarea
-				class="border-gray-300 border-2 w-full"
-				rows="3"
-				placeholder="Type the node id separated by comma e.g. appl, db"
-				on:input={e => {
-					drawSettings.filteredNodes = parseFilterNode(e.currentTarget.value)
-					doRelayout = true
+			<form
+				on:submit={_ => {
+					drawSettings.filteredNodes = parseFilterNode(filterTextAreaValue);
+					doRelayout = true;
 				}}
-			/>
+			>
+				<textarea
+					class="border-gray-300 border-2 w-full mb-2"
+					rows="3"
+					placeholder="Type the node id separated by comma e.g. appl, db"
+					bind:value={filterTextAreaValue}
+				/>
+				<Button type="submit">Filter</Button>
+			</form>
 		</div>
 	</div>
 
