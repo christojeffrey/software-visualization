@@ -37,6 +37,7 @@
 		nodePadding: 5,
 		textSize: 10,
 		shownEdgesType: new Map<EdgeType, boolean>(),
+		filteredNodes: [],
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
@@ -55,7 +56,7 @@
 	let doRelayout = true;
 
 	let isMounted = false;
-
+	
 	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
 		debuggingConsole('clicked');
 		// push if not exist
