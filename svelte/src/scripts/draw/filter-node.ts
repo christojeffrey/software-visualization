@@ -6,11 +6,11 @@ export default function filterNodeAndPopulateFilteredID(
 	filteredNodeNames: string[],
 ): GraphDataNode[] {
 	if (nodes.length < 1) return [];
-	filteredNodeNames;
 	const filteredNodes = nodes.filter(node => {
 		if (filteredNodeNames.includes(node.id)) {
 			node.members.forEach(member => {
 				filteredNodeNames.push(member.id);
+				populateFilterId(member.members, filteredNodeNames);
 			});
 			return false;
 		}
@@ -18,6 +18,7 @@ export default function filterNodeAndPopulateFilteredID(
 	});
 
 	for (let i = 0; i < filteredNodes.length; i++) {
+		filteredNodes[i].members = filteredNodes[i].originalMembers;
 		const filteredMembers = filterNodeAndPopulateFilteredID(
 			filteredNodes[i].members,
 			filteredNodeNames,
@@ -25,4 +26,11 @@ export default function filterNodeAndPopulateFilteredID(
 		filteredNodes[i].members = filteredMembers;
 	}
 	return filteredNodes;
+}
+
+function populateFilterId(nodes: GraphDataNode[], filteredNodeNames: string[]): void {
+	nodes.forEach(node => {
+		filteredNodeNames.push(node.id);
+        populateFilterId(node.members, filteredNodeNames);
+	});
 }

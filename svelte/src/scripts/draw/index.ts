@@ -35,15 +35,15 @@ export function draw(
 		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
 
+	// Remove any link pointing to filtered nodes
+	graphData.renderedLinks = graphData.links.filter(
+		link => !drawSettings.filteredNodes.includes((link.source as GraphDataNode).id) && !drawSettings.filteredNodes.includes((link.target as GraphDataNode).id),
+	);
+
 	// Initialize links routing
 	graphData.renderedLinks.forEach(link => {
 		link.routing = [];
 	});
-
-	// Remove any link pointing to filtered nodes
-	graphData.renderedLinks = graphData.renderedLinks.filter(
-		link => !drawSettings.filteredNodes.includes((link.source as GraphDataNode).id) && !drawSettings.filteredNodes.includes((link.target as GraphDataNode).id),
-	);
 
 	const layoutOptionToFunction: {[layout in LayoutOptions]: NodeLayout} = {
 		circular: circularLayout,
