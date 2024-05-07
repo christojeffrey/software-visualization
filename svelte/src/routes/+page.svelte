@@ -33,7 +33,7 @@
 		minimumNodeSize: 50,
 		buttonRadius: 5,
 		nodeCornerRadius: 5,
-		nodePadding: 5,
+		nodePadding: 50,
 		textSize: 10,
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,

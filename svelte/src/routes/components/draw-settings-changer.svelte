@@ -168,6 +168,8 @@
 					onClick={() => {
 						drawSettings.nodeColors.splice(index, 1);
 						doRedraw = true;
+						// Trigger rerender
+						drawSettings.nodeColors = drawSettings.nodeColors;
 					}}
 				>
 					Remove this level
@@ -179,6 +181,8 @@
 			onClick={() => {
 				drawSettings.nodeColors.push('#000000');
 				doRedraw = true;
+				// Trigger rerender
+				drawSettings.nodeColors = drawSettings.nodeColors;
 			}}
 		>
 			Add new level
