@@ -53,6 +53,22 @@ export function renderLinks(
 		}
 		const intersectionTarget = {x: target.x + x, y: target.y + y};
 
+		// TODO above code is bugged and may return -infinity on dataset jhotdraw-trc-sum
+		// Will need to figure out why later
+		// We'll just set it to 0 for now
+		if (!Number.isFinite(intersectionTarget.x)) {
+			intersectionTarget.x = 0;
+		}
+		if (!Number.isFinite(intersectionTarget.y)) {
+			intersectionTarget.y = 0;
+		}
+		if (!Number.isFinite(intersectionSource.x)) {
+			intersectionSource.x = 0;
+		}
+		if (!Number.isFinite(intersectionSource.y)) {
+			intersectionSource.y = 0;
+		}
+
 		return {intersectionSource, intersectionTarget};
 	}
 
@@ -112,7 +128,7 @@ export function renderLinks(
 		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
-		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
+		let {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
 			{
 				x: sourceAbsoluteCoordinate.x,
 				y: sourceAbsoluteCoordinate.y,
