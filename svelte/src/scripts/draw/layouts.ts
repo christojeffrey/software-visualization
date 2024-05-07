@@ -14,7 +14,7 @@ export type NodeLayout = (
 ) => void;
 
 const filterEdges = (l: GraphDataEdge) => {
-	return l.type === EdgeType.calls;
+	return l.type === EdgeType.constructs || l.type === EdgeType.holds;
 };
 
 /**
@@ -563,8 +563,14 @@ export const layerTreeLayout: NodeLayout = function (
 		});
 	}
 
+	if (parentNode?.id === 'com.fsck.k9.K9$Intents') {
+		console.log({coords: layerNodes.map(l => l.map(n => ({x: n.x, y: n.y})))});
+	}
 	if (parentNode) {
 		const {width, height} = centerize(nodes, [...allEdges]);
+		if (parentNode?.id === 'com.fsck.k9.K9$Intents') {
+			console.log({coords: layerNodes.map(l => l.map(n => ({x: n.x, y: n.y})))});
+		}
 
 		parentNode.width = width + 2 * drawSettings.nodePadding;
 		parentNode.height = height + 2 * drawSettings.nodePadding;

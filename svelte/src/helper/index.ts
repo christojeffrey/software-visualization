@@ -49,7 +49,22 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
  * Intended to use for node-id's
  */
 export function toHTMLToken(string: string) {
-	return string.replace(/[^A-Za-z0-9]/g, '--');
+	//return string.replace(/[^A-Za-z0-9]/g, '--');
+	let result = '';
+	for (let i = 0; i < string.length; i++) {
+		const code = string.charCodeAt(i);
+		if (
+			!(code > 47 && code < 58) && // numeric (0-9)
+			!(code == 45) && // -
+			!(code > 64 && code < 91) && // upper alpha (A-Z)
+			!(code > 96 && code < 123) // lower alpha (a-z)
+		) {
+			result += `_${code}_`;
+		} else {
+			result += string.charAt(i);
+		}
+	}
+	return result;
 }
 
 /**

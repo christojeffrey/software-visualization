@@ -1,6 +1,7 @@
 import {type ConvertedData, type ConvertedEdge, type ConvertedNode, EdgeType} from '../../types';
 import type {RawNodeType, RawInputType} from '../../types/raw-data';
 import {simpleData} from '../../example-raw-data/simple-data';
+import {v4 as uuidv4} from 'uuid';
 
 export function converter(rawData: RawInputType): ConvertedData {
 	// give default data when no data is given
@@ -29,7 +30,7 @@ export function converter(rawData: RawInputType): ConvertedData {
 			throw new Error(`Unknown edge type ${label}`);
 		}
 		return {
-			id: data.id,
+			id: data.id ?? uuidv4(),
 			source: data.source,
 			target: data.target,
 			type: label,

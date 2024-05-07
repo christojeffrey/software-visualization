@@ -36,7 +36,3 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
 		});
 	}
 }
-
-export function toHTMLToken(string: string) {
-	return string.replace(/[^A-Za-z0-9]/g, '--');
-}

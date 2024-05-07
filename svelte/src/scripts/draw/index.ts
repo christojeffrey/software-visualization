@@ -91,8 +91,6 @@ export function draw(
 		portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
 	}
 
-	// DRAG AND DROP
-
 	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
 	 */
 
