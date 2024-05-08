@@ -123,6 +123,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 	const graphData: GraphData = {
 		nodes: graphDataNodes,
 		links: graphDataLinks,
+		renderedNodes: graphDataNodes, // renderedNodes can be derived from nodes
 		renderedLinks: graphDataLinks, // renderedLinks can be derived from links
 		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
 		nodesDict, // nodesDict can be derived from nodes

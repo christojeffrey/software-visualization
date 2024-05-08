@@ -28,6 +28,7 @@
 		collapsedNodes: [],
 		dependencyLifting: [],
 		dependencyTolerance: 0,
+		filteredNodes: new Set<string>(),
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
@@ -37,7 +38,6 @@
 		nodePadding: 5,
 		textSize: 10,
 		shownEdgesType: new Map<EdgeType, boolean>(),
-		filteredNodes: [],
 		showEdgeLabels: false,
 		showNodeLabels: true,
 		nodeDefaultColor: '#6a6ade',
@@ -148,7 +148,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger bind:config />
+		<ConfigChanger bind:config bind:doRefilter />
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>

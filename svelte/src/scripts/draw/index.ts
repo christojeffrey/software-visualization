@@ -13,7 +13,6 @@ import {
 import {renderLinks} from './link-render';
 import {addDragAndDrop} from './drag-and-drop';
 import {renderNodes, renderNodeLabels, addLiftCollapseButtons} from './nodes-render';
-import filterNodeAndPopulateFilteredID from './filter-node';
 
 export function draw(
 	svgElement: SVGElement,
@@ -21,28 +20,15 @@ export function draw(
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void,
-) {
-	// Filter the nodes
-	const filteredNodes = filterNodeAndPopulateFilteredID(graphData.nodes, drawSettings.filteredNodes);
-	
+) {	
 	// CALCULATE LAYOUT
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
-	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(filteredNodes);
+	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(graphData.renderedNodes);
 
 	// Initialize width and height of simple nodes
 	simpleNodes.forEach(n => {
 		n.width = notNaN(drawSettings.minimumNodeSize);
 		n.height = notNaN(drawSettings.minimumNodeSize);
-	});
-
-	// Remove any link pointing to filtered nodes
-	graphData.renderedLinks = graphData.links.filter(
-		link => !drawSettings.filteredNodes.includes((link.source as GraphDataNode).id) && !drawSettings.filteredNodes.includes((link.target as GraphDataNode).id),
-	);
-
-	// Initialize links routing
-	graphData.renderedLinks.forEach(link => {
-		link.routing = [];
 	});
 
 	const layoutOptionToFunction: {[layout in LayoutOptions]: NodeLayout} = {

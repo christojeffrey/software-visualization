@@ -1,8 +1,20 @@
 <script lang="ts">
 	import Heading from '$ui/heading.svelte';
 	import type {ConfigInterface} from '$types';
+	import Button from '$ui/button.svelte';
 	let dependencyLiftTolarance: string;
 	export let config: ConfigInterface;
+	export let doRefilter: boolean;
+
+	let filterTextAreaValue: string;
+	function parseFilterNode(texts: string): Set<string> {
+		if (texts === "" || texts === undefined) return new Set<string>();
+		const set = new Set<string>();
+		texts.split(',').forEach(text => {
+			set.add(text.trim())
+		})
+		return set;
+	}
 </script>
 
 <div>
@@ -20,5 +32,26 @@
 				config.dependencyTolerance = num || 0;
 			}}
 		/>
+	</div>
+
+	<!-- Filter Node -->
+	<div>
+		<Heading headingNumber={5}>Filter Node</Heading>
+		<div class="my-2 px-2">
+			<form
+				on:submit={_ => {
+					config.filteredNodes = parseFilterNode(filterTextAreaValue);
+					doRefilter = true;
+				}}
+			>
+				<textarea
+					class="border-gray-300 border-2 w-full mb-2"
+					rows="3"
+					placeholder="Type the node id separated by comma e.g. appl, db"
+					bind:value={filterTextAreaValue}
+				/>
+				<Button type="submit">Filter</Button>
+			</form>
+		</div>
 	</div>
 </div>

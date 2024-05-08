@@ -7,6 +7,7 @@ export interface ConfigInterface {
 	}[];
 	dependencyTolerance: number;
 	collapsedNodes: GraphDataNode[];
+	filteredNodes: Set<string>;
 }
 
 export interface DrawSettingsInterface {
@@ -16,7 +17,6 @@ export interface DrawSettingsInterface {
 	nodePadding: number;
 	textSize: number;
 	shownEdgesType: Map<EdgeType, boolean>;
-	filteredNodes: string[];
 	showNodeLabels: boolean;
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
@@ -88,6 +88,7 @@ export enum EdgeType {
 export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
+	renderedNodes: GraphDataNode[]; 
 	renderedLinks: GraphDataEdge[]; 
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
