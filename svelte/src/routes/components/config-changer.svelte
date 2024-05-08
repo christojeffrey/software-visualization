@@ -5,6 +5,7 @@
 	let dependencyLiftTolarance: string;
 	export let config: ConfigInterface;
 	export let doRefilter: boolean;
+	export let doReconvert: boolean;
 
 	let filterTextAreaValue: string;
 	function parseFilterNode(texts: string): Set<string> {
@@ -41,7 +42,8 @@
 			<form
 				on:submit={_ => {
 					config.filteredNodes = parseFilterNode(filterTextAreaValue);
-					doRefilter = true;
+					if (config.filteredNodes.size === 0 ) doReconvert = true;
+					else doRefilter = true;
 				}}
 			>
 				<textarea

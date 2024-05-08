@@ -21,6 +21,7 @@ export interface DrawSettingsInterface {
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
 	nodeColors: string[];
+	renderedLinksId: Set<string>;
 	/** Remembers the last transformation in-between redraws. */
 	transformation?: {k: number; x: number; y: number};
 	/** layout types */

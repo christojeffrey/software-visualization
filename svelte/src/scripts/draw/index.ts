@@ -31,6 +31,12 @@ export function draw(
 		n.height = notNaN(drawSettings.minimumNodeSize);
 	});
 
+	// Populate renderedLinksId
+	drawSettings.renderedLinksId.clear();
+	graphData.renderedLinks.forEach(link => {
+		drawSettings.renderedLinksId.add(link.id);
+	});
+
 	const layoutOptionToFunction: {[layout in LayoutOptions]: NodeLayout} = {
 		circular: circularLayout,
 		straightTree: straightTreeLayout,
