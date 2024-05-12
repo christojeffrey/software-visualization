@@ -29,6 +29,11 @@ export interface DrawSettingsInterface {
 	rootLayout: LayoutOptions;
 }
 
+export interface RawDataConfigType {
+	filterPrimitives: boolean;
+	filterAllEncompassingNodes: boolean;
+}
+
 export type LayoutOptions = 'layerTree' | 'circular' | 'straightTree';
 
 export interface SimpleNode {

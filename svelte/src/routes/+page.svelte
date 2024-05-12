@@ -10,6 +10,7 @@
 		GraphDataNode,
 		GraphData,
 		RawInputType,
+		RawDataConfigType,
 	} from '$types';
 
 	// scripts
@@ -23,6 +24,10 @@
 	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
 	let convertedData: ConvertedData;
+	let rawDataConfig: RawDataConfigType = {
+		filterPrimitives: true,
+		filterAllEncompassingNodes: true,
+	};
 	let config: ConfigInterface = {
 		collapsedNodes: [],
 		dependencyLifting: [],
@@ -90,7 +95,7 @@
 			// handle config changes
 			if (doReconvert) {
 				// will setup graphData. Will also setup shownEdgesType
-				convertedData = converter(rawData);
+				convertedData = converter(rawData, rawDataConfig);
 				graphData = createGraphData(convertedData);
 
 				// Initialize shownEdgesType
@@ -142,7 +147,7 @@
 
 	<!-- sidepanel -->
 	<div class="flex flex-col m-6">
-		<RawDataInputer bind:rawData bind:doReconvert />
+		<RawDataInputer bind:rawData bind:doReconvert bind:rawDataConfig />
 		<div class="bg-neutral-300 h-[1px]" />
 		<ConfigChanger bind:config />
 		<div class="bg-neutral-300 h-[1px]" />

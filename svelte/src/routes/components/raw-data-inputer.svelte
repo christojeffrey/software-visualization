@@ -2,9 +2,11 @@
 	import Toggle from '$ui/toggle.svelte';
 	import Heading from '$ui/heading.svelte';
 	import type {RawInputType} from '$types/raw-data';
+	import type {RawDataConfigType} from '$types';
 
 	export let rawData: RawInputType | undefined;
 	export let doReconvert: boolean;
+	export let rawDataConfig: RawDataConfigType;
 
 	let files: any;
 	let useExampleData = true;
@@ -51,5 +53,15 @@
 		bind:disabled={disableButton}
 	>
 		Use example data
+	</Toggle>
+	<Toggle
+		class="mt-2"
+		bind:state={rawDataConfig.filterPrimitives}
+		onToggle={() => {
+			rawDataConfig.filterPrimitives = !rawDataConfig.filterPrimitives;
+			doReconvert = true;
+		}}
+	>
+		Omit primitive types
 	</Toggle>
 </div>
