@@ -41,7 +41,18 @@
 <div class="">
 	<Heading>Input raw data</Heading>
 	<label for="uploader">Upload a json file:</label>
-	<input accept="application/json" bind:files id="uploader" name="uploader" type="file" />
+	<input
+		accept="application/json"
+		bind:files
+		id="uploader"
+		name="uploader"
+		type="file"
+		on:change={() => {
+			if (files.length > 0) {
+				useExampleData = false;
+			}
+		}}
+	/>
 	<Toggle
 		class="mt-2"
 		bind:state={useExampleData}
