@@ -28,6 +28,8 @@
 		filterPrimitives: true,
 		filterAllEncompassingNodes: true,
 	};
+	let flattenNodes: GraphDataNode[] = [];
+
 	let config: ConfigInterface = {
 		collapsedNodes: [],
 		dependencyLifting: [],
@@ -54,7 +56,6 @@
 	let svgElement: SVGElement | undefined = undefined;
 
 	let doReconvert = true;
-	let doRecreateWholeGraphData = true;
 	let doRefilter = true;
 	let doRedraw = true;
 	let doRelayout = true;
@@ -97,6 +98,7 @@
 				// will setup graphData. Will also setup shownEdgesType
 				convertedData = converter(rawData, rawDataConfig);
 				graphData = createGraphData(convertedData);
+				flattenNodes = graphData.flattenNodes;
 
 				// Initialize shownEdgesType
 				extractAvailableEdgeType(graphData.links).forEach((e, index) =>
@@ -149,7 +151,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert bind:rawDataConfig />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger bind:config />
+		<ConfigChanger bind:config bind:doRefilter bind:flattenNodes />
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>

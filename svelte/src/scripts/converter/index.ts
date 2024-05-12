@@ -108,7 +108,6 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 		}
 		calculateNestingLevels(nodes);
 	}
-	console.log({nodes, links});
 
 	return {
 		nodes,
