@@ -84,13 +84,13 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 	// delete links which type is 'contains'
 	links = links.filter(link => link.type !== EdgeType.contains);
 	const nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
-	calulateNestingLevels(nodes);
+	calculateNestingLevels(nodes);
 
-	function calulateNestingLevels(node: ConvertedNode[], level: number = 0) {
+	function calculateNestingLevels(node: ConvertedNode[], level: number = 0) {
 		node.forEach(n => {
 			n.level = level;
 			if (n.members) {
-				calulateNestingLevels(n.members, level + 1);
+				calculateNestingLevels(n.members, level + 1);
 			}
 		});
 	}
