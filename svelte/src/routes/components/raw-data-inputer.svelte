@@ -64,4 +64,14 @@
 	>
 		Omit primitive types
 	</Toggle>
+	<Toggle
+		class="mt-2"
+		bind:state={rawDataConfig.filterAllEncompassingNodes}
+		onToggle={() => {
+			rawDataConfig.filterAllEncompassingNodes = !rawDataConfig.filterAllEncompassingNodes;
+			doReconvert = true;
+		}}
+	>
+		Omit all-encompassing classes
+	</Toggle>
 </div>

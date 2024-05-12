@@ -64,7 +64,7 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 				throw new Error(`Unknown edge type ${label}`);
 			}
 			return {
-				id: data.id ?? uuidv4(),
+				id: data.id ?? uuidv4(), // Links need an id to use for d3-selectors, so just use a uuid if there is none
 				source: data.source,
 				target: data.target,
 				type: label,
@@ -78,12 +78,16 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 		if (link.type === EdgeType.contains) {
 			// put child node inside parent node
 			nodesAsObject[link.source].members?.push(nodesAsObject[link.target]);
+			// All nodelevels where initialized at 0. However, if this is a childnode, we don't know the level yet.
+			// We'll recalculate the level in calculateNestingLevels;
 			nodesAsObject[link.target].level = NaN;
 		}
 	});
 	// delete links which type is 'contains'
 	links = links.filter(link => link.type !== EdgeType.contains);
-	const nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
+
+	// Nodes at level 0 already are properly initialized, but we still need to calculate the level for the rest
+	let nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
 	calculateNestingLevels(nodes);
 
 	function calculateNestingLevels(node: ConvertedNode[], level: number = 0) {
@@ -94,6 +98,18 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 			}
 		});
 	}
+
+	// Finally, filter all encompassing nodes (Nodes which are an ancestor to all other nodes) recursively
+	if (config.filterAllEncompassingNodes) {
+		while (nodes.length === 1) {
+			const theNode = nodes[0];
+			nodes = theNode.members ?? [];
+			links = links.filter(l => l.source !== theNode.id && l.target !== theNode.id);
+		}
+		calculateNestingLevels(nodes);
+	}
+	console.log({nodes, links});
+
 	return {
 		nodes,
 		links,
