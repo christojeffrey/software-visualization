@@ -34,6 +34,7 @@
 		collapsedNodes: [],
 		dependencyLifting: [],
 		dependencyTolerance: 0,
+		hideHierarchicalEdges: undefined,
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {

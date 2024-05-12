@@ -1,12 +1,48 @@
-import type {ConfigInterface, GraphDataNode} from '$types';
+import type {ConfigInterface, GraphData, GraphDataNode} from '$types';
 
-export function liftDependencies(config: ConfigInterface) {
-	config.dependencyLifting.forEach(nodeConfig => {
-		const {node: redirectLocationNode, sensitivity} = nodeConfig;
+function commonPrefix(a: GraphDataNode[], b: GraphDataNode[]) {
+	let i = 0;
+	while (i < a.length && i < b.length && a[i] === b[i]) {
+		i++;
+	}
+	return i;
+}
 
-		redirectLocationNode.members?.forEach(member => {
-			redirectAllEdgeToDestinationNode(redirectLocationNode, member, sensitivity);
-		});
+function getAncestors(node: GraphDataNode): GraphDataNode[] {
+	// return list of ancestors, including node itself. starting from the 'oldest' ancestor
+	if (node?.parent) return [...getAncestors(node.parent), node];
+	else return [node];
+}
+
+export function liftDependencies(config: ConfigInterface, graphData: GraphData) {
+	graphData.links.forEach(link => {
+		// return to original link first before calculation
+		const linkSource = typeof link.source == 'string' ? link.source : link.source.id;
+		const linkTarget = typeof link.target == 'string' ? link.target : link.target.id;
+
+		// Get array of ids of ancestors of source and target vertices
+		const sourceAncestors = getAncestors(graphData.nodesDict[linkSource]);
+		const targetAncestors = getAncestors(graphData.nodesDict[linkTarget]);
+
+		// Calculate how many ancestors source and target have in common
+		const prefix = commonPrefix(sourceAncestors, targetAncestors);
+
+		// Calculate how deep the link should go (how many levels should remain unlifted)
+		// Infinity denotes lifting dependencies is not done.
+		const liftDistance = [...sourceAncestors, ...targetAncestors].reduce<number>(
+			(accumulator, node) => {
+				const constraint = config.dependencyLifting.find(c => {
+					return c.node === node;
+				});
+				return Math.min(accumulator, constraint?.sensitivity ?? Infinity);
+			},
+			Infinity as number,
+		);
+		const newSource = sourceAncestors[prefix + liftDistance] ?? link.source;
+		const newTarget = targetAncestors[prefix + liftDistance] ?? link.target;
+
+		link.source = newSource;
+		link.target = newTarget;
 	});
 }
 

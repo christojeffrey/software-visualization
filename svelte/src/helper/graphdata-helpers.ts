@@ -97,3 +97,10 @@ export function edgesAreDrawn(
 	});
 	return true;
 }
+
+export function getNode(
+	node: GraphDataNode | string,
+	dict: {[id: string]: GraphDataNode},
+): GraphDataNode {
+	return typeof node === 'string' ? dict[node] : node;
+}

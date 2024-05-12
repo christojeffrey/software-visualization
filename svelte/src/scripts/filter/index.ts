@@ -1,17 +1,24 @@
+import {getCommonAncestors, getNode} from '$helper/graphdata-helpers';
 import type {ConfigInterface, GraphData, GraphDataEdge, GraphDataNode} from '../../types';
 
 import {doCollapseNodes} from './collapse-nodes';
 import {liftDependencies} from './lift-edges';
 
 export function filter(config: ConfigInterface, graphData: GraphData) {
-	// reset all
-	// TODO: add the reasoning for this inside the doc.
 	resetNodeMemberToOriginal(graphData.flattenNodes);
 	resetLinksSourceAndTargetToOriginal(graphData.links);
 	// order doesn't matter here. TODO: add reasoning inside doc - because we do it cleanly, the attribute is totally changed.
 
 	// handle dependency lifting
-	liftDependencies(config);
+	liftDependencies(config, graphData);
+
+	// alternatively, just hide edges crossing levels
+	if (config.hideHierarchicalEdges !== undefined) {
+		filterHierarchicalEdges(graphData, config.hideHierarchicalEdges);
+	} else {
+		graphData.links.forEach(l => (l.hidden = undefined));
+	}
+
 	// handle collapsed vertices
 	doCollapseNodes(config);
 }
@@ -34,6 +41,21 @@ function resetLinksSourceAndTargetToOriginal(edges: GraphDataEdge[]) {
 		}
 		if (edge.originalTarget) {
 			edge.target = edge.originalTarget;
+		}
+	});
+}
+
+function filterHierarchicalEdges({links, nodesDict}: GraphData, sensitivity: number) {
+	links.forEach(l => {
+		const {slice1, slice2} = getCommonAncestors(
+			getNode(l.source, nodesDict),
+			getNode(l.target, nodesDict),
+		);
+
+		if (slice1.length > sensitivity + 1 || slice2.length > sensitivity + 1) {
+			l.hidden = true;
+		} else {
+			l.hidden = false;
 		}
 	});
 }

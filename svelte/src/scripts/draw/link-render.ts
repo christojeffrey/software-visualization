@@ -152,7 +152,10 @@ export function renderLinks(
 	// Enter
 	linkCanvas
 		.selectAll('path')
-		.data(links, l => (l as GraphDataEdge).id)
+		.data(
+			links.filter(l => l.hidden != true),
+			l => (l as GraphDataEdge).id,
+		)
 		.enter()
 		.append('path')
 		.attr('id', l => `line-${toHTMLToken(l.id)}`)
