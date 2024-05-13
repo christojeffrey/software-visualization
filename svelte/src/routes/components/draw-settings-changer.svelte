@@ -4,9 +4,13 @@
 	import type {DrawSettingsInterface, LayoutOptions} from '$types';
 	import Input from '$ui/input.svelte';
 	import Button from '$ui/button.svelte';
+	import {colorPallets, getNodeColors} from '$scripts';
+	import {distributedCopy} from '$helper';
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
 	export let doRelayout;
+	export let maximumDepth: number;
+	let colorSchemeSettings: string;
 
 	// layout options
 	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
@@ -136,6 +140,26 @@
 	</div>
 	<!-- seperator -->
 	<div class="h-8" />
+
+	<!-- Auto-node colors-->
+	<div>
+		<Heading headingNumber={5}>Use node colorscheme</Heading>
+		<select
+			bind:value={colorSchemeSettings}
+			on:change={e => {
+				if (colorSchemeSettings) {
+					const {nodeColors, nodeDefaultColor} = getNodeColors(maximumDepth, colorSchemeSettings);
+					drawSettings.nodeColors = distributedCopy(nodeColors, maximumDepth);
+					drawSettings.nodeDefaultColor = nodeDefaultColor;
+				}
+			}}
+		>
+			<option value={undefined}>No default scheme</option>
+			{#each colorPallets as value}
+				<option {value}>{value}</option>
+			{/each}
+		</select>
+	</div>
 
 	<!-- default node color -->
 	<div>

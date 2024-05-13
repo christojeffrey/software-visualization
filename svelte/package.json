@@ -15,6 +15,7 @@
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.20.4",
+		"@types/colormap": "^2.3.4",
 		"@types/svg-intersections": "^0.4.4",
 		"@types/uuid": "^9.0.8",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -36,6 +37,7 @@
 	"type": "module",
 	"dependencies": {
 		"@types/d3": "^7.4.2",
+		"colormap": "^2.3.2",
 		"d3": "^7.8.5",
 		"d3-drag": "^3.0.0",
 		"kld-intersections": "^0.7.0",

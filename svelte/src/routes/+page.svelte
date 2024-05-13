@@ -14,7 +14,7 @@
 	} from '$types';
 
 	// scripts
-	import {cleanCanvas, draw, filter, converter, createGraphData} from '$scripts';
+	import {cleanCanvas, draw, filter, converter, createGraphData, getNodeColors} from '$scripts';
 
 	// components
 	import RawDataInputer from './components/raw-data-inputer.svelte';
@@ -60,8 +60,9 @@
 	let doRefilter = true;
 	let doRedraw = true;
 	let doRelayout = true;
-
 	let isMounted = false;
+
+	let maximumDepth: number = 0;
 
 	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
 		debuggingConsole('clicked');
@@ -113,6 +114,7 @@
 				filter(config, graphData);
 				doRefilter = false;
 				doRelayout = true;
+				maximumDepth = graphData.maximumDepth;
 			}
 
 			if (doRelayout) {
@@ -154,6 +156,6 @@
 		<div class="bg-neutral-300 h-[1px]" />
 		<ConfigChanger bind:config bind:doRefilter bind:flattenNodes />
 		<div class="bg-neutral-300 h-[1px]" />
-		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
+		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout bind:maximumDepth />
 	</div>
 </div>

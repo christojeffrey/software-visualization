@@ -106,8 +106,6 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		node.incomingLinksLifted = [];
 	});
 
-	
-
 	const graphDataLinks = assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		//@ts-expect-error GraphDataEdge is still a ConvertedEdge
 		links,
@@ -126,6 +124,7 @@ export function createGraphData(convertedData: ConvertedData): GraphData {
 		flattenNodes: graphDataFlattenNodes, // flattenNodes can be derived from nodes
 		nodesDict, // nodesDict can be derived from nodes
 		// both put here to reduce calculation time
+		maximumDepth: convertedData.maximumDepth,
 	};
 
 	return graphData;

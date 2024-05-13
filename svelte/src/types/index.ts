@@ -58,6 +58,7 @@ export interface ConvertedEdge {
 export interface ConvertedData {
 	nodes: ConvertedNode[];
 	links: ConvertedEdge[];
+	maximumDepth: number;
 }
 
 export interface SimpleNodesDictionaryType {
@@ -94,6 +95,7 @@ export interface GraphData {
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
 	nodesDict: {[id: string]: GraphDataNode};
+	maximumDepth: number;
 }
 
 export interface GraphDataEdge {

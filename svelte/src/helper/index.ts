@@ -105,3 +105,18 @@ export function geometricMean(p1: {x: number; y: number}, p2: {x: number; y: num
 		y: alpha * p1.y + (1 - alpha) * p2.y,
 	};
 }
+
+/**
+ * Retrieve a fixed number of elements from an array, evenly distributed but
+ * always including the first and last elements.
+ */
+export function distributedCopy<T>(items: T[], n: number) {
+	const elements = [items[0]];
+	const totalItems = items.length - 2;
+	const interval = Math.floor(totalItems / (n - 2));
+	for (let i = 1; i < n - 1; i++) {
+		elements.push(items[i * interval]);
+	}
+	elements.push(items[items.length - 1]);
+	return elements;
+}

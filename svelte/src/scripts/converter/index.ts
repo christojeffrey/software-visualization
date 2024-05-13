@@ -87,6 +87,7 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 	links = links.filter(link => link.type !== EdgeType.contains);
 
 	// Nodes at level 0 already are properly initialized, but we still need to calculate the level for the rest
+	let maximumDepth = 0;
 	let nodes = Object.values(nodesAsObject).filter(node => node.level === 0);
 	calculateNestingLevels(nodes);
 
@@ -96,6 +97,7 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 			if (n.members) {
 				calculateNestingLevels(n.members, level + 1);
 			}
+			maximumDepth = Math.max(maximumDepth, level);
 		});
 	}
 
@@ -106,12 +108,14 @@ export function converter(rawData: RawInputType, config: RawDataConfigType): Con
 			nodes = theNode.members ?? [];
 			links = links.filter(l => l.source !== theNode.id && l.target !== theNode.id);
 		}
+		maximumDepth = 0;
 		calculateNestingLevels(nodes);
 	}
 
 	return {
 		nodes,
 		links,
+		maximumDepth,
 	};
 }
 export default converter;

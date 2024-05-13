@@ -128,7 +128,7 @@ export function renderLinks(
 		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
-		let {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
+		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
 			{
 				x: sourceAbsoluteCoordinate.x,
 				y: sourceAbsoluteCoordinate.y,
