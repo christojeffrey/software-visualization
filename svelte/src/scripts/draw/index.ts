@@ -20,10 +20,10 @@ export function draw(
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void,
-) {	
+) {
 	// CALCULATE LAYOUT
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
-	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(graphData.renderedNodes);
+	const {simpleNodes, innerNodes, intermediateNodes, rootNodes} = splitNodes(graphData.nodes);
 
 	// Initialize width and height of simple nodes
 	simpleNodes.forEach(n => {
@@ -42,17 +42,42 @@ export function draw(
 		straightTree: straightTreeLayout,
 		layerTree: layerTreeLayout,
 	};
-	// Calculate layouts for non-simple nodes
-	innerNodes.forEach(n =>
-		layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n),
-	);
-	intermediateNodes.forEach(n =>
-		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
-	);
-	rootNodes.forEach(n =>
-		layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
-	);
-	layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); // Todo this is weird
+	try {
+		// Calculate layouts for non-simple nodes
+		innerNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n),
+		);
+		intermediateNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+		);
+		rootNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+		);
+		layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); // Todo this is weird
+	} catch (e) {
+		// Force the graph to be re calculated using another layout first, because the current layout failed (should be impossible).
+		innerNodes.forEach(n =>
+			circularLayout(drawSettings, n.members, n),
+		);
+		intermediateNodes.forEach(n =>
+			circularLayout(drawSettings, n.members, n),
+		);
+		rootNodes.forEach(n =>
+			circularLayout(drawSettings, n.members, n),
+		);
+		circularLayout(drawSettings, rootNodes);
+	} finally {
+		innerNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.innerLayout](drawSettings, n.members, n),
+		);
+		intermediateNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+		);
+		rootNodes.forEach(n =>
+			layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
+		);
+		layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); 
+	}
 
 	// ZOOM HANDLING
 	// Create canvas to contain all elements, so we can transform it for zooming etc.

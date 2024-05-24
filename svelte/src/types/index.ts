@@ -89,7 +89,7 @@ export enum EdgeType {
 export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
-	renderedNodes: GraphDataNode[]; 
+	originalNodes: GraphDataNode[];
 	renderedLinks: GraphDataEdge[]; 
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */

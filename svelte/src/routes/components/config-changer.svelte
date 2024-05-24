@@ -42,8 +42,7 @@
 			<form
 				on:submit={_ => {
 					config.filteredNodes = parseFilterNode(filterTextAreaValue);
-					if (config.filteredNodes.size === 0 ) doReconvert = true;
-					else doRefilter = true;
+					doRefilter = true;
 				}}
 			>
 				<textarea

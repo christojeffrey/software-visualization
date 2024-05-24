@@ -14,19 +14,22 @@ export function filter(config: ConfigInterface, graphData: GraphData) {
 	// Filter the nodes
 	let filteredNodeIds = new Set<string>();
 	if (config.filteredNodes.size === 0) {
-		graphData.renderedNodes = graphData.nodes;
+		graphData.nodes = graphData.originalNodes;
 	} else {
-		const [filteredNodes, filteredNodeNames] = filterNodeAndPopulateFilteredID(graphData.nodes, config.filteredNodes);
-		graphData.renderedNodes = filteredNodes
+		const [filteredNodes, filteredNodeNames] = filterNodeAndPopulateFilteredID(
+			graphData.originalNodes,
+			config.filteredNodes,
+		);
+		graphData.nodes = filteredNodes;
 		filteredNodeIds = filteredNodeNames;
 	}
-	
+
 	// order doesn't matter here. TODO: add reasoning inside doc - because we do it cleanly, the attribute is totally changed.
 	// handle dependency lifting
 	liftDependencies(config);
 	// handle collapsed vertices
 	doCollapseNodes(config);
-	
+
 	// filter duplicated links and combine it if it's in filtered lists
 	doCombineEdgesWeight(graphData, filteredNodeIds);
 }
