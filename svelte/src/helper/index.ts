@@ -49,7 +49,22 @@ export function combineWeights(duplicateLinks: Map<string, GraphDataEdge[]>) {
  * Intended to use for node-id's
  */
 export function toHTMLToken(string: string) {
-	return string.replace(/[^A-Za-z0-9]/g, '--');
+	//return string.replace(/[^A-Za-z0-9]/g, '--');
+	let result = '';
+	for (let i = 0; i < string.length; i++) {
+		const code = string.charCodeAt(i);
+		if (
+			!(code > 47 && code < 58) && // numeric (0-9)
+			!(code == 45) && // -
+			!(code > 64 && code < 91) && // upper alpha (A-Z)
+			!(code > 96 && code < 123) // lower alpha (a-z)
+		) {
+			result += `_${code}_`;
+		} else {
+			result += string.charAt(i);
+		}
+	}
+	return result;
 }
 
 /**
@@ -60,6 +75,11 @@ export function notNaN(n?: number): number {
 		throw new Error(`Unexpected value: ${n}`);
 	}
 	return n!;
+}
+
+/** Returns 0 if not a valid number (e.g. finite and not NaN), and the given number otherwise*/
+export function safeNumber(n?: number, defaultValue: number = 0): number {
+	return n && Number.isFinite(n) ? n : notNaN(defaultValue);
 }
 
 /**
@@ -84,4 +104,19 @@ export function geometricMean(p1: {x: number; y: number}, p2: {x: number; y: num
 		x: alpha * p1.x + (1 - alpha) * p2.x,
 		y: alpha * p1.y + (1 - alpha) * p2.y,
 	};
+}
+
+/**
+ * Retrieve a fixed number of elements from an array, evenly distributed but
+ * always including the first and last elements.
+ */
+export function distributedCopy<T>(items: T[], n: number) {
+	const elements = [items[0]];
+	const totalItems = items.length - 2;
+	const interval = Math.floor(totalItems / (n - 2));
+	for (let i = 1; i < n - 1; i++) {
+		elements.push(items[i * interval]);
+	}
+	elements.push(items[items.length - 1]);
+	return elements;
 }

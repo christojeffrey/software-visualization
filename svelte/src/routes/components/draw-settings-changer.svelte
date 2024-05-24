@@ -4,9 +4,13 @@
 	import type {DrawSettingsInterface, LayoutOptions} from '$types';
 	import Input from '$ui/input.svelte';
 	import Button from '$ui/button.svelte';
+	import {colorPallets, getNodeColors} from '$scripts';
+	import {distributedCopy} from '$helper';
 	export let drawSettings: DrawSettingsInterface;
 	export let doRedraw;
 	export let doRelayout;
+	export let maximumDepth: number;
+	let colorSchemeSettings: string;
 
 	// layout options
 	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
@@ -68,6 +72,21 @@
 		</Toggle>
 	</div>
 
+	<!-- Show Edge Port -->
+	<div>
+		<Heading headingNumber={5}>Show Edge Port</Heading>
+		<Toggle
+			class="ml-4"
+			onToggle={() => {
+				drawSettings.showEdgePorts = !drawSettings.showEdgePorts;
+				doRelayout = true;
+			}}
+			state={drawSettings.showEdgePorts}
+		>
+			{drawSettings.showEdgePorts ? 'Hide' : 'Show'}
+		</Toggle>
+	</div>
+
 	<!-- seperator -->
 	<div class="h-8" />
 
@@ -122,6 +141,26 @@
 	<!-- seperator -->
 	<div class="h-8" />
 
+	<!-- Auto-node colors-->
+	<div>
+		<Heading headingNumber={5}>Use node colorscheme</Heading>
+		<select
+			bind:value={colorSchemeSettings}
+			on:change={e => {
+				if (colorSchemeSettings) {
+					const {nodeColors, nodeDefaultColor} = getNodeColors(maximumDepth, colorSchemeSettings);
+					drawSettings.nodeColors = distributedCopy(nodeColors, maximumDepth);
+					drawSettings.nodeDefaultColor = nodeDefaultColor;
+				}
+			}}
+		>
+			<option value={undefined}>No default scheme</option>
+			{#each colorPallets as value}
+				<option {value}>{value}</option>
+			{/each}
+		</select>
+	</div>
+
 	<!-- default node color -->
 	<div>
 		<Heading headingNumber={5}>Default Node Color</Heading>
@@ -153,6 +192,8 @@
 					onClick={() => {
 						drawSettings.nodeColors.splice(index, 1);
 						doRedraw = true;
+						// Trigger rerender
+						drawSettings.nodeColors = drawSettings.nodeColors;
 					}}
 				>
 					Remove this level
@@ -164,6 +205,8 @@
 			onClick={() => {
 				drawSettings.nodeColors.push('#000000');
 				doRedraw = true;
+				// Trigger rerender
+				drawSettings.nodeColors = drawSettings.nodeColors;
 			}}
 		>
 			Add new level

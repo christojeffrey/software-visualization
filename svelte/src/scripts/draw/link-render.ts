@@ -1,8 +1,11 @@
 import {distance, geometricMean, notNaN, toHTMLToken} from '$helper';
+import {getAbsCoordinates} from '$helper/graphdata-helpers';
 import type {
 	DrawSettingsInterface,
+	EdgeRoutingOrigin,
 	GraphDataEdge,
 	GraphDataNode,
+	GraphDataNodeDrawn,
 	SimpleNodesDictionaryType,
 } from '$types';
 import { NormalizeWeight } from './helper/normalize-weight';
@@ -19,7 +22,7 @@ export function renderLinks(
 	drawSettings: DrawSettingsInterface,
 ) {
 	/** Returns the absolute x and y coordinates of a GraphDataNode */
-	function getAbsCoordinates(node?: GraphDataNode): {x: number; y: number} {
+	function getAbsCoordinates(node?: GraphDataNode | EdgeRoutingOrigin): {x: number; y: number} {
 		if (node) {
 			const {x, y} = getAbsCoordinates(node.parent);
 			return {
@@ -73,12 +76,78 @@ export function renderLinks(
 		}
 		const intersectionTarget = {x: target.x + x, y: target.y + y};
 
+		// TODO above code is bugged and may return -infinity on dataset jhotdraw-trc-sum
+		// Will need to figure out why later
+		// We'll just set it to 0 for now
+		if (!Number.isFinite(intersectionTarget.x)) {
+			intersectionTarget.x = 0;
+		}
+		if (!Number.isFinite(intersectionTarget.y)) {
+			intersectionTarget.y = 0;
+		}
+		if (!Number.isFinite(intersectionSource.x)) {
+			intersectionSource.x = 0;
+		}
+		if (!Number.isFinite(intersectionSource.y)) {
+			intersectionSource.y = 0;
+		}
+
 		return {intersectionSource, intersectionTarget};
 	}
-	/** Returns path coordinates, and annotates the line-data with extra info */
+
+	/** Returns path coordinates, and annotates the line-data with extra info.
+	 *
+	 * Routes edges through edge port
+	 */
+	function annotateLinePorts(l: GraphDataEdge) {
+		const source = (
+			typeof l.source === 'string' ? nodesDictionary[l.source] : l.source
+		) as GraphDataNodeDrawn;
+		const target = (
+			typeof l.target === 'string' ? nodesDictionary[l.target] : l.target
+		) as GraphDataNodeDrawn;
+
+		l.gradientDirection = source.x! > target.x!;
+
+		/** List of all coordinates the path will need to go through */
+		let coordinates = [
+			...l.routing.map(point => {
+				const {x, y} = getAbsCoordinates(point.origin);
+				return {
+					x: x + point.x,
+					y: y + point.y,
+				};
+			}),
+		];
+
+		if (coordinates.length < 2) {
+			coordinates = [source, target];
+		}
+
+		l.labelCoordinates = [coordinates[0], coordinates[1]];
+
+		// TODO find right coordinates (Put on the longest stretch)
+		let result = `M ${coordinates[0].x} ${coordinates[0].y}`;
+
+		coordinates.forEach(({x, y}) => {
+			result += `L ${x} ${y} `;
+		});
+
+		return result;
+	}
+
+	/** Returns path coordinates, and annotates the line-data with extra info
+	 *
+	 * (No edge ports)
+	 */
 	function annotateLine(l: GraphDataEdge) {
-		const source = typeof l.source === 'string' ? nodesDictionary[l.source] : l.source;
-		const target = typeof l.target === 'string' ? nodesDictionary[l.target] : l.target;
+		const source = (
+			typeof l.source === 'string' ? nodesDictionary[l.source] : l.source
+		) as GraphDataNodeDrawn;
+		const target = (
+			typeof l.target === 'string' ? nodesDictionary[l.target] : l.target
+		) as GraphDataNodeDrawn;
+
 		const sourceAbsoluteCoordinate = getAbsCoordinates(source);
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
@@ -143,11 +212,14 @@ export function renderLinks(
 	// Enter
 	linkCanvas
 		.selectAll('path')
-		.data(links, l => (l as GraphDataEdge).id)
+		.data(
+			links.filter(l => l.hidden != true),
+			l => (l as GraphDataEdge).id,
+		)
 		.enter()
 		.append('path')
 		.attr('id', l => `line-${toHTMLToken(l.id)}`)
-		.attr('d', annotateLine)
+		.attr('d', l => (drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l)))
 		.attr(
 			'stroke',
 			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
@@ -164,7 +236,7 @@ export function renderLinks(
 			unknown
 		>
 	)
-		.attr('d', annotateLine)
+		.attr('d', annotateLinePorts)
 		.attr(
 			'stroke',
 			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,

@@ -1,6 +1,12 @@
 import * as d3 from 'd3';
 import {notNaN} from '$helper';
-import type {DrawSettingsInterface, GraphData, GraphDataNode, LayoutOptions} from '$types';
+import type {
+	DrawSettingsInterface,
+	EdgePortMap,
+	GraphData,
+	GraphDataNode,
+	LayoutOptions,
+} from '$types';
 
 import {setupGradient} from './helper/gradient-setup';
 import {
@@ -12,7 +18,8 @@ import {
 } from './layouts';
 import {renderLinks} from './link-render';
 import {addDragAndDrop} from './drag-and-drop';
-import {renderNodes, renderNodeLabels, addLiftCollapseButtons} from './nodes-render';
+import {renderNodes, renderNodeLabels, addLiftCollapseButtons, renderPorts} from './nodes-render';
+import {addEdgePorts} from './edge-routing';
 
 export function draw(
 	svgElement: SVGElement,
@@ -79,15 +86,18 @@ export function draw(
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
 
-	// DRAG AND DROP
+	let portMap: EdgePortMap;
+	if (drawSettings.showEdgePorts) {
+		portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
+	}
 
 	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
-	 * TODO actually use this somewhere
 	 */
 
 	function rerender(drawSettings: DrawSettingsInterface) {
 		renderNodes(rootNodes, canvasElement, drawSettings);
 		renderNodeLabels(canvasElement, drawSettings);
+		portMap && renderPorts(portMap, canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
 		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
 
