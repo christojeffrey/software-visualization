@@ -59,6 +59,8 @@ function assignOutgoingIncomingLinksAndOriginalLiftedSourceTargetReference(
 		graphDataLink.liftedSource = oldestSource;
 		graphDataLink.liftedTarget = oldestTarget;
 
+		graphDataLink.routing = [];
+
 		oldestSource.outgoingLinksLifted.push(graphDataLink);
 		oldestTarget.incomingLinksLifted.push(graphDataLink);
 	});

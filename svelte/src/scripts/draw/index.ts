@@ -88,7 +88,7 @@ export function draw(
 
 	let portMap: EdgePortMap;
 	if (drawSettings.showEdgePorts) {
-		portMap = addEdgePorts(graphData.links, graphData.flattenNodes, drawSettings);
+		portMap = addEdgePorts(graphData.renderedLinks, graphData.flattenNodes, drawSettings);
 	}
 
 	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
