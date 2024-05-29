@@ -28,6 +28,7 @@
 		collapsedNodes: [],
 		dependencyLifting: [],
 		dependencyTolerance: 0,
+		filteredNodes: new Set<string>(),
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
@@ -39,6 +40,7 @@
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,
 		showNodeLabels: true,
+		renderedLinksId: new Set<string>(),
 		nodeDefaultColor: '#6a6ade',
 		nodeColors: ['#32a875', '#d46868'],
 		innerLayout: 'layerTree',
@@ -55,7 +57,7 @@
 	let doRelayout = true;
 
 	let isMounted = false;
-
+	
 	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
 		debuggingConsole('clicked');
 		// push if not exist
@@ -147,7 +149,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger bind:config />
+		<ConfigChanger bind:config bind:doRefilter bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>

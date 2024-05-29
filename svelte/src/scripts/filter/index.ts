@@ -1,7 +1,8 @@
 import type {ConfigInterface, GraphData, GraphDataEdge, GraphDataNode} from '../../types';
 
 import {doCollapseNodes} from './collapse-nodes';
-import { doCombineEdgesWeight } from './combine-edges';
+import {doCombineEdgesWeight} from './combine-edges';
+import filterNodeAndPopulateFilteredID from './filter-node';
 import {liftDependencies} from './lift-edges';
 
 export function filter(config: ConfigInterface, graphData: GraphData) {
@@ -9,17 +10,29 @@ export function filter(config: ConfigInterface, graphData: GraphData) {
 	// TODO: add the reasoning for this inside the doc.
 	resetNodeMemberToOriginal(graphData.flattenNodes);
 	resetLinksSourceAndTargetToOriginal(graphData.links);
-	// order doesn't matter here. TODO: add reasoning inside doc - because we do it cleanly, the attribute is totally changed.
 
+	// Filter the nodes
+	let filteredNodeIds = new Set<string>();
+	if (config.filteredNodes.size === 0) {
+		graphData.nodes = graphData.originalNodes;
+	} else {
+		const [filteredNodes, filteredNodeNames] = filterNodeAndPopulateFilteredID(
+			graphData.originalNodes,
+			config.filteredNodes,
+		);
+		graphData.nodes = filteredNodes;
+		filteredNodeIds = filteredNodeNames;
+	}
+
+	// order doesn't matter here. TODO: add reasoning inside doc - because we do it cleanly, the attribute is totally changed.
 	// handle dependency lifting
 	liftDependencies(config);
 	// handle collapsed vertices
 	doCollapseNodes(config);
 
-	// filter duplicated links and combine it
-	doCombineEdgesWeight(graphData);
+	// filter duplicated links and combine it if it's in filtered lists
+	doCombineEdgesWeight(graphData, filteredNodeIds);
 }
-
 
 function resetNodeMemberToOriginal(nodes: GraphDataNode[]) {
 	nodes.forEach(node => {
@@ -37,7 +50,7 @@ function resetLinksSourceAndTargetToOriginal(edges: GraphDataEdge[]) {
 			edge.target = edge.originalTarget;
 		}
 		if (edge.originalWeight) {
-			edge.weight = edge.originalWeight
+			edge.weight = edge.originalWeight;
 		}
 	});
 }

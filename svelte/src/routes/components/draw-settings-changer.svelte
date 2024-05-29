@@ -12,7 +12,7 @@
 	let options: LayoutOptions[] = ['layerTree', 'straightTree', 'circular'];
 </script>
 
-<div class="overflow-auto">
+<div class="overflow-x-clip overflow-y-auto">
 	<Heading class="mt-2">Draw Settings Changer</Heading>
 	<!-- Filter Edge -->
 	<div class="filter-edge">

@@ -361,7 +361,9 @@ export const layerTreeLayout: NodeLayout = function (
 
 	/** Set containing all lifted edges between elements of childNodes */
 	const allEdges: Set<GraphDataEdge> = new Set();
-	childNodes.forEach(n => n.incomingLinksLifted.forEach(l => allEdges.add(l)));
+	childNodes.forEach(n => n.incomingLinksLifted.forEach(l => {
+		if(drawSettings.renderedLinksId.has(l.id)) allEdges.add(l)
+	}));
 
 	/** DummyType for vertex ordering step */
 	type DummyNode = {

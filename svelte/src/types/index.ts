@@ -7,6 +7,7 @@ export interface ConfigInterface {
 	}[];
 	dependencyTolerance: number;
 	collapsedNodes: GraphDataNode[];
+	filteredNodes: Set<string>;
 }
 
 export interface DrawSettingsInterface {
@@ -20,6 +21,7 @@ export interface DrawSettingsInterface {
 	showEdgeLabels: boolean;
 	nodeDefaultColor: string;
 	nodeColors: string[];
+	renderedLinksId: Set<string>;
 	/** Remembers the last transformation in-between redraws. */
 	transformation?: {k: number; x: number; y: number};
 	/** layout types */
@@ -87,6 +89,7 @@ export enum EdgeType {
 export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
+	originalNodes: GraphDataNode[];
 	renderedLinks: GraphDataEdge[]; 
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
