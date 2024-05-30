@@ -10,6 +10,7 @@ import type {
 } from '$types';
 import { NormalizeWeight } from './helper/normalize-weight';
 
+
 /**
  * Render and or update all given links
  * Requires access to all nodes via a dictionary, since links might not contain a reference to their source/target
@@ -20,6 +21,7 @@ export function renderLinks(
 	nodesDictionary: SimpleNodesDictionaryType,
 	linkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	drawSettings: DrawSettingsInterface,
+	colorInterpolator: {[key: string]: (t: number) => string},
 ) {
 	/** Returns the absolute x and y coordinates of a GraphDataNode */
 	function getAbsCoordinates(node?: GraphDataNode | EdgeRoutingOrigin): {x: number; y: number} {
@@ -242,9 +244,13 @@ export function renderLinks(
 			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
 		)
 		.attr('display', l => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
+	
+	const allPaths = linkCanvas.selectAll('path').remove();
+
 
 	// No exit, since we don't get all edges when updating
 
+	linkCanvas.select('defs').remove();
 	// Labels
 	if (drawSettings.showEdgeLabels) {
 		linkCanvas

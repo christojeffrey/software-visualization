@@ -8,7 +8,7 @@ import type {
 	LayoutOptions,
 } from '$types';
 
-import {setupGradient} from './helper/gradient-setup';
+import {interpolateColor, setupGradient} from './helper/gradient-setup';
 import {
 	forceBasedLayout,
 	circularLayout,
@@ -85,6 +85,7 @@ export function draw(
 
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
+	const colorInterpolator = interpolateColor()
 
 	let portMap: EdgePortMap;
 	if (drawSettings.showEdgePorts) {
@@ -99,9 +100,9 @@ export function draw(
 		renderNodeLabels(canvasElement, drawSettings);
 		portMap && renderPorts(portMap, canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
-		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings);
+		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings, colorInterpolator);
 
-		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawSettings);
+		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawSettings, colorInterpolator);
 	}
 	return rerender;
 }
