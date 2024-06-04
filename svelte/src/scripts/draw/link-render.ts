@@ -238,16 +238,7 @@ export function renderLinks(
 			// Save the quads in other variable to use draw the interpolated color
 			return drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l);
 		})
-		.attr('id', l => `line-${toHTMLToken(l.id)}`)
-		.attr(
-			'stroke',
-			l =>
-				`url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${
-					l.gradientDirection ? 'Reversed' : ''
-				})`,
-		)
-		.attr('stroke-width', l => NormalizeWeight(l.weight))
-		.attr('fill', 'transparent');
+		.attr('id', l => `line-${toHTMLToken(l.id)}`);
 
 	// Reselect and compute quads
 
@@ -259,22 +250,12 @@ export function renderLinks(
 			SVGGElement,
 			unknown
 		>
-	)
-		.attr('d', (l, i, svg) => {
-			console.log("SVG get point", svg[i].getPointAtLength(1))
-			const quad = quads(samples(svg[i], 8));
-			console.log(quad)
-			pathQuads[l.id] = quad;
-			return annotateLinePorts(l);
-		})
-		.attr(
-			'stroke',
-			l =>
-				`url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${
-					l.gradientDirection ? 'Reversed' : ''
-				})`,
-		)
-		.attr('display', l => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
+	).attr('d', (l, i, svg) => {
+		// Quads are computed here so every updates will have the correct quads
+		const quad = quads(samples(svg[i], 8));
+		pathQuads[l.id] = quad;
+		return annotateLinePorts(l);
+	});
 
 	// Replace existing SVG. Loop for each path
 	const prevPaths = (
@@ -285,27 +266,21 @@ export function renderLinks(
 			unknown
 		>
 	).remove();
+
+	// Draw each old path into smaller paths
 	prevPaths.each((l, i, svg) => {
 		if (l === undefined) return;
-		console.log(i,l);
-		linkCanvas
+		console.log(pathQuads);
+		linkCanvas.selectAll('path')
+		.data(pathQuads[l.id])
+		.enter()
 			.append('path')
-			.attr('d', `M 0 0 L ${100 + i * 2} ${100 + i * 2}`)
-			.attr('stroke', 'black')
-			.attr('stroke-width', NormalizeWeight(l.weight));
-		console.log('SVG get point', (svg[i] as SVGPathElement).getPointAtLength(1));
+			.attr('fill', q => colorInterpolator[l.type](q.t))
+			.attr('stroke', q => colorInterpolator[l.type](q.t))
+			.attr('stroke-width', NormalizeWeight(l.weight))
+			.attr('d', q => lineJoin(q[0], q[1], q[2], q[3], Math.floor(NormalizeWeight(l.weight))))
+			.attr('display', drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none');
 	});
-	// const newPaths = linkCanvas.selectAll('path') as d3.Selection<
-	// 	SVGPathElement,
-	// 	GraphDataEdge,
-	// 	SVGGElement,
-	// 	unknown
-	// >;
-	// allPaths
-	// 	.remove()
-	// 	.data(pathQuads)
-	// 	.attr('fill', d => colorInterpolator[d.id](pathQuads[d.id].t))
-	// 	.attr('fill')
 
 	// No exit, since we don't get all edges when updating
 
