@@ -66,22 +66,23 @@ export function interpolateColor(): {[key: string]: (t: number) => string} {
 	return result;
 }
 
-type CustomPoint = {x: number, y: number, t: number};
+export type CustomPoint = {x: number, y: number, t: number};
+export type Quad = {t: number, 0: CustomPoint, 1: CustomPoint, 2: CustomPoint, 3: CustomPoint};
 
 // Sample the SVG path uniformly with the specified precision.
 export function samples(
-	path: d3.Selection<SVGPathElement, GraphDataEdge, SVGElement, unknown>,
+	path: SVGPathElement,
 	precision: number,
 ) {
-	if (path.node() === null) return [];
+	if (path === null) return [];
 	let i = 0;
-	const n = path.node()!.getTotalLength()
+	const n = path!.getTotalLength()
 	const t = [0],
 		dt = precision;
 	while ((i += dt) < n) t.push(i);
 	t.push(n);
 	return t.map(function (t) {
-		const p = path.node()!.getPointAtLength(t),
+		const p = path!.getPointAtLength(t),
 			a: CustomPoint = {x: p.x, y: p.y, t: t};
 		a.t = t / n;
 		return a;
@@ -89,7 +90,7 @@ export function samples(
 }
 
 // Compute quads of adjacent points [p0, p1, p2, p3].
-export function quads(points: CustomPoint[]): {t: number, 0: CustomPoint, 1: CustomPoint, 2: CustomPoint, 3: CustomPoint}[] {
+export function quads(points: CustomPoint[]): Quad[] {
 	return d3.range(points.length - 1).map(function (i) {
 		const a = {0: points[i - 1], 1: points[i], 2: points[i + 1], 3: points[i + 2], t: 0};
 		a.t = (points[i].t + points[i + 1].t) / 2;

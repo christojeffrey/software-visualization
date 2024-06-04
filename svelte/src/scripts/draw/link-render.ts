@@ -8,8 +8,10 @@ import type {
 	GraphDataNodeDrawn,
 	SimpleNodesDictionaryType,
 } from '$types';
-import { NormalizeWeight } from './helper/normalize-weight';
-
+import {interpolateColor, lineJoin, quads, samples} from './helper/gradient-setup';
+import type {Quad} from './helper/gradient-setup';
+import {NormalizeWeight} from './helper/normalize-weight';
+import * as d3 from 'd3';
 
 /**
  * Render and or update all given links
@@ -154,8 +156,15 @@ export function renderLinks(
 		const targetAbsoluteCoordinate = getAbsCoordinates(target);
 
 		l.absoluteCoordinates = [sourceAbsoluteCoordinate, targetAbsoluteCoordinate];
-		l.isGradientVertical = isVertical(sourceAbsoluteCoordinate.x, targetAbsoluteCoordinate.x, sourceAbsoluteCoordinate.y, targetAbsoluteCoordinate.y);
-		l.gradientDirection = l.isGradientVertical ? sourceAbsoluteCoordinate.y < targetAbsoluteCoordinate.y : sourceAbsoluteCoordinate.x > targetAbsoluteCoordinate.x;
+		l.isGradientVertical = isVertical(
+			sourceAbsoluteCoordinate.x,
+			targetAbsoluteCoordinate.x,
+			sourceAbsoluteCoordinate.y,
+			targetAbsoluteCoordinate.y,
+		);
+		l.gradientDirection = l.isGradientVertical
+			? sourceAbsoluteCoordinate.y < targetAbsoluteCoordinate.y
+			: sourceAbsoluteCoordinate.x > targetAbsoluteCoordinate.x;
 
 		const {intersectionSource: s, intersectionTarget: t} = calculateIntersection(
 			{
@@ -187,7 +196,9 @@ export function renderLinks(
 			t,
 		];
 
-		let result = `M ${Math.abs(s.x - t.x) < 0.3 ? s.x + 0.5 : s.x} ${Math.abs(s.y - t.y) < 0.3 ? s.y + 0.5 : s.y} `;
+		let result = `M ${Math.abs(s.x - t.x) < 0.3 ? s.x + 0.5 : s.x} ${
+			Math.abs(s.y - t.y) < 0.3 ? s.y + 0.5 : s.y
+		} `;
 
 		let maxDistance = -Infinity;
 		for (let i = 0; i < coordinates.length - 2; i++) {
@@ -211,6 +222,8 @@ export function renderLinks(
 
 		return result;
 	}
+	// Path Quads for drawing svg path
+	const pathQuads: {[key: string]: Quad[]} = {};
 	// Enter
 	linkCanvas
 		.selectAll('path')
@@ -218,16 +231,25 @@ export function renderLinks(
 			links.filter(l => l.hidden != true),
 			l => (l as GraphDataEdge).id,
 		)
+		// Need to find out how to augment t and interpolate the stroke color based on t
 		.enter()
 		.append('path')
+		.attr('d', l => {
+			// Save the quads in other variable to use draw the interpolated color
+			return drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l);
+		})
 		.attr('id', l => `line-${toHTMLToken(l.id)}`)
-		.attr('d', l => (drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l)))
 		.attr(
 			'stroke',
-			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
+			l =>
+				`url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${
+					l.gradientDirection ? 'Reversed' : ''
+				})`,
 		)
 		.attr('stroke-width', l => NormalizeWeight(l.weight))
 		.attr('fill', 'transparent');
+
+	// Reselect and compute quads
 
 	// Update
 	(
@@ -238,19 +260,55 @@ export function renderLinks(
 			unknown
 		>
 	)
-		.attr('d', annotateLinePorts)
+		.attr('d', (l, i, svg) => {
+			console.log("SVG get point", svg[i].getPointAtLength(1))
+			const quad = quads(samples(svg[i], 8));
+			console.log(quad)
+			pathQuads[l.id] = quad;
+			return annotateLinePorts(l);
+		})
 		.attr(
 			'stroke',
-			l => `url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${l.gradientDirection ? 'Reversed' : ''})`,
+			l =>
+				`url(#${toHTMLToken(l.type)}Gradient${l.isGradientVertical ? 'Vertical' : ''}${
+					l.gradientDirection ? 'Reversed' : ''
+				})`,
 		)
 		.attr('display', l => (drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none'));
-	
-	const allPaths = linkCanvas.selectAll('path').remove();
 
+	// Replace existing SVG. Loop for each path
+	const prevPaths = (
+		linkCanvas.selectAll('path') as d3.Selection<
+			SVGPathElement,
+			GraphDataEdge,
+			SVGGElement,
+			unknown
+		>
+	).remove();
+	prevPaths.each((l, i, svg) => {
+		if (l === undefined) return;
+		console.log(i,l);
+		linkCanvas
+			.append('path')
+			.attr('d', `M 0 0 L ${100 + i * 2} ${100 + i * 2}`)
+			.attr('stroke', 'black')
+			.attr('stroke-width', NormalizeWeight(l.weight));
+		console.log('SVG get point', (svg[i] as SVGPathElement).getPointAtLength(1));
+	});
+	// const newPaths = linkCanvas.selectAll('path') as d3.Selection<
+	// 	SVGPathElement,
+	// 	GraphDataEdge,
+	// 	SVGGElement,
+	// 	unknown
+	// >;
+	// allPaths
+	// 	.remove()
+	// 	.data(pathQuads)
+	// 	.attr('fill', d => colorInterpolator[d.id](pathQuads[d.id].t))
+	// 	.attr('fill')
 
 	// No exit, since we don't get all edges when updating
 
-	linkCanvas.select('defs').remove();
 	// Labels
 	if (drawSettings.showEdgeLabels) {
 		linkCanvas
