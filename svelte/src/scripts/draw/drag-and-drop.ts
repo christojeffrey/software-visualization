@@ -25,14 +25,14 @@ export function addDragAndDrop(
 		d3
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			.drag<any, any>()
-			.on('drag', e => {
+			.on('drag', (e,d) => {
 				// Typing
 				const source = e.sourceEvent as MouseEvent;
 				const node = e.subject as GraphDataNode;
 
 				// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
-				const deltaX = source.movementX * (1 / (drawSettings.transformation?.k ?? 1));
-				const deltaY = source.movementY * (1 / (drawSettings.transformation?.k ?? 1));
+				const deltaX = source.movementX * (1 / ((drawSettings.transformation?.k ?? 1) * (d.level + 1)));
+				const deltaY = source.movementY * (1 / ((drawSettings.transformation?.k ?? 1) * (d.level + 1)));
 				const xt = node.x! + deltaX;
 				const yt = node.y! + deltaY;
 
