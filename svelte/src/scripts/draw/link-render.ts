@@ -11,7 +11,6 @@ import type {
 import {interpolateColor, lineJoin, quads, samples} from './helper/gradient-setup';
 import type {Quad} from './helper/gradient-setup';
 import {NormalizeWeight} from './helper/normalize-weight';
-import * as d3 from 'd3';
 
 /**
  * Render and or update all given links
@@ -216,7 +215,7 @@ export function renderLinks(
 				l.labelCoordinates = [p1, p2];
 			}
 
-			result += `L ${turnPoint1.x} ${turnPoint1.y} Q ${p2.x} ${p2.y}, ${turnPoint2.x} ${turnPoint2.y} `;
+			result += `L ${turnPoint1.x} ${turnPoint1.y} `;
 		}
 		result += `L ${t.x} ${t.y}`;
 
@@ -238,6 +237,7 @@ export function renderLinks(
 			// Save the quads in other variable to use draw the interpolated color
 			return drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l);
 		})
+		
 		.attr('id', l => `line-${toHTMLToken(l.id)}`);
 
 	// Reselect and compute quads
@@ -255,7 +255,7 @@ export function renderLinks(
 		const quad = quads(samples(svg[i], 8));
 		pathQuads[l.id] = quad;
 		return annotateLinePorts(l);
-	});
+	}).attr('stroke-width', l => NormalizeWeight(l.weight));
 
 	// Replace existing SVG. Loop for each path
 	const prevPaths = (
@@ -270,10 +270,10 @@ export function renderLinks(
 	// Draw each old path into smaller paths
 	prevPaths.each((l, i, svg) => {
 		if (l === undefined) return;
-		console.log(pathQuads);
+		const quad = quads(samples(svg[i], 8));
 		linkCanvas.selectAll('path')
-		.data(pathQuads[l.id])
-		.enter()
+			.data(quad)
+			.enter()
 			.append('path')
 			.attr('fill', q => colorInterpolator[l.type](q.t))
 			.attr('stroke', q => colorInterpolator[l.type](q.t))
