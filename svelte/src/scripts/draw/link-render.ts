@@ -21,6 +21,7 @@ export function renderLinks(
 	links: GraphDataEdge[],
 	nodesDictionary: SimpleNodesDictionaryType,
 	linkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>,
+	drawnLinkCanvas: d3.Selection<SVGGElement, unknown, null, undefined>,
 	drawSettings: DrawSettingsInterface,
 	colorInterpolator: {[key: string]: (t: number) => string},
 ) {
@@ -237,8 +238,9 @@ export function renderLinks(
 			// Save the quads in other variable to use draw the interpolated color
 			return drawSettings.showEdgePorts ? annotateLinePorts(l) : annotateLine(l);
 		})
-		
-		.attr('id', l => `line-${toHTMLToken(l.id)}`);
+
+		.attr('id', l => `line-${toHTMLToken(l.id)}`)
+		.attr('display', 'none');
 
 	// Reselect and compute quads
 
@@ -250,34 +252,34 @@ export function renderLinks(
 			SVGGElement,
 			unknown
 		>
-	).attr('d', (l, i, svg) => {
-		// Quads are computed here so every updates will have the correct quads
-		const quad = quads(samples(svg[i], 8));
+	)
+		.attr('d', (l, i, svg) => {
+			const quad = quads(samples(svg[i], 8));
 		pathQuads[l.id] = quad;
-		return annotateLinePorts(l);
-	}).attr('stroke-width', l => NormalizeWeight(l.weight));
+			return annotateLinePorts(l);
+		})
+		.attr('stroke-width', l => NormalizeWeight(l.weight));
 
 	// Replace existing SVG. Loop for each path
-	const prevPaths = (
-		linkCanvas.selectAll('path') as d3.Selection<
-			SVGPathElement,
-			GraphDataEdge,
-			SVGGElement,
-			unknown
-		>
-	).remove();
+	const prevPaths = linkCanvas.selectAll('path') as d3.Selection<
+		SVGPathElement,
+		GraphDataEdge,
+		SVGGElement,
+		unknown
+	>;
 
 	// Draw each old path into smaller paths
 	prevPaths.each((l, i, svg) => {
 		if (l === undefined) return;
-		const quad = quads(samples(svg[i], 8));
-		linkCanvas.selectAll('path')
+		const quad = pathQuads[l.id]
+		drawnLinkCanvas
+			.selectAll('path')
 			.data(quad)
 			.enter()
 			.append('path')
 			.attr('fill', q => colorInterpolator[l.type](q.t))
 			.attr('stroke', q => colorInterpolator[l.type](q.t))
-			.attr('stroke-width', NormalizeWeight(l.weight))
+			// .attr('stroke-width', NormalizeWeight(l.weight))
 			.attr('d', q => lineJoin(q[0], q[1], q[2], q[3], Math.floor(NormalizeWeight(l.weight))))
 			.attr('display', drawSettings.shownEdgesType.get(l.type) ? 'inherit' : 'none');
 	});

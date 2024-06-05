@@ -84,6 +84,8 @@ export function draw(
 	// Render links
 
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
+	const drawnLinkCanvas = d3.select(canvasElement).append("g").attr("id", "drawn-link-canvas");
+
 	setupGradient(linkCanvas);
 	const colorInterpolator = interpolateColor()
 
@@ -100,9 +102,9 @@ export function draw(
 		renderNodeLabels(canvasElement, drawSettings);
 		portMap && renderPorts(portMap, canvasElement, drawSettings);
 		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
-		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawSettings, colorInterpolator);
+		addDragAndDrop(graphData.renderedLinks, rootNodes, graphData.nodesDict, canvasElement, linkCanvas, drawnLinkCanvas, drawSettings, colorInterpolator);
 
-		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawSettings, colorInterpolator);
+		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawnLinkCanvas, drawSettings, colorInterpolator);
 	}
 	return rerender;
 }
