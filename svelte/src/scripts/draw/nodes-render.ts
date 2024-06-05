@@ -125,6 +125,8 @@ export function renderNodes(
 		.attr('height', n => n.height!)
 		.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
 		.attr('fill-opacity', '0.1')
+		.attr('stroke', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
+		.attr('stroke-width', '1')
 		.attr('rx', drawSettings.nodeCornerRadius)
 		.on('mouseover', function (event, data) {
 			d3.select(this).attr('fill-opacity', '0.2');
