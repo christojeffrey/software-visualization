@@ -78,7 +78,6 @@ export function draw(
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
 	const canvas = d3.select(svgElement).append('g').attr('id', 'canvas');
 	const canvasElement = document.getElementById('canvas')!;
-
 	// Add zoom handler
 	d3.select(svgElement).call(
 		d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
@@ -86,6 +85,31 @@ export function draw(
 			drawSettings.transformation = transform;
 		}),
 	);
+	// // handle scroll
+	// d3.select(svgElement).call(
+	// 	d3.zoom<SVGElement, unknown>().on('zoom', e => {
+	// 		// Typing
+	// 		const source = e.sourceEvent as MouseEvent;
+
+	// 		// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
+	// 		// propagate the event to the zoom handler
+	// 		const newX = (drawSettings.transformation?.x ?? 0) + source.movementX;
+	// 		const newY = (drawSettings.transformation?.y ?? 0) + source.movementY;
+
+	// 		const {transform} = e;
+	// 		const newK = transform.k;
+	// 		const newTransform = {
+	// 			k: newK,
+	// 			x: newX,
+	// 			y: newY,
+	// 		};
+	// 		canvas.attr(
+	// 			'transform',
+	// 			'translate(' + newTransform.x + ',' + newTransform.y + ') scale(' + newTransform.k + ')',
+	// 		);
+	// 		drawSettings.transformation = newTransform;
+	// 	}),
+	// );
 
 	//Reload last transformation, if available
 	if (drawSettings.transformation) {

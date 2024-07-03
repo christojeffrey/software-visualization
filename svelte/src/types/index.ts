@@ -29,6 +29,7 @@ export interface DrawSettingsInterface {
 	innerLayout: LayoutOptions;
 	intermediateLayout: LayoutOptions;
 	rootLayout: LayoutOptions;
+	isPanning: boolean;
 }
 
 export type LayoutOptions = 'layerTree' | 'circular' | 'straightTree';

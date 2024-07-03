@@ -45,9 +45,10 @@
 		renderedLinksId: new Set<string>(),
 		nodeDefaultColor: '#6a6ade',
 		nodeColors: ['#32a875', '#d46868'],
-		innerLayout: 'layerTree',
+		innerLayout: 'circular',
 		intermediateLayout: 'layerTree',
 		rootLayout: 'layerTree',
+		isPanning: false,
 	};
 
 	let svgElement: SVGElement | undefined = undefined;
@@ -144,6 +145,20 @@
 	}
 	onMount(() => {
 		isMounted = true;
+		// change mouse cursor to panning mode when space is pressed
+		window?.addEventListener('keydown', e => {
+			if (e.code === 'Space') {
+				svgElement?.classList.add('cursor-grab');
+				drawSettings.isPanning = true;
+			}
+		});
+		// on release, change back to default
+		window?.addEventListener('keyup', e => {
+			if (e.code === 'Space') {
+				svgElement?.classList.remove('cursor-grab');
+				drawSettings.isPanning = false;
+			}
+		});
 	});
 </script>
 
