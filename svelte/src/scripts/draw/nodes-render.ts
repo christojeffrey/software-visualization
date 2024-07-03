@@ -76,14 +76,28 @@ export function renderNodeLabels(svgElement: Element, drawSettings: DrawSettings
  */
 
 export function updateNodePosition(node: GraphDataNode, svgElement: Element) {
-	(
-		d3.select(svgElement).selectAll(`#group-${toHTMLToken(node.id)}`) as d3.Selection<
-			d3.BaseType,
-			GraphDataNode,
-			Element,
-			unknown
-		>
-	).attr('transform', n => `translate(${n.x} ${n.y})`);
+	// containerElement.attr('transform', (d) => `translate(${d.x},${d.y})`);
+	// nodeElements.attr('width', (d) => d.width).attr('height', (d) => d.height);
+	console.log('entry');
+	const containerElement = d3
+		.select(svgElement)
+		.selectAll(`#group-${toHTMLToken(node.id)}`) as d3.Selection<
+		d3.BaseType,
+		GraphDataNode,
+		Element,
+		unknown
+	>;
+	containerElement.attr('transform', n => `translate(${node.x}, ${node.y})`);
+
+	const nodeElement = containerElement.select('rect');
+
+	console.log(node.id);
+	nodeElement
+		.attr('width', n => {
+			console.log(node.id);
+			return node.width!;
+		})
+		.attr('height', n => node.height!);
 }
 /**
  * Render given nodes onto given svgElement.

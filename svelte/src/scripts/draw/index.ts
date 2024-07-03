@@ -141,10 +141,12 @@ export function draw(
 		addDragAndDrop(
 			graphData.renderedLinks,
 			rootNodes,
+
 			graphData.nodesDict,
 			nodeCanvasElement,
 			linkCanvas,
 			drawSettings,
+			graphData,
 		);
 
 		renderLinks(graphData.renderedLinks, graphData.nodesDict, linkCanvas, drawSettings);
