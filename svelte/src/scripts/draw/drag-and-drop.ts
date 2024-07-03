@@ -25,18 +25,23 @@ export function addDragAndDrop(
 		d3
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			.drag<any, any>()
-			.on('drag', e => {
+			.on('drag', (e,d) => {
 				// Typing
 				const source = e.sourceEvent as MouseEvent;
 				const node = e.subject as GraphDataNode;
 
 				// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
-				const xt = node.x! + source.movementX * (1 / (drawSettings.transformation?.k ?? 1));
-				const yt = node.y! + source.movementY * (1 / (drawSettings.transformation?.k ?? 1));
+				const deltaX = source.movementX * (1 / ((drawSettings.transformation?.k ?? 1) * (d.level + 1)));
+				const deltaY = source.movementY * (1 / ((drawSettings.transformation?.k ?? 1) * (d.level + 1)));
+				const xt = node.x! + deltaX;
+				const yt = node.y! + deltaY;
 
 				// For now, we are not going to resize or move the parent node
 				// Hence, the coordinates should be clamped to a range
 				if (node.parent) {
+					// Increase parent size and move it if it's starting to move outside the boundary
+					node.parent.x! = notNaN(node.parent.x! + deltaX);
+					node.parent.y! = notNaN(node.parent.y! + deltaY);
 					node.x = clamp(
 						xt,
 						-0.5 * node.parent.width! + 0.5 * node.width!,
@@ -51,9 +56,8 @@ export function addDragAndDrop(
 					node.x = notNaN(xt);
 					node.y = notNaN(yt);
 				}
-
 				// Rerender nodes
-				updateNodePosition(node, svgElement);
+				updateNodePosition(node, deltaX, deltaY);
 
 				renderLinks(links, nodesDictionary, linkCanvas, drawSettings);
 			}),
