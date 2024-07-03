@@ -19,7 +19,7 @@
 	import RawDataInputer from './components/raw-data-inputer.svelte';
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
-	import InfoBox from '$ui/info-box.svelte'
+	import InfoBox from '$ui/info-box.svelte';
 
 	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
@@ -51,15 +51,13 @@
 	let svgElement: SVGElement | undefined = undefined;
 
 	let doReconvert = true;
-	let doRecreateWholeGraphData = true;
 	let doRefilter = true;
 	let doRedraw = true;
 	let doRelayout = true;
 
 	let isMounted = false;
-	
+
 	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
-		debuggingConsole('clicked');
 		// push if not exist
 		if (!config.collapsedNodes.includes(clickedNode)) {
 			config.collapsedNodes.push(clickedNode);
@@ -137,7 +135,7 @@
 	<!-- canvas -->
 	<div class="relative m-6 w-full">
 		<div class="absolute right-0 bottom-0">
-			<InfoBox/>
+			<InfoBox />
 		</div>
 		<svg bind:this={svgElement} class="w-full h-full" />
 	</div>
@@ -149,7 +147,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger bind:config bind:doRefilter bind:doReconvert />
+		<ConfigChanger bind:config bind:doRefilter bind:doReconvert bind:graphData/>
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>

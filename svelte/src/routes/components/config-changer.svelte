@@ -1,19 +1,18 @@
 <script lang="ts">
 	import Heading from '$ui/heading.svelte';
-	import type {ConfigInterface} from '$types';
+	import type {ConfigInterface, GraphData} from '$types';
 	import Button from '$ui/button.svelte';
-	let dependencyLiftTolarance: string;
 	export let config: ConfigInterface;
 	export let doRefilter: boolean;
-	export let doReconvert: boolean;
+	export let graphData: GraphData;
 
 	let filterTextAreaValue: string;
 	function parseFilterNode(texts: string): Set<string> {
-		if (texts === "" || texts === undefined) return new Set<string>();
+		if (texts === '' || texts === undefined) return new Set<string>();
 		const set = new Set<string>();
 		texts.split(',').forEach(text => {
-			set.add(text.trim())
-		})
+			set.add(text.trim());
+		});
 		return set;
 	}
 </script>
@@ -22,7 +21,11 @@
 	<Heading class="mt-2">Config Changer</Heading>
 	<div>
 		to collapse node, you can click on the red button <br />
-		to collapse node, click the green button. Tolerance:
+		to
+		<span class="text-blue-900 font-bold"> lift edge, </span>
+		click the green button.
+
+		<!-- Tolerance:
 		<input
 			type="input"
 			style="width: 2em; border: 1px solid black; margin: 0 0 10px 4px;"
@@ -32,7 +35,7 @@
 				dependencyLiftTolarance = String(num || 0);
 				config.dependencyTolerance = num || 0;
 			}}
-		/>
+		/> -->
 	</div>
 
 	<!-- Filter Node -->
@@ -53,6 +56,21 @@
 				/>
 				<Button type="submit">Filter</Button>
 			</form>
+		</div>
+	</div>
+	<!-- collapse all -->
+	<div>
+		<Heading headingNumber={5}>Collapse All</Heading>
+		<div class="my-2 px-2">
+			<Button
+				onClick={() => {
+					console.log('testing');
+					config.collapsedNodes = graphData.flattenNodes;
+					doRefilter = true;
+				}}
+			>
+				Collapse All
+			</Button>
 		</div>
 	</div>
 </div>
