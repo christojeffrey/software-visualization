@@ -151,7 +151,9 @@
 				<!-- remove level -->
 				<Button
 					onClick={() => {
+						// https://stackoverflow.com/questions/70962059/how-to-rerender-each-array-block-in-svelte-after-you-push-something-to-an-arr
 						drawSettings.nodeColors.splice(index, 1);
+						drawSettings.nodeColors = drawSettings.nodeColors;
 						doRedraw = true;
 					}}
 				>
@@ -163,6 +165,8 @@
 		<Button
 			onClick={() => {
 				drawSettings.nodeColors.push('#000000');
+				// https://stackoverflow.com/questions/70962059/how-to-rerender-each-array-block-in-svelte-after-you-push-something-to-an-arr
+				drawSettings.nodeColors = drawSettings.nodeColors;
 				doRedraw = true;
 			}}
 		>
