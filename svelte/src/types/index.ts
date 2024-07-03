@@ -8,6 +8,7 @@ export interface ConfigInterface {
 	dependencyTolerance: number;
 	collapsedNodes: GraphDataNode[];
 	filteredNodes: Set<string>;
+	nodeInFocus: GraphDataNode | null;
 }
 
 export interface DrawSettingsInterface {
@@ -90,7 +91,7 @@ export interface GraphData {
 	nodes: GraphDataNode[];
 	links: GraphDataEdge[];
 	originalNodes: GraphDataNode[];
-	renderedLinks: GraphDataEdge[]; 
+	renderedLinks: GraphDataEdge[];
 	flattenNodes: GraphDataNode[];
 	/** Dictionary containing references to all nodes, indexed by id */
 	nodesDict: {[id: string]: GraphDataNode};
@@ -118,9 +119,9 @@ export interface GraphDataEdge {
 	routing: EdgeRoutingPoint[];
 
 	/** Used for (temporarily) storing the direction of the rendering coordinates during edge rendering */
-	gradientDirection? : boolean;
+	gradientDirection?: boolean;
 	isGradientVertical?: boolean;
-	absoluteCoordinates?: {x: number; y: number} [];
+	absoluteCoordinates?: {x: number; y: number}[];
 	labelCoordinates?: {x: number; y: number}[];
 }
 
@@ -170,6 +171,8 @@ export interface GraphDataNode extends SimpleNode {
 	height?: number;
 	x?: number;
 	y?: number;
+
+	isInFocus?: boolean;
 }
 
 export interface infoBoxData {

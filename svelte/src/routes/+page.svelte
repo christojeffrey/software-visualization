@@ -20,6 +20,7 @@
 	import ConfigChanger from './components/config-changer.svelte';
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import InfoBox from '$ui/info-box.svelte';
+	import FocusControl from './components/focus-control.svelte';
 
 	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
@@ -29,13 +30,14 @@
 		dependencyLifting: [],
 		dependencyTolerance: 0,
 		filteredNodes: new Set<string>(),
+		nodeInFocus: null,
 	};
 	let graphData: GraphData;
 	let drawSettings: DrawSettingsInterface = {
-		minimumNodeSize: 50,
+		minimumNodeSize: 100,
 		buttonRadius: 5,
-		nodeCornerRadius: 5,
-		nodePadding: 5,
+		nodeCornerRadius: 15,
+		nodePadding: 25,
 		textSize: 10,
 		shownEdgesType: new Map<EdgeType, boolean>(),
 		showEdgeLabels: false,
@@ -57,6 +59,18 @@
 
 	let isMounted = false;
 
+	function handleOnNodeClick(clickedNode: GraphDataNode) {
+		debuggingConsole('clicked');
+		console.log(clickedNode);
+		config.nodeInFocus = clickedNode;
+		// set every other node to not in focus
+		graphData.flattenNodes.forEach(node => {
+			if (node !== clickedNode) {
+				node.isInFocus = false;
+			}
+		});
+		clickedNode.isInFocus = true;
+	}
 	function handleNodeCollapseClick(clickedNode: GraphDataNode) {
 		// push if not exist
 		if (!config.collapsedNodes.includes(clickedNode)) {
@@ -116,6 +130,7 @@
 					drawSettings,
 					handleNodeCollapseClick,
 					handleDependencyLiftClick,
+					handleOnNodeClick,
 				);
 				doRedraw = true;
 				doRelayout = false;
@@ -137,6 +152,28 @@
 		<div class="absolute right-0 bottom-0">
 			<InfoBox />
 		</div>
+		<!-- in focus box -->
+		<div class="absolute left-0 bottom-0 border-2 border-black rounded-xl p-12">
+			{#if config.nodeInFocus}
+				<div>
+					<h1 class="text-2xl">Node in Focus</h1>
+					<p>{config.nodeInFocus.id}</p>
+				</div>
+				<!-- actions -->
+				<div>
+					<FocusControl
+						bind:config
+						{handleNodeCollapseClick}
+						{handleDependencyLiftClick}
+						bind:doRefilter
+					/>
+				</div>
+
+				<!-- else -->
+			{:else}
+				<p>No node in focus</p>
+			{/if}
+		</div>
 		<svg bind:this={svgElement} class="w-full h-full" />
 	</div>
 
@@ -147,7 +184,7 @@
 	<div class="flex flex-col m-6">
 		<RawDataInputer bind:rawData bind:doReconvert />
 		<div class="bg-neutral-300 h-[1px]" />
-		<ConfigChanger bind:config bind:doRefilter bind:doReconvert bind:graphData/>
+		<ConfigChanger bind:config bind:doRefilter bind:graphData />
 		<div class="bg-neutral-300 h-[1px]" />
 		<DrawSettingsChanger bind:drawSettings bind:doRedraw bind:doRelayout />
 	</div>
