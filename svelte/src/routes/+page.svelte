@@ -80,6 +80,7 @@
 		}
 		// on finish
 		doRefilter = true;
+		// doRedraw = true;
 	}
 
 	function handleDependencyLiftClick(clickedNode: GraphDataNode): void {
@@ -153,26 +154,13 @@
 			<InfoBox />
 		</div>
 		<!-- in focus box -->
-		<div class="absolute left-0 bottom-0 border-2 border-black rounded-xl p-12">
-			{#if config.nodeInFocus}
-				<div>
-					<h1 class="text-2xl">Node in Focus</h1>
-					<p>{config.nodeInFocus.id}</p>
-				</div>
-				<!-- actions -->
-				<div>
-					<FocusControl
-						bind:config
-						{handleNodeCollapseClick}
-						{handleDependencyLiftClick}
-						bind:doRefilter
-					/>
-				</div>
-
-				<!-- else -->
-			{:else}
-				<p>No node in focus</p>
-			{/if}
+		<div class="absolute left-0 bottom-0 border-2 border-black rounded-xl p-4 bg-white">
+			<FocusControl
+				bind:config
+				{handleNodeCollapseClick}
+				{handleDependencyLiftClick}
+				bind:doRefilter
+			/>
 		</div>
 		<svg bind:this={svgElement} class="w-full h-full" />
 	</div>
