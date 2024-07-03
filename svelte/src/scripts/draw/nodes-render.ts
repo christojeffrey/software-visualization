@@ -28,7 +28,7 @@ export function addLiftCollapseButtons(
 		.attr('cx', d => -0.5 * d.width! + drawSettings.buttonRadius + drawSettings.nodePadding / 2)
 		.attr('cy', d => -0.5 * d.height! + drawSettings.buttonRadius + drawSettings.nodePadding / 2)
 		.attr('fill', 'red')
-		.attr('fill-opacity', '0.1')
+		.attr('fill-opacity', '0.5')
 		.on('click', (_e, i) => onCollapse(i));
 
 	container
@@ -41,7 +41,7 @@ export function addLiftCollapseButtons(
 			d => -0.5 * d.height! + 3 * drawSettings.buttonRadius + (2 * drawSettings.nodePadding) / 2,
 		)
 		.attr('fill', 'blue')
-		.attr('fill-opacity', '0.1')
+		.attr('fill-opacity', '0.5')
 		.on('click', (_e, i) => onLift(i));
 }
 /**
@@ -125,14 +125,17 @@ export function renderNodes(
 		.attr('width', n => n.width!)
 		.attr('height', n => n.height!)
 		.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
-		.attr('fill-opacity', '0.1')
+		.attr('fill-opacity', '0.3')
 		// border
-		.attr('stroke', n => (n.isInFocus ? 'red' : 'black'))
+		.attr('stroke', n =>
+			n.isInFocus ? 'red' : drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor,
+		)
+		.attr('stroke-width', n => (n.isInFocus ? '3' : '1'))
 		// stroke opacity
-		.attr('stroke-opacity', '0.5')
+		.attr('stroke-opacity', '1')
 		.attr('rx', drawSettings.nodeCornerRadius)
 		.on('mouseover', function (event, data) {
-			d3.select(this).attr('fill-opacity', '0.2');
+			d3.select(this).attr('fill-opacity', '0.5');
 			data.outgoingLinks.forEach(link => {
 				d3.select(`#line-${toHTMLToken(link.id)}`).style(
 					'stroke-width',
@@ -151,7 +154,7 @@ export function renderNodes(
 			renderInfoBox(data, drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor);
 		})
 		.on('mouseout', function (event, data) {
-			d3.select(this).attr('fill-opacity', '0.1');
+			d3.select(this).attr('fill-opacity', '0.3');
 			data.outgoingLinks.forEach(link => {
 				d3.select(`#line-${toHTMLToken(link.id)}`).style(
 					'stroke-width',

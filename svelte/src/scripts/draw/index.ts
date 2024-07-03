@@ -78,38 +78,46 @@ export function draw(
 	// Create canvas to contain all elements, so we can transform it for zooming etc.
 	const canvas = d3.select(svgElement).append('g').attr('id', 'canvas');
 	const canvasElement = document.getElementById('canvas')!;
+
 	// Add zoom handler
-	d3.select(svgElement).call(
-		d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
-			canvas.attr('transform', transform);
-			drawSettings.transformation = transform;
-		}),
-	);
-	// // handle scroll
 	// d3.select(svgElement).call(
-	// 	d3.zoom<SVGElement, unknown>().on('zoom', e => {
-	// 		// Typing
-	// 		const source = e.sourceEvent as MouseEvent;
-
-	// 		// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
-	// 		// propagate the event to the zoom handler
-	// 		const newX = (drawSettings.transformation?.x ?? 0) + source.movementX;
-	// 		const newY = (drawSettings.transformation?.y ?? 0) + source.movementY;
-
-	// 		const {transform} = e;
-	// 		const newK = transform.k;
-	// 		const newTransform = {
-	// 			k: newK,
-	// 			x: newX,
-	// 			y: newY,
-	// 		};
-	// 		canvas.attr(
-	// 			'transform',
-	// 			'translate(' + newTransform.x + ',' + newTransform.y + ') scale(' + newTransform.k + ')',
-	// 		);
-	// 		drawSettings.transformation = newTransform;
+	// 	d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
+	// 		canvas.attr('transform', transform);
+	// 		drawSettings.transformation = transform;
 	// 	}),
 	// );
+	d3.select(svgElement).call(
+		d3.zoom<SVGElement, unknown>().on('zoom', e => {
+			let newK = drawSettings.transformation?.k ?? 1;
+			let newX = drawSettings.transformation?.x ?? 0;
+			let newY = drawSettings.transformation?.y ?? 0;
+
+			if (e.sourceEvent.type === 'wheel') {
+				const source = e.sourceEvent as WheelEvent;
+
+				// // slow down the zoom
+				const factor = -0.001;
+				newK = newK * (1 + source.deltaY * factor);
+			} else {
+				const source = e.sourceEvent as MouseEvent;
+
+				// propagate the event to the zoom handler
+				newX = newX + source.movementX;
+				newY = newY + source.movementY;
+			}
+
+			const newTransform = {
+				k: newK,
+				x: newX,
+				y: newY,
+			};
+			drawSettings.transformation = newTransform;
+			canvas.attr(
+				'transform',
+				`translate(${newTransform.x}, ${newTransform.y}) scale(${newTransform.k})`,
+			);
+		}),
+	);
 
 	//Reload last transformation, if available
 	if (drawSettings.transformation) {

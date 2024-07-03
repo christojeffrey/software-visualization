@@ -148,6 +148,7 @@
 		// change mouse cursor to panning mode when space is pressed
 		window?.addEventListener('keydown', e => {
 			if (e.code === 'Space') {
+				if (drawSettings.isPanning) return;
 				svgElement?.classList.add('cursor-grab');
 				drawSettings.isPanning = true;
 			}
