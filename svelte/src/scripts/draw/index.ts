@@ -20,6 +20,7 @@ export function draw(
 	drawSettings: DrawSettingsInterface,
 	onCollapse: (datum: GraphDataNode) => void,
 	onLift: (datum: GraphDataNode) => void,
+	OnNodeClick: (datum: GraphDataNode) => void,
 ) {
 	// CALCULATE LAYOUT
 	// Transform graphData, split the nodes according to which layout-algorithm we are going to use.
@@ -56,15 +57,9 @@ export function draw(
 		layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); // Todo this is weird
 	} catch (e) {
 		// Force the graph to be re calculated using another layout first, because the current layout failed (should be impossible).
-		innerNodes.forEach(n =>
-			circularLayout(drawSettings, n.members, n),
-		);
-		intermediateNodes.forEach(n =>
-			circularLayout(drawSettings, n.members, n),
-		);
-		rootNodes.forEach(n =>
-			circularLayout(drawSettings, n.members, n),
-		);
+		innerNodes.forEach(n => circularLayout(drawSettings, n.members, n));
+		intermediateNodes.forEach(n => circularLayout(drawSettings, n.members, n));
+		rootNodes.forEach(n => circularLayout(drawSettings, n.members, n));
 		circularLayout(drawSettings, rootNodes);
 	} finally {
 		innerNodes.forEach(n =>
@@ -76,7 +71,7 @@ export function draw(
 		rootNodes.forEach(n =>
 			layoutOptionToFunction[drawSettings.intermediateLayout](drawSettings, n.members, n),
 		);
-		layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes); 
+		layoutOptionToFunction[drawSettings.rootLayout](drawSettings, rootNodes);
 	}
 
 	// ZOOM HANDLING
@@ -85,10 +80,42 @@ export function draw(
 	const canvasElement = document.getElementById('canvas')!;
 
 	// Add zoom handler
+	// d3.select(svgElement).call(
+	// 	d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
+	// 		canvas.attr('transform', transform);
+	// 		drawSettings.transformation = transform;
+	// 	}),
+	// );
 	d3.select(svgElement).call(
-		d3.zoom<SVGElement, unknown>().on('zoom', ({transform}) => {
-			canvas.attr('transform', transform);
-			drawSettings.transformation = transform;
+		d3.zoom<SVGElement, unknown>().on('zoom', e => {
+			let newK = drawSettings.transformation?.k ?? 1;
+			let newX = drawSettings.transformation?.x ?? 0;
+			let newY = drawSettings.transformation?.y ?? 0;
+
+			if (e.sourceEvent.type === 'wheel') {
+				const source = e.sourceEvent as WheelEvent;
+
+				// // slow down the zoom
+				const factor = -0.001;
+				newK = newK * (1 + source.deltaY * factor);
+			} else {
+				const source = e.sourceEvent as MouseEvent;
+
+				// propagate the event to the zoom handler
+				newX = newX + source.movementX;
+				newY = newY + source.movementY;
+			}
+
+			const newTransform = {
+				k: newK,
+				x: newX,
+				y: newY,
+			};
+			drawSettings.transformation = newTransform;
+			canvas.attr(
+				'transform',
+				`translate(${newTransform.x}, ${newTransform.y}) scale(${newTransform.k})`,
+			);
 		}),
 	);
 
@@ -101,25 +128,29 @@ export function draw(
 	}
 
 	// Render links
-
 	const linkCanvas = d3.select(canvasElement).append('g').attr('id', 'link-canvas');
 	setupGradient(linkCanvas);
-
 	// DRAG AND DROP
 
 	/** Callback to rerender with new drawSettings, to prevent unnecessary rerenders
 	 * TODO actually use this somewhere
 	 */
 
+	d3.select(canvasElement).append('g').attr('id', 'node-canvas');
+	const nodeCanvasElement = document.getElementById('node-canvas')!;
+
 	function rerender(drawSettings: DrawSettingsInterface) {
-		renderNodes(rootNodes, canvasElement, drawSettings);
-		renderNodeLabels(canvasElement, drawSettings);
-		addLiftCollapseButtons(canvasElement, drawSettings, onCollapse, onLift);
+		// remove all elements
+		d3.select(nodeCanvasElement).selectAll('*').remove();
+
+		renderNodes(rootNodes, nodeCanvasElement, drawSettings, OnNodeClick);
+		renderNodeLabels(nodeCanvasElement, drawSettings);
+		addLiftCollapseButtons(nodeCanvasElement, drawSettings, onCollapse, onLift);
 		addDragAndDrop(
 			graphData.renderedLinks,
 			rootNodes,
 			graphData.nodesDict,
-			canvasElement,
+			nodeCanvasElement,
 			linkCanvas,
 			drawSettings,
 		);

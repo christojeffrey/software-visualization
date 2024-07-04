@@ -20,6 +20,9 @@ export function addDragAndDrop(
 	if (nodes.length === 0) return;
 
 	const container = d3.select(svgElement).selectAll(':scope > g.nodes');
+	// canvas has id 'canvas'
+	const canvasElement = document.getElementById('canvas')!;
+	const canvas = d3.select(canvasElement);
 
 	container.call(
 		d3
@@ -33,7 +36,32 @@ export function addDragAndDrop(
 				// Calculate node movement, keeping the transformation (specifically the scaling) in mind.
 				const xt = node.x! + source.movementX * (1 / (drawSettings.transformation?.k ?? 1));
 				const yt = node.y! + source.movementY * (1 / (drawSettings.transformation?.k ?? 1));
+				if (drawSettings.isPanning) {
+					// propagate the event to the zoom handler
+					const newX = (drawSettings.transformation?.x ?? 0) + source.movementX;
+					const newY = (drawSettings.transformation?.y ?? 0) + source.movementY;
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const newTransform: any = {
+						k: drawSettings.transformation?.k || 1,
+						x: newX,
+						y: newY,
+					};
 
+					canvas.attr(
+						'transform',
+						'translate(' +
+							newTransform.x +
+							',' +
+							newTransform.y +
+							') scale(' +
+							newTransform.k +
+							')',
+					);
+
+					drawSettings.transformation = newTransform;
+
+					return;
+				}
 				// For now, we are not going to resize or move the parent node
 				// Hence, the coordinates should be clamped to a range
 				if (node.parent) {
