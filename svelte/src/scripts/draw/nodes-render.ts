@@ -125,7 +125,7 @@ export function renderNodes(
 		.attr('width', n => n.width!)
 		.attr('height', n => n.height!)
 		.attr('fill', drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor)
-		.attr('fill-opacity', '0.3')
+		.attr('fill-opacity', '0.1')
 		// border
 		.attr('stroke', n =>
 			n.isInFocus ? 'red' : drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor,
@@ -135,7 +135,7 @@ export function renderNodes(
 		.attr('stroke-opacity', '1')
 		.attr('rx', drawSettings.nodeCornerRadius)
 		.on('mouseover', function (event, data) {
-			d3.select(this).attr('fill-opacity', '0.5');
+			d3.select(this).attr('fill-opacity', '0.2');
 			data.outgoingLinks.forEach(link => {
 				d3.select(`#line-${toHTMLToken(link.id)}`).style(
 					'stroke-width',
@@ -154,7 +154,7 @@ export function renderNodes(
 			renderInfoBox(data, drawSettings.nodeColors[level] ?? drawSettings.nodeDefaultColor);
 		})
 		.on('mouseout', function (event, data) {
-			d3.select(this).attr('fill-opacity', '0.3');
+			d3.select(this).attr('fill-opacity', '0.1');
 			data.outgoingLinks.forEach(link => {
 				d3.select(`#line-${toHTMLToken(link.id)}`).style(
 					'stroke-width',

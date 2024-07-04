@@ -21,6 +21,7 @@
 	import DrawSettingsChanger from './components/draw-settings-changer.svelte';
 	import InfoBox from '$ui/info-box.svelte';
 	import FocusControl from './components/focus-control.svelte';
+	import * as d3 from 'd3';
 
 	let redrawFunction = (_: DrawSettingsInterface) => {};
 	let rawData: RawInputType;
@@ -101,6 +102,13 @@
 		// on finish
 		doRefilter = true;
 	}
+	function doRecenter() {
+		// recenter view, reset tranform
+		const canvasElement = document.getElementById('canvas')!;
+		const canvas = d3.select(canvasElement);
+		canvas.attr('transform', `translate(0,0) scale(1)`);
+		drawSettings.transformation = d3.zoomIdentity;
+	}
 	$: {
 		if (isMounted) {
 			// handle config changes
@@ -168,6 +176,10 @@
 	<div class="relative m-6 w-full">
 		<div class="absolute right-0 bottom-0">
 			<InfoBox />
+		</div>
+		<div class="top-0 left-0">
+			<!-- recenter -->
+			<button on:click={doRecenter}>Recenter</button>
 		</div>
 		<!-- in focus box -->
 		<div class="absolute left-0 bottom-0 border-2 border-black rounded-xl p-4 bg-white">
