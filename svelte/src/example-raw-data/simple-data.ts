@@ -21,7 +21,7 @@ export const simpleData: RawInputType = {
 						simpleName: 'a',
 						kind: 'class',
 						description: 'class a',
-						rs: 'Service Provider'
+						rs: 'Service Provider',
 					},
 					labels: ['Structure'],
 				},
@@ -63,7 +63,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'appl',
 						kind: 'packages',
-						rs: 'Information Holder'
+						rs: 'Information Holder',
 					},
 					labels: ['Container'],
 				},
@@ -75,16 +75,56 @@ export const simpleData: RawInputType = {
 						simpleName: 'db',
 						kind: 'packages',
 						description: 'the database package',
-						rs: 'Information Holder'
+						rs: 'Information Holder',
 					},
 					labels: ['Container'],
 				},
 			},
 			{
 				data: {
-					id: 'subMain',
+					id: 'subMain-1',
 					properties: {
-						simpleName: 'subMain',
+						simpleName: 'subMain-1',
+						kind: 'packages',
+					},
+					labels: ['Structure'],
+				},
+			},
+			{
+				data: {
+					id: 'subMain-2',
+					properties: {
+						simpleName: 'subMain-2',
+						kind: 'packages',
+					},
+					labels: ['Structure'],
+				},
+			},
+			{
+				data: {
+					id: 'subMain-3',
+					properties: {
+						simpleName: 'subMain-3',
+						kind: 'packages',
+					},
+					labels: ['Structure'],
+				},
+			},
+			{
+				data: {
+					id: 'subMain-4',
+					properties: {
+						simpleName: 'subMain-4',
+						kind: 'packages',
+					},
+					labels: ['Structure'],
+				},
+			},
+			{
+				data: {
+					id: 'subMain-5',
+					properties: {
+						simpleName: 'subMain-5',
 						kind: 'packages',
 					},
 					labels: ['Structure'],
@@ -96,7 +136,7 @@ export const simpleData: RawInputType = {
 					properties: {
 						simpleName: 'lib',
 						kind: 'packages',
-						rs: 'Service Provider'
+						rs: 'Service Provider',
 					},
 					labels: ['Container'],
 				},
@@ -120,50 +160,6 @@ export const simpleData: RawInputType = {
 					source: 'main',
 					label: 'calls',
 					target: 'b',
-					properties: {
-						weight: 50,
-					},
-				},
-			},
-			{
-				data: {
-					id: 'three',
-					source: 'a',
-					label: 'calls',
-					target: 'b',
-					properties: {
-						weight: 50,
-					},
-				},
-			},
-			{
-				data: {
-					id: 'four',
-					source: 'a',
-					label: 'calls',
-					target: 'c',
-					properties: {
-						weight: 1,
-					},
-				},
-			},
-			{
-				data: {
-					id: 'five',
-					source: 'a',
-					label: 'calls',
-					target: 'd',
-					properties: {
-						weight: 1,
-					},
-				},
-			},
-			{
-				data: {
-					id: 'six',
-					source: 'b',
-					label: 'calls',
-					target: 'd',
 					properties: {
 						weight: 1,
 					},
@@ -229,7 +225,7 @@ export const simpleData: RawInputType = {
 					id: 'twelve',
 					source: 'main',
 					label: 'contains',
-					target: 'subMain',
+					target: 'subMain-1',
 					properties: {
 						weight: 20,
 					},
@@ -238,7 +234,7 @@ export const simpleData: RawInputType = {
 			{
 				data: {
 					id: 'thirteen',
-					source: 'subMain',
+					source: 'subMain-1',
 					label: 'calls',
 					target: 'db',
 					properties: {
@@ -249,11 +245,121 @@ export const simpleData: RawInputType = {
 			{
 				data: {
 					id: 'fourteen',
-					source: 'subMain',
+					source: 'subMain-1',
 					label: 'accesses',
-					target: 'db',
+					target: 'lib',
 					properties: {
 						weight: 200,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'fifteen',
+					source: 'main',
+					label: 'contains',
+					target: 'subMain-2',
+					properties: {
+						weight: 20,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'sixteen',
+					source: 'main',
+					label: 'contains',
+					target: 'subMain-3',
+					properties: {
+						weight: 20,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'seventeen',
+					source: 'main',
+					label: 'contains',
+					target: 'subMain-4',
+					properties: {
+						weight: 20,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'eighteen',
+					source: 'main',
+					label: 'contains',
+					target: 'subMain-5',
+					properties: {
+						weight: 20,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'nineteen',
+					source: 'subMain-1',
+					label: 'constructs',
+					target: 'subMain-3',
+					properties: {
+						weight: 1,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'twenty',
+					source: 'subMain-2',
+					label: 'holds',
+					target: 'subMain-3',
+					properties: {
+						weight: 1,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'twenty one',
+					source: 'subMain-3',
+					label: 'accepts',
+					target: 'subMain-4',
+					properties: {
+						weight: 1,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'twenty two',
+					source: 'subMain-4',
+					label: 'specializes',
+					target: 'subMain-5',
+					properties: {
+						weight: 1,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'twenty three',
+					source: 'subMain-5',
+					label: 'returns',
+					target: 'subMain-1',
+					properties: {
+						weight: 1,
+					},
+				},
+			},
+			{
+				data: {
+					id: 'twenty four',
+					source: 'subMain-2',
+					label: 'calls',
+					target: 'b',
+					properties: {
+						weight:50,
 					},
 				},
 			},
